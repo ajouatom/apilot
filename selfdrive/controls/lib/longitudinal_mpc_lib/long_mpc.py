@@ -402,7 +402,7 @@ class LongitudinalMpc:
             self.xstate = "E2E_STOP"
             self.onStopping = True
             #self.t_follow = 3.5
-            self.comfort_brake = 1.2
+            #self.comfort_brake = 1.2
             if self.gasPressed:
               self.xstate = "E2E_START"
               self.onStopping = False
@@ -422,11 +422,13 @@ class LongitudinalMpc:
           #self.t_follow = 3.5
           if v_ego*CV.MS_TO_KPH < 80.0:
             if probe > 0.1:
-              self.comfort_brake = 1.5
+              #self.comfort_brake = 1.5
               #self.t_follow = 4.0
+              pass
             else:
-              self.comfort_brake = 2.3
+              #self.comfort_brake = 2.3
               #self.t_follow = 3.5
+              pass
           if v_ego*CV.MS_TO_KPH > 20.0:
             self.gasPressed = False
           self.brakePressed = False
@@ -460,7 +462,8 @@ class LongitudinalMpc:
         if cruise_obstacle[0] < min_x:  #이거 없으면 속도가 증가할 수 있음.
           x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
         else:
-          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, stopline])
+          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, x2])
+          #x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, stopline])
       elif self.xstate == "E2E_CRUISE":
         if cruise_obstacle[0] < min_x: #이거 없으면 속도가 증가할 수 있음.
           x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
