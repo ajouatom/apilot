@@ -116,14 +116,6 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
     scene.road_edge_stds[i] = road_edge_stds[i];
     update_line_data(s, road_edges[i], 0.025, 0, &scene.road_edge_vertices[i], max_idx);
   }
-  // update stop lines
-  if (1) {//scene.stop_line) {
-    const auto stop_line = model.getStopLine();
-    if (stop_line.getProb() > .1) {
-      update_stop_line_data(s, stop_line, .5, 2, 1.22, &scene.stop_line_vertices);
-    }
-  }
-}
 
   // update path
   auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
@@ -133,6 +125,14 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   }
   max_idx = get_path_length_idx(model_position, max_distance);
   update_line_data(s, model_position, 0.9, 1.22, &scene.track_vertices, max_idx, false);
+
+  // update stop lines
+  if (1) {//scene.stop_line) {
+    const auto stop_line = model.getStopLine();
+    if (stop_line.getProb() > .1) {
+      update_stop_line_data(s, stop_line, .5, 2, 1.22, &scene.stop_line_vertices);
+    }
+  }
 }
 
 static void update_sockets(UIState *s) {
