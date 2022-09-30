@@ -266,7 +266,9 @@ class CruiseHelper:
           #설정속도를 주행속도도 변경함.. (파라미터화?)
           controls.v_cruise_kph = vEgo_cruise_kph + 4.0
           if self.preGasPressed == False:
-            if controls.v_cruise_kph < 30:
+            if self.roadLimitSpeed > 0.0 and controls.v_cruise_kph < self.roadLimitSpeed:
+              controls.v_cruise_kph = self.roadLimitSpeed
+            elif controls.v_cruise_kph < 30:
               controls.v_cruise_kph = 30
             elif controls.v_cruise_kph < 50:
               controls.v_cruise_kph = 50
@@ -298,11 +300,11 @@ class CruiseHelper:
           #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
           if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist <  dRel < 100 :
             self.cruise_resume(controls, CS)
-            controls.v_cruise_kph = vEgo_cruise_kph + 1.0
+            #controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
           # 60km/h 이하.. 직선도로 곡선 5M이내, 150M이내 정지선, 자동E2E모드 전환.
-          elif v_ego_kph <= 60.0 and self.position_x < 100.0 and abs(self.position_y) < 2.0:
-            controls.v_cruise_kph = vEgo_cruise_kph + 1.0
+          elif v_ego_kph <= 60.0 and self.position_x < 100.0 and abs(self.position_y) < 3.0:
+            #controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
             #if controls.v_cruise_kph > 30.0:
             #  controls.v_cruise_kph = 30.0

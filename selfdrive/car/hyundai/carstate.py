@@ -363,7 +363,6 @@ class CarState(CarStateBase):
 
     if CP.carFingerprint in FEATURES["use_cluster_gears"]:
       signals.append(("CF_Clu_Gear", "CLU15"))
-      checks.append(("CLU15", 5))
     elif CP.carFingerprint in FEATURES["use_tcu_gears"]:
       signals.append(("CUR_GR", "TCU12"))
       checks.append(("TCU12", 100))

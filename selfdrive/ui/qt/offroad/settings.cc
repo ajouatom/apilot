@@ -458,11 +458,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   QList<ParamControl*> toggles;
 
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_OBSTACLE_COST(3)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
-  toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
-  toggleLayout->addWidget(horizontal_line());
+  //toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_OBSTACLE_COST(3)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+  //toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+  //toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
+  //toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
+  //toggleLayout->addWidget(horizontal_line());
 
   toggles.append(new ParamControl("LaneChangeEnabled",
                                             tr("Enable Lane Change Assist"),

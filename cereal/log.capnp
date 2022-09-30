@@ -137,6 +137,7 @@ struct FrameData {
   gain @15 :Float32; # This includes highConversionGain if enabled
   measuredGreyFraction @21 :Float32;
   targetGreyFraction @22 :Float32;
+  exposureValPercent @27 :Float32;
 
   # Focus
   lensPos @11 :Int32;
@@ -948,12 +949,8 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
 
   solverExecutionTime @35 :Float32;
 
-  # desired xs over next 2.5 s
-  xs @36 :List(Float32);
-  zs @37 :List(Float32);
-
-  debugText @38 : Text;
-  debugLong @39 : Int32;
+  debugText @36 : Text;
+  debugLong @37 : Int32;
   enum LongitudinalPlanSource {
     cruise @0;
     lead0 @1;
@@ -1017,9 +1014,6 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   curvatureRates @28 :List(Float32);
 
   solverExecutionTime @30 :Float32;
-
-  # desired y positions over next 2.5s in m
-  ys @32 :List(Float32);
 
   enum Desire {
     none @0;
@@ -2003,7 +1997,13 @@ struct Event {
     gpsNMEA @3 :GPSNMEAData;
     can @5 :List(CanData);
     controlsState @7 :ControlsState;
-    sensorEvents @11 :List(SensorEventData);
+    gyroscope @99 :SensorEventData;
+    gyroscope2 @100 :SensorEventData;
+    accelerometer @98 :SensorEventData;
+    accelerometer2 @101 :SensorEventData;
+    magnetometer @95 :SensorEventData;
+    lightSensor @96 :SensorEventData;
+    temperatureSensor @97 :SensorEventData;
     pandaStates @81 :List(PandaState);
     peripheralState @80 :PeripheralState;
     radarState @13 :RadarState;
@@ -2059,7 +2059,7 @@ struct Event {
     userFlag @93 :UserFlag;
     
     # neokii
-    roadLimitSpeed @95 :RoadLimitSpeed;
+    roadLimitSpeed @102 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;
@@ -2105,5 +2105,6 @@ struct Event {
     uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
     pandaStateDEPRECATED @12 :PandaState;
     driverStateDEPRECATED @59 :DriverStateDEPRECATED;
+    sensorEventsDEPRECATED @11 :List(SensorEventData);
   }
 }
