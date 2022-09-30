@@ -4,10 +4,9 @@
 #include "common/mat.h"
 #include "system/hardware/hw.h"
 
-const int  TRAJECTORY_SIZE = 33;
+const int TRAJECTORY_SIZE = 33;
 const int LAT_MPC_N = 16;
 const int LON_MPC_N = 32;
-const int CONTROL_N = 17;
 const float MIN_DRAW_DISTANCE = 10.0;
 const float MAX_DRAW_DISTANCE = 100.0;
 

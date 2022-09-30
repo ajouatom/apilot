@@ -414,21 +414,23 @@ class IsoTpMessage():
       msg = (struct.pack("!H", 0x1000 | self.tx_len) + self.tx_dat[:self.max_len - 2]).ljust(self.max_len - 2, b"\x00")
     self._can_client.send([msg])
 
-  def recv(self, timeout=None) -> Optional[bytes]:
+  def recv(self, timeout=None) -> Tuple[Optional[bytes], bool]:
     if timeout is None:
       timeout = self.timeout
 
     start_time = time.monotonic()
+    updated = False
     try:
       while True:
         for msg in self._can_client.recv():
           self._isotp_rx_next(msg)
           start_time = time.monotonic()
+          updated = True
           if self.tx_done and self.rx_done:
-            return self.rx_dat
+            return self.rx_dat, updated
         # no timeout indicates non-blocking
         if timeout == 0:
-          return None
+          return None, updated
         if time.monotonic() - start_time > timeout:
           raise MessageTimeoutError("timeout waiting for response")
     finally:
@@ -456,8 +458,8 @@ class IsoTpMessage():
         print(f"ISO-TP: RX - first frame - {hex(self._can_client.rx_addr)} idx={self.rx_idx} done={self.rx_done}")
       if self.debug:
         print(f"ISO-TP: TX - flow control continue - {hex(self._can_client.tx_addr)}")
-      # send flow control message (send all bytes)
-      msg = b"\x30\x00\x00".ljust(self.max_len, b"\x00")
+      # send flow control message (send all bytes) with a separation time of 10 ms
+      msg = b"\x30\x00\x0a".ljust(self.max_len, b"\x00")
       self._can_client.send([msg])
       return
 
@@ -553,7 +555,7 @@ class UdsClient():
     response_pending = False
     while True:
       timeout = self.response_pending_timeout if response_pending else self.timeout
-      resp = isotp_msg.recv(timeout)
+      resp, _ = isotp_msg.recv(timeout)
 
       if resp is None:
         continue

@@ -57,10 +57,9 @@ static void update_leads(UIState *s, const cereal::RadarState::Reader &radar_sta
   }
 }
 
-static void update_line_data(const UIState *s, const ::capnp::List<float, ::capnp::Kind::PRIMITIVE>::Reader &line_x,
-                             const ::capnp::List<float, ::capnp::Kind::PRIMITIVE>::Reader &line_y,
-                             const ::capnp::List<float, ::capnp::Kind::PRIMITIVE>::Reader &line_z,
+static void update_line_data(const UIState *s, const cereal::ModelDataV2::XYZTData::Reader &line,
                              float y_off, float z_off, QPolygonF *pvd, int max_idx, bool allow_invert=true) {
+  const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
 
   QPolygonF left_points, right_points;
   left_points.reserve(max_idx + 1);
@@ -107,7 +106,7 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   int max_idx = get_path_length_idx(lane_lines[0], max_distance);
   for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
     scene.lane_line_probs[i] = lane_line_probs[i];
-    update_line_data(s, lane_lines[i].getX(), lane_lines[i].getY(), lane_lines[i].getZ(), 0.025 * scene.lane_line_probs[i], 0, &scene.lane_line_vertices[i], max_idx);
+    update_line_data(s, lane_lines[i], 0.025 * scene.lane_line_probs[i], 0, &scene.lane_line_vertices[i], max_idx);
   }
 
   // update road edges
@@ -115,7 +114,7 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   const auto road_edge_stds = model.getRoadEdgeStds();
   for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
     scene.road_edge_stds[i] = road_edge_stds[i];
-    update_line_data(s, road_edges[i].getX(),road_edges[i].getY() , road_edges[i].getZ(), 0.025, 0, &scene.road_edge_vertices[i], max_idx);
+    update_line_data(s, road_edges[i], 0.025, 0, &scene.road_edge_vertices[i], max_idx);
   }
   // update stop lines
   if (1) {//scene.stop_line) {
@@ -126,16 +125,14 @@ static void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   }
 }
 
-static void update_plan(UIState *s) {
   // update path
-  const auto plan_y = (*s->sm)["lateralPlan"].getLateralPlan().getYs();
-  const auto plan_x = (*s->sm)["longitudinalPlan"].getLongitudinalPlan().getXs();
-  const auto plan_z = (*s->sm)["longitudinalPlan"].getLongitudinalPlan().getZs();
-
-  if (plan_y.size() == CONTROL_N && plan_x.size() == CONTROL_N && plan_z.size() == CONTROL_N) {
-    UIScene &scene = s->scene;
-    update_line_data(s, plan_x, plan_y, plan_z , 0.9, 1.22, &scene.track_vertices, CONTROL_N - 1, false);
+  auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
+  if (lead_one.getStatus()) {
+    const float lead_d = lead_one.getDRel() * 2.;
+    max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
+  max_idx = get_path_length_idx(model_position, max_distance);
+  update_line_data(s, model_position, 0.9, 1.22, &scene.track_vertices, max_idx, false);
 }
 
 static void update_sockets(UIState *s) {
@@ -167,9 +164,6 @@ static void update_state(UIState *s) {
     if (sm.updated("modelV2")) {
       update_model(s, sm["modelV2"].getModelV2());
     }
-    if (sm.updated("longitudinalPlan")) {
-      update_plan(s);
-    }
     if (sm.updated("radarState") && sm.rcv_frame("modelV2") > s->scene.started_frame) {
       update_leads(s, sm["radarState"].getRadarState(), sm["modelV2"].getModelV2().getPosition());
     }
@@ -192,31 +186,8 @@ static void update_state(UIState *s) {
   if (sm.updated("carParams")) {
     scene.longitudinal_control = sm["carParams"].getCarParams().getOpenpilotLongitudinalControl();
   }
-  if (!scene.started && sm.updated("sensorEvents")) {
-    for (auto sensor : sm["sensorEvents"].getSensorEvents()) {
-      if (sensor.which() == cereal::SensorEventData::ACCELERATION) {
-        auto accel = sensor.getAcceleration().getV();
-        if (accel.totalSize().wordCount) { // TODO: sometimes empty lists are received. Figure out why
-          scene.accel_sensor = accel[2];
-        }
-      } else if (sensor.which() == cereal::SensorEventData::GYRO_UNCALIBRATED) {
-        auto gyro = sensor.getGyroUncalibrated().getV();
-        if (gyro.totalSize().wordCount) {
-          scene.gyro_sensor = gyro[1];
-        }
-      }
-    }
-  }
   if (sm.updated("wideRoadCameraState")) {
-    auto camera_state = sm["wideRoadCameraState"].getWideRoadCameraState();
-
-    float max_lines = 1618;
-    float max_gain = 10.0;
-    float max_ev = max_lines * max_gain / 6;
-
-    float ev = camera_state.getGain() * float(camera_state.getIntegLines());
-
-    scene.light_sensor = std::clamp<float>(1.0 - (ev / max_ev), 0.0, 1.0);
+    scene.light_sensor = 100.0f - sm["wideRoadCameraState"].getWideRoadCameraState().getExposureValPercent();
   }
   scene.started = sm["deviceState"].getDeviceState().getStarted() && scene.ignition;
 }
@@ -261,7 +232,7 @@ void UIState::updateStatus() {
 UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
-    "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
+    "pandaStates", "carParams", "driverMonitoringState", "carState", "liveLocationKalman",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "gnssMeasurements", "lateralPlan", "longitudinalPlan",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
   });
@@ -319,8 +290,7 @@ void Device::resetInteractiveTimout() {
 void Device::updateBrightness(const UIState &s) {
   float clipped_brightness = BACKLIGHT_OFFROAD;
   if (s.scene.started) {
-    // Scale to 0% to 100%
-    clipped_brightness = 100.0 * s.scene.light_sensor;
+    clipped_brightness = s.scene.light_sensor;
 
     // CIE 1931 - https://www.photonstophotos.net/GeneralTopics/Exposure/Psychometric_Lightness_and_Gamma.htm
     if (clipped_brightness <= 8) {
@@ -346,24 +316,11 @@ void Device::updateBrightness(const UIState &s) {
   }
 }
 
-bool Device::motionTriggered(const UIState &s) {
-  static float accel_prev = 0;
-  static float gyro_prev = 0;
-
-  bool accel_trigger = abs(s.scene.accel_sensor - accel_prev) > 0.2;
-  bool gyro_trigger = abs(s.scene.gyro_sensor - gyro_prev) > 0.15;
-
-  gyro_prev = s.scene.gyro_sensor;
-  accel_prev = (accel_prev * (accel_samples - 1) + s.scene.accel_sensor) / accel_samples;
-
-  return (!awake && accel_trigger && gyro_trigger);
-}
-
 void Device::updateWakefulness(const UIState &s) {
   bool ignition_just_turned_off = !s.scene.ignition && ignition_on;
   ignition_on = s.scene.ignition;
 
-  if (ignition_just_turned_off || motionTriggered(s)) {
+  if (ignition_just_turned_off) {
     resetInteractiveTimout();
   } else if (interactive_timeout > 0 && --interactive_timeout == 0) {
     emit interactiveTimout();
