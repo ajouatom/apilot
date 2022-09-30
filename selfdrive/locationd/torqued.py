@@ -13,6 +13,7 @@ from common.filter_simple import FirstOrderFilter
 from system.swaglog import cloudlog
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
 from selfdrive.car.toyota.values import CAR as TOYOTA
+from selfdrive.car.hyundai.values import CAR as HYUNDAI
 
 HISTORY = 5  # secs
 POINTS_PER_BUCKET = 1500
