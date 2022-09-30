@@ -221,10 +221,6 @@ class LongitudinalMpc:
     self.onStopping = False
     self.debugText = ""
     self.debugLong = 0
-    self.XEgoObstacleCost = 3.
-    self.JEgoCost = 5.
-    self.AChangeCost = 200.
-    self.DangerZoneCost = 100.
     self.lo_timer = 0 
 
     self.brakePressed = False
@@ -289,11 +285,9 @@ class LongitudinalMpc:
 
   def set_weights(self, prev_accel_constraint=True):
     if self.mode == 'acc':
-      #xEgoCost = 0.2 if self.e2eMode else X_EGO_COST
-      a_change_cost = self.AChangeCost if prev_accel_constraint else 0
-      #cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
-      cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
-      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
+      a_change_cost = A_CHANGE_COST if prev_accel_constraint else 0
+      cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
+      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST]
     elif self.mode == 'blended':
       cost_weights = [0., 0.2, 0.25, 1.0, 0.0, 1.0]
       constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 50.0]
@@ -352,10 +346,6 @@ class LongitudinalMpc:
     self.lo_timer += 1
     if self.lo_timer > 100:
       self.lo_timer = 0
-      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
-      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
-      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
-      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
     self.debugLong = 0
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status

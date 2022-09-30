@@ -54,10 +54,6 @@ def manager_init() -> None:
     ("AutoResumeFromBrakeRelease", "1"),
     ("AutoResumeFromBrakeReleaseDist", "10"),
     ("AutoResumeFromBrakeReleaseLeadCar", "1"),
-    ("XEgoObstacleCost", "3"),
-    ("JEgoCost", "5"),
-    ("AChangeCost", "200"),
-    ("DangerZoneCost", "100"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
