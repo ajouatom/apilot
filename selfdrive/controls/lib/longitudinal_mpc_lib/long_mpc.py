@@ -374,8 +374,9 @@ class LongitudinalMpc:
 
         if self.status and not self.onStopping: #이전상태가 "E2E_STOP"이 아닌 경우에만 LEAD확인.
           self.xstate = "LEAD"
+          model_x = 400.0
           self.gasPressed = False
-          self.brakePressed = False
+          self.brakePressed = False          
         elif stopSign:
           if v_ego*CV.MS_TO_KPH > 20.0:
             self.brakePressed = False
@@ -383,15 +384,18 @@ class LongitudinalMpc:
           # stop조건이나, 정지선+2.0이전에 선행차가 있으면 LEAD로 변경..          
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - stopline_x) < 2.0: # and v_ego*CV.MS_TO_KPH > 20.0:
             self.xstate = "LEAD"
+            model_x = 400.0
             self.onStopping = False
           else:
             self.xstate = "E2E_STOP"
             self.onStopping = True
             if self.gasPressed:
               self.xstate = "E2E_START"
+              model_x = 400.0
               self.onStopping = False
         elif startSign and self.onStopping:
           self.xstate = "E2E_START"
+          model_x = 400.0
           self.onStopping = False
           if self.brakePressed:
             self.xstate = "E2E_STOP"
@@ -428,7 +432,9 @@ class LongitudinalMpc:
                                  v_upper)
       cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow)
       
-      if self.xstate == "LEAD":
+      if True:
+        x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
+      elif self.xstate == "LEAD":
         x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
       elif self.xstate == "E2E_START":
         x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
