@@ -217,9 +217,6 @@ class LongitudinalMpc:
     self.debugLong = 0
     self.lo_timer = 0 
 
-    self.brakePressed = False
-    self.gasPressed = False
-    
     self.t_follow = T_FOLLOW
     self.xstate = "CRUISE"
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -359,69 +356,36 @@ class LongitudinalMpc:
       self.params[:,5] = LEAD_DANGER_FACTOR
 
       stopline_x = model.stopLine.x
-      model_x = x[N]
       if self.e2eMode:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
         startSign = v[-1] > 5.0
         stopSign = (probe > 0.3) and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95))
         self.debugLong = 1 if stopSign else 2 if startSign else 0 
-        if carstate.gasPressed:
-          self.gasPressed = True
-          self.brakePressed = False
-        if carstate.brakePressed:
-          self.gasPressed = False
-          self.brakePressed = True
 
         if self.status and not self.onStopping: #이전상태가 "E2E_STOP"이 아닌 경우에만 LEAD확인.
           self.xstate = "LEAD"
-          model_x = 400.0
-          self.gasPressed = False
-          self.brakePressed = False          
         elif stopSign:
-          if v_ego*CV.MS_TO_KPH > 20.0:
-            self.brakePressed = False
-            self.gasPressed = False
-          # stop조건이나, 정지선+2.0이전에 선행차가 있으면 LEAD로 변경..          
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - stopline_x) < 2.0: # and v_ego*CV.MS_TO_KPH > 20.0:
             self.xstate = "LEAD"
-            model_x = 400.0
             self.onStopping = False
           else:
             self.xstate = "E2E_STOP"
             self.onStopping = True
-            if self.gasPressed:
-              self.xstate = "E2E_START"
-              model_x = 400.0
-              self.onStopping = False
         elif startSign and self.onStopping:
           self.xstate = "E2E_START"
-          model_x = 400.0
           self.onStopping = False
-          if self.brakePressed:
-            self.xstate = "E2E_STOP"
-            self.onStopping = True
         elif self.onStopping: #stopSign이 ON된 이후
-          #계속감속하여 정지할것이냐? 아니면 다시 출발할것이냐?
-          #신호인식이 오류인경우?
-          #x진행도 없고, 정지도 아니고... 이런경우가 나오나?
           self.xstate = "E2E_STOPPING"
         else:
           self.xstate = "E2E_CRUISE"
-          if v_ego*CV.MS_TO_KPH > 20.0:
-            self.gasPressed = False
-          self.brakePressed = False
-          #self.onStopping = False
       else:
         self.xstate = "CRUISE"
-        stopline_x = 400.0
+
+      if self.xstate in ["LEAD", "CRUISE"]: #["E2E_STOP", "E2E_STOPPING", "E2E_CRUISE", "E2E_START"]:
         model_x = 400.0
-        self.gasPressed = False
-        self.brakePressed = False
-      
-      #stopline = stopline_x * np.ones(N+1)
+      else:
+        model_x = x[N]
       x2 = model_x * np.ones(N+1)
-      min_x = stopline_x if stopline_x < model_x else model_x
-      stopline = min_x * np.ones(N+1)
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
@@ -432,35 +396,16 @@ class LongitudinalMpc:
                                  v_upper)
       cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow)
       
-      if True:
-        x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
-      elif self.xstate == "LEAD":
-        x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
-      elif self.xstate == "E2E_START":
-        x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
-      elif self.xstate == "E2E_STOP":
-        if cruise_obstacle[0] < min_x:  #이거 없으면 속도가 증가할 수 있음.
-          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
-        else:
-          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, x2])
-          #x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, stopline])
-      elif self.xstate == "E2E_CRUISE":
-        if cruise_obstacle[0] < min_x: #이거 없으면 속도가 증가할 수 있음.
-          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
-        else:
-          #self.stop_dist = 0.0
-          x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, x2])
-      else:
-        x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
-      str1 = 'TR={:.2f},state={},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f},BK={},GS={}'.format(
-        self.t_follow, self.xstate, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline[0], v_ego, v[0], v[1], v[-1],  self.brakePressed, self.gasPressed)
+      x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
+
+      str1 = 'TR={:.2f},state={},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.t_follow, self.xstate, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
       self.debugText = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
       # These are not used in ACC mode
       x[:], v[:], a[:], j[:] = 0.0, 0.0, 0.0, 0.0
-      #x = np.min(x_obstacles, axis=1)
 
     elif self.mode == 'blended':
       self.params[:,0] = MIN_ACCEL
