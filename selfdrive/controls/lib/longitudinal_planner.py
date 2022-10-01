@@ -65,7 +65,6 @@ class LongitudinalPlanner:
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
     self.activateE2E = False # ajouatom
-    self.cruiseSuspended = True
 
   def read_param(self):
     e2e = self.params.get_bool('EndToEndLong') and self.CP.openpilotLongitudinalControl
@@ -99,7 +98,6 @@ class LongitudinalPlanner:
     v_cruise_kph = sm['controlsState'].vCruise
     #ajouatom
     self.activateE2E = sm['controlsState'].activateE2E 
-    self.cruiseSuspended = sm['controlsState'].cruiseSuspended
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
@@ -136,9 +134,6 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'])
 
-    if self.cruiseSuspended:
-      self.mpc.brakePressed = False
-      self.mpc.gasPressed = False
 
     if sm['carState'].cruiseGap < 4:
       if self.activateE2E:
