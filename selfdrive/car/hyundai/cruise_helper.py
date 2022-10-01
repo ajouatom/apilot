@@ -303,7 +303,7 @@ class CruiseHelper:
             #controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
           # 60km/h 이하.. 직선도로 곡선 5M이내, 150M이내 정지선, 자동E2E모드 전환.
-          elif v_ego_kph <= 60.0 and self.position_x < 100.0 and abs(self.position_y) < 5.0:
+          elif v_ego_kph <= 60.0 and self.position_x < 100.0 and abs(self.position_y) < 3.0:
             #controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
             #if controls.v_cruise_kph > 30.0:

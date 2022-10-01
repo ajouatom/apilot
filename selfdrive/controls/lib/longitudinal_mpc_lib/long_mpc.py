@@ -219,6 +219,7 @@ class LongitudinalMpc:
 
     self.t_follow = T_FOLLOW
     self.xstate = "CRUISE"
+    self.e2ePaused = False
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
@@ -381,10 +382,18 @@ class LongitudinalMpc:
       else:
         self.xstate = "CRUISE"
 
-      if self.xstate in ["LEAD", "CRUISE"]: #["E2E_STOP", "E2E_STOPPING", "E2E_CRUISE", "E2E_START"]:
+      if self.xstate in ["LEAD", "CRUISE", "E2E_START"]: #["E2E_STOP", "E2E_STOPPING", "E2E_CRUISE", "E2E_START"]:
+        self.e2ePaused = False
         model_x = 400.0
       else:
-        model_x = x[N]
+        if v_ego*CV.MS_TO_KPH > 20.0:
+          self.e2ePaused = False
+        if carstate.gasPressed or self.e2ePaused:
+          self.e2ePaused = True
+        if self.e2ePaused:
+          model_x = 400.0
+        else:
+          model_x = x[N]
       x2 = model_x * np.ones(N+1)
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
@@ -398,8 +407,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'TR={:.2f},state={},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.t_follow, self.xstate, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
+      str1 = 'TR={:.2f},state={} {},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.t_follow, self.xstate, self.e2ePaused, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
       self.debugText = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
