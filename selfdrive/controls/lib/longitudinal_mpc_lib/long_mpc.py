@@ -376,7 +376,7 @@ class LongitudinalMpc:
             self.xstate = "E2E_CRUISE"
             self.e2ePaused = True
         elif self.xstate == "E2E_STOP2": ###모드: 강제정지모드
-          if stopSign:                   #신호인식이 되면 다시 정지모드로 전환
+          if False: #stopSign:                   #신호인식이 되면 다시 정지모드로 전환
             self.xstate = "E2E_STOP"
             self.e2ePaused = False
           elif carstate.gasPressed:
