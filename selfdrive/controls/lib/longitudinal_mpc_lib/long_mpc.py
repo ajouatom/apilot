@@ -396,6 +396,9 @@ class LongitudinalMpc:
       if self.xstate in ["LEAD", "CRUISE"]: #["E2E_STOP", "E2E_STOPPING", "E2E_CRUISE", "E2E_START"]:
         self.e2ePaused = False
         model_x = 400.0
+      elif self.xstate == "E2E_CRUISE":
+        if probe < 0.1:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
+          model_x = 400.0
       elif self.xstate == "E2E_STOP2":
         model_x = stopline_x
       elif self.e2ePaused:
