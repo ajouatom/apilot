@@ -213,7 +213,7 @@ void UIState::updateStatus() {
       status = STATUS_OVERRIDE;
     } else {
         //status = controls_state.getEnabled() ? STATUS_ENGAGED : STATUS_DISENGAGED;
-        status = controls_state.getEnabled() ? (controls_state.getCruiseSuspended()? STATUS_CRUISE_SUSPENDED: STATUS_ENGAGED) : STATUS_DISENGAGED;
+        status = controls_state.getEnabled() ? (controls_state.getCruiseStop()? STATUS_CRUISE_STOP: STATUS_ENGAGED) : STATUS_DISENGAGED;
     }
   }
 

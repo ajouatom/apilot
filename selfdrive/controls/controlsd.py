@@ -612,7 +612,7 @@ class Controls:
           if not self.CP.pcmCruise:
             self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
             self.v_cruise_cluster_kph = self.v_cruise_kph
-          self.cruise_helper.cruiseSuspended = True
+          self.cruise_helper.cruiseStop = True
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
@@ -647,8 +647,8 @@ class Controls:
                      CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
-    cruiseSuspended = self.cruise_helper.cruiseSuspended
-    CC.longActive = longActive1 and not cruiseSuspended
+    cruiseStop = self.cruise_helper.cruiseStop
+    CC.longActive = longActive1 and not cruiseStop
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
@@ -849,11 +849,11 @@ class Controls:
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
 
     #ajouatom
-    controlsState.vCruiseTarget = float(self.cruise_helper.v_cruise_kph_backup) if not self.cruise_helper.cruiseSuspended else 0
+    controlsState.vCruiseTarget = float(self.cruise_helper.v_cruise_kph_backup) if not self.cruise_helper.cruiseStop else 0
     controlsState.activateE2E = self.cruise_helper.activate_E2E
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2
-    controlsState.cruiseSuspended = self.cruise_helper.cruiseSuspended
+    controlsState.cruiseStop = self.cruise_helper.cruiseStop
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)

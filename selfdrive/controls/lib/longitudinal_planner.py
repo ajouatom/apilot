@@ -98,7 +98,7 @@ class LongitudinalPlanner:
     v_cruise_kph = sm['controlsState'].vCruise
     #ajouatom
     self.activateE2E = sm['controlsState'].activateE2E 
-    cruiseSuspended = sm['controlsState'].cruiseSuspended
+    cruiseStop = sm['controlsState'].cruiseStop
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
@@ -135,7 +135,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'])
 
-    if cruiseSuspended:
+    if cruiseStop:
       self.mpc.e2ePaused = False
 
     if sm['carState'].cruiseGap < 4:

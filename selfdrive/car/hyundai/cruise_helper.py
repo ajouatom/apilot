@@ -43,7 +43,7 @@ class CruiseHelper:
     self.v_cruise_kph_backup = 20
     self.v_cruise_kph_current = 20
     self.curve_speed_last = 255
-    self.cruiseSuspended = False
+    self.cruiseStop = False
     self.preBrakePressed = False
     self.preGasPressed = False
     self.curvature = 0
@@ -148,15 +148,15 @@ class CruiseHelper:
     return curve_speed_ms
 
   def cruise_pause(self, controls):
-    if controls.enabled and not self.cruiseSuspended:
+    if controls.enabled and not self.cruiseStop:
       controls.events.add(EventName.cruisePaused)
-      self.cruiseSuspended = True
+      self.cruiseStop = True
     
   def cruise_resume(self, controls, CS):
-    if controls.enabled and self.cruiseSuspended:
+    if controls.enabled and self.cruiseStop:
       controls.LoC.reset(v_pid=CS.vEgo)
       controls.events.add(EventName.cruiseResume)
-      self.cruiseSuspended = False
+      self.cruiseStop = False
       self.userCruisePaused = False
 
   @staticmethod
@@ -249,11 +249,11 @@ class CruiseHelper:
         self.cruise_pause(controls)
         pass
       elif CS.gasPressed:
-        if not self.cruiseSuspended and self.activate_E2E == True and CS.gas > resumeGasPedal:
+        if not self.cruiseStop and self.activate_E2E == True and CS.gas > resumeGasPedal:
           self.activate_E2E = False
           controls.events.add(EventName.cruiseResume)
 
-        if self.cruiseSuspended:
+        if self.cruiseStop:
           # auto resuming 30KM/h가 넘을때..
           #if CS.gas > resumeGasPedal and resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
           if resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
@@ -373,7 +373,7 @@ class CruiseHelper:
       v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
 
       # accel button을 눌렀을때...
-      if button_type == ButtonType.accelCruise and not self.cruiseSuspended and self.activate_E2E == True:
+      if button_type == ButtonType.accelCruise and not self.cruiseStop and self.activate_E2E == True:
           self.activate_E2E = False
           controls.events.add(EventName.cruiseResume)
       elif button_type == ButtonType.accelCruise:
@@ -412,7 +412,7 @@ class CruiseHelper:
         if self.activate_E2E == False:
           self.activate_E2E = True
           controls.events.add(EventName.cruiseResume)
-          if self.cruiseSuspended:
+          if self.cruiseStop:
             self.cruise_resume(controls, CS)
             v_cruise_kph = vEgo_cruise_kph + 0.0
             #if v_cruise_kph < vEgo_cruise_kph:
@@ -420,7 +420,7 @@ class CruiseHelper:
             if self.v_cruise_kph_current < v_cruise_kph:
               self.v_cruise_kph_current = v_cruise_kph
 
-        elif self.cruiseSuspended:
+        elif self.cruiseStop:
           self.cruise_resume(controls, CS)
           v_cruise_kph = vEgo_cruise_kph + 0.0
           #if v_cruise_kph < vEgo_cruise_kph:
