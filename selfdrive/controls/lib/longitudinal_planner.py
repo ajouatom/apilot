@@ -190,6 +190,6 @@ class LongitudinalPlanner:
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time
 
     longitudinalPlan.debugText = self.mpc.debugText
-    longitudinalPlan.debugLong = self.mpc.debugLong
+    longitudinalPlan.trafficState = self.mpc.trafficState
 
     pm.send('longitudinalPlan', plan_send)

@@ -214,7 +214,7 @@ class LongitudinalMpc:
     self.e2eMode = False #ajouatom
     self.onStopping = False
     self.debugText = ""
-    self.debugLong = 0
+    self.trafficState = 0
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -334,7 +334,7 @@ class LongitudinalMpc:
     self.lo_timer += 1
     if self.lo_timer > 100:
       self.lo_timer = 0
-    self.debugLong = 0
+    self.trafficState = 0
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
@@ -362,7 +362,7 @@ class LongitudinalMpc:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
         startSign = v[-1] > 5.0
         stopSign = (probe > 0.3) and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95))
-        self.debugLong = 1 if stopSign else 2 if startSign else 0 
+        self.trafficState = 1 if stopSign else 2 if startSign else 0 
 
         if self.xstate == "E2E_STOP" and not self.e2ePaused:  ##모드: 정지모드: 정지중 또는 정지상태
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:

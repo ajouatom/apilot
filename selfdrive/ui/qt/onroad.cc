@@ -534,12 +534,12 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   int TRsign_h = 140;
   int TRsign_x = 960 + 40 + TRsign_w;
   int TRsign_y = 50;
-  if (lp.getDebugLong() == 2) {
+  if (lp.getTrafficState() == 2) {
       trafficLight = 1;
       p.setOpacity(0.8);
       p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green);
   }
-  else if (lp.getDebugLong() == 1) {
+  else if (lp.getTrafficState() == 1) {
       //ui_draw_image(s, { TRsign_x, TRsign_y, TRsign_w, TRsign_h }, "trafficLight_red", 0.8f);
       //ui_draw_image(s, { 960 - 175 + 420, 540 - 150, 350, 350 }, "stopman", 0.8f);
       trafficLight = 2;
