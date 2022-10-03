@@ -220,6 +220,7 @@ class LongitudinalMpc:
     self.t_follow = T_FOLLOW
     self.xstate = "CRUISE"
     self.e2ePaused = False
+    self.cruiseStop = True
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
@@ -358,6 +359,9 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
+      if self.cruiseStop:
+        self.e2ePaused = False
+        self.xstate = "CRUISE"
       if self.e2eMode:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
         startSign = v[-1] > 5.0

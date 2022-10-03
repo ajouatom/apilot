@@ -135,8 +135,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'])
 
-    if cruiseStop:
-      self.mpc.e2ePaused = False
+    self.mpc.cruiseStop = cruiseStop
 
     if sm['carState'].cruiseGap < 4:
       if self.activateE2E:
