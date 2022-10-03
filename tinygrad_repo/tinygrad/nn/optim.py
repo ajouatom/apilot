@@ -11,7 +11,8 @@ class Optimizer:
 
   def realize(self, extra=None):
     # TODO: corealize
-    for p in self.params + extra if extra is not None else self.params: p.realize()
+    for p in self.params + extra if extra is not None else self.params:
+      p.realize()
 
 class SGD(Optimizer):
   def __init__(self, params, lr=0.001):
