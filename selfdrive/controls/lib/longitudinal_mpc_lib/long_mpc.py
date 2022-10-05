@@ -359,7 +359,7 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
-      if self.longActiveUser == 1:  #1: User, 2:Auto
+      if self.longActiveUser > 0:  #1: on User, 2: on Auto, 0: off brake, -1: off user, -2: off auto 
         self.e2ePaused = False
         #self.xstate = "CRUISE"
         pass
