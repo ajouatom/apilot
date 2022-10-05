@@ -150,7 +150,7 @@ class CruiseHelper:
     return curve_speed_ms
 
   def cruise_pause(self, controls):
-    if controls.enabled and longActiveUser != 0:
+    if controls.enabled and self.longActiveUser != 0:
       controls.events.add(EventName.cruisePaused)
       self.longActiveUser = 0
     
