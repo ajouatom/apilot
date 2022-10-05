@@ -220,7 +220,7 @@ class LongitudinalMpc:
     self.t_follow = T_FOLLOW
     self.xstate = "CRUISE"
     self.e2ePaused = False
-    self.longActiveUser = False
+    self.longActiveUser = 0
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
@@ -359,7 +359,7 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
-      if self.longActiveUser == 1:
+      if self.longActiveUser == 1:  #1: User, 2:Auto
         self.e2ePaused = False
         #self.xstate = "CRUISE"
         pass

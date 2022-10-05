@@ -610,7 +610,7 @@ class Controls:
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActiveUser = self.cruise_helper.longActiveUser
-    CC.longActive = longActive1 and longActiveUser != 0
+    CC.longActive = longActive1 and longActiveUser > 0
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
@@ -811,7 +811,7 @@ class Controls:
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
 
     #ajouatom
-    controlsState.vCruiseTarget = float(self.cruise_helper.v_cruise_kph_backup) if self.cruise_helper.longActiveUser != 0 else 0
+    controlsState.vCruiseTarget = float(self.cruise_helper.v_cruise_kph_backup) if self.cruise_helper.longActiveUser > 0 else 0
     controlsState.activateE2E = self.cruise_helper.activate_E2E
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2

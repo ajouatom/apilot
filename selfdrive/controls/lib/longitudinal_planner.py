@@ -94,7 +94,7 @@ class LongitudinalPlanner:
     v_cruise_kph = sm['controlsState'].vCruise
     #ajouatom
     self.activateE2E = sm['controlsState'].activateE2E 
-    longActiveUser = sm['controlsState'].longActiveUser
+    self.mpc.longActiveUser = sm['controlsState'].longActiveUser
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
@@ -130,8 +130,6 @@ class LongitudinalPlanner:
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'])
-
-    self.mpc.longActiveUser = longActiveUser
 
     if sm['carState'].cruiseGap < 4:
       if self.activateE2E:

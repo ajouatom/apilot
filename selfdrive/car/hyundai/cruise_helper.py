@@ -149,13 +149,13 @@ class CruiseHelper:
   
     return curve_speed_ms
 
-  def cruise_pause(self, controls):
-    if controls.enabled and self.longActiveUser != 0:
+  def cruise_pause(self, controls, pause_mode=0):  #pause_mode = 0: brake, -1: user, -2: auto
+    if controls.enabled and self.longActiveUser > 0:
       controls.events.add(EventName.cruisePaused)
       self.longActiveUser = 0
     
   def cruise_resume(self, controls, CS, active_mode=1):  #active_mode ==1: user, 2: auto
-    if controls.enabled and self.longActiveUser == 0:
+    if controls.enabled and self.longActiveUser <= 0:
       controls.LoC.reset(v_pid=CS.vEgo)
       controls.events.add(EventName.cruiseResume)
       self.longActiveUser = active_mode
@@ -248,14 +248,14 @@ class CruiseHelper:
     if controls.enabled:              
       #브레이크를 밟으면... cruise해제,...
       if CS.brakePressed:
-        self.cruise_pause(controls)
+        self.cruise_pause(controls, 0)
         pass
       elif CS.gasPressed:
-        if self.longActiveUser != 0 and self.activate_E2E == True and CS.gas > resumeGasPedal:
+        if self.longActiveUser > 0 and self.activate_E2E == True and CS.gas > resumeGasPedal:
           self.activate_E2E = False
           controls.events.add(EventName.cruiseResume)
 
-        if self.longActiveUser == 0:
+        if self.longActiveUser <= 0:
           # auto resuming 30KM/h가 넘을때..
           #if CS.gas > resumeGasPedal and resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
           if resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
@@ -332,7 +332,7 @@ class CruiseHelper:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
           self.cruise_resume(controls, CS, 2)
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
-        self.cruise_pause(controls)
+        self.cruise_pause(controls, -2)
         self.userCruisePaused = True
 
 
@@ -375,7 +375,7 @@ class CruiseHelper:
       v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
 
       # accel button을 눌렀을때...
-      if button_type == ButtonType.accelCruise and self.longActiveUser != 0 and self.activate_E2E == True:
+      if button_type == ButtonType.accelCruise and self.longActiveUser > 0 and self.activate_E2E == True:
           self.activate_E2E = False
           controls.events.add(EventName.cruiseResume)
       elif button_type == ButtonType.accelCruise:
@@ -414,7 +414,7 @@ class CruiseHelper:
         if self.activate_E2E == False:
           self.activate_E2E = True
           controls.events.add(EventName.cruiseResume)
-          if self.longActiveUser == 0: 
+          if self.longActiveUser <= 0: 
             self.cruise_resume(controls, CS, 1)
             v_cruise_kph = vEgo_cruise_kph + 0.0
             #if v_cruise_kph < vEgo_cruise_kph:
@@ -422,7 +422,7 @@ class CruiseHelper:
             if self.v_cruise_kph_current < v_cruise_kph:
               self.v_cruise_kph_current = v_cruise_kph
 
-        elif self.longActiveUser == 0:
+        elif self.longActiveUser <= 0:
           self.cruise_resume(controls, CS, 1)
           v_cruise_kph = vEgo_cruise_kph + 0.0
           #if v_cruise_kph < vEgo_cruise_kph:
@@ -431,7 +431,7 @@ class CruiseHelper:
             self.v_cruise_kph_current = v_cruise_kph
         else:         
           self.userCruisePaused = True
-          self.cruise_pause(controls)
+          self.cruise_pause(controls, -1)
           if vEgo_cruise_kph < v_cruise_kph:
             v_cruise_kph = vEgo_cruise_kph + 0.0
           #elif self.roadLimitSpeed > 0.0 and v_cruise_kph > self.roadLimitSpeed:
