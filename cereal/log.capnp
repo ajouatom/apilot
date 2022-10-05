@@ -653,7 +653,7 @@ struct ControlsState @0x97ff69c53601abf1 {
   debugText2 @65 : Text;
   vCruiseTarget @66 :Float32;
   activateE2E @67 : Bool; #ajouatom
-  cruiseStop @68: Bool;
+  longActiveUser @68: Int32;
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
     disabled @0;

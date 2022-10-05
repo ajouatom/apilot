@@ -220,7 +220,7 @@ class LongitudinalMpc:
     self.t_follow = T_FOLLOW
     self.xstate = "CRUISE"
     self.e2ePaused = False
-    self.cruiseStop = True
+    self.longActiveUser = False
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
@@ -359,33 +359,37 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
-      if self.cruiseStop:
-        self.e2ePaused = False
-        self.xstate = "CRUISE"
+      if self.longActiveUser == 0:
+        #self.e2ePaused = False
+        #self.xstate = "CRUISE"
+        pass
       if self.e2eMode:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
         startSign = v[-1] > 5.0
         stopSign = (probe > 0.3) and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95))
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
 
-        if self.xstate == "E2E_STOP" and not self.e2ePaused:  ##모드: 정지모드: 정지중 또는 정지상태
+        #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시
+        if self.xstate == "E2E_STOP" and not self.e2ePaused: 
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xstate = "LEAD"
           elif startSign:
             self.xstate = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
+          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.xstate = "E2E_STOP2"
             self.e2ePaused = True
-          if carstate.gasPressed:                 #정지중 accel을 밟으면 강제주행모드로 변경
+          if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xstate = "E2E_CRUISE"
             self.e2ePaused = True
-        elif self.xstate == "E2E_STOP2": ###모드: 강제정지모드
+        #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
+        elif self.xstate == "E2E_STOP2": 
           if False: #stopSign:                   #신호인식이 되면 다시 정지모드로 전환
             self.xstate = "E2E_STOP"
             self.e2ePaused = False
           elif carstate.gasPressed:
             self.xstate = "E2E_CRUISE"
-        else:                            ###모드: 주행모드
+        #E2E_CRUISE: 주행상태.
+        else:
           if self.status:
             self.xstate = "LEAD"
           elif stopSign:                 #신호인식이 되면 정지모드
@@ -397,7 +401,7 @@ class LongitudinalMpc:
 
       if v_ego*CV.MS_TO_KPH > 20.0:
         self.e2ePaused = False
-      if self.xstate in ["LEAD", "CRUISE"]: #["E2E_STOP", "E2E_STOPPING", "E2E_CRUISE", "E2E_START"]:
+      if self.xstate in ["LEAD", "CRUISE"]:
         self.e2ePaused = False
         model_x = 400.0
       elif self.xstate == "E2E_CRUISE":
