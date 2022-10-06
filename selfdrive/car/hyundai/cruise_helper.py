@@ -149,7 +149,7 @@ class CruiseHelper:
   
     return curve_speed_ms
 
-  def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -2(OFF auto), -1(OFF user), 0(OFF brake), 1(ON user), 2(ON gas), 3(ON auto)
+  def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
     if controls.enabled:
       if active_mode > 0:
         if self.longActiveUser <= 0:
@@ -248,7 +248,7 @@ class CruiseHelper:
     if controls.enabled:              
       #브레이크를 밟으면... cruise해제,...
       if CS.brakePressed:
-        self.cruise_control(controls, CS, 0)
+        self.cruise_control(controls, CS, -2)
         pass
       elif CS.gasPressed:
         if self.longActiveUser > 0 and self.activate_E2E == True and CS.gas > resumeGasPedal:
@@ -333,7 +333,7 @@ class CruiseHelper:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
           self.cruise_control(controls, CS, 3)
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
-        self.cruise_control(controls, CS, -2)
+        self.cruise_control(controls, CS, -3)
         self.userCruisePaused = True
 
 

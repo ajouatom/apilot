@@ -359,10 +359,10 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
-      longActiveUserChanged = False
-      #active_mode => -2(OFF auto), -1(OFF user), 0(OFF brake), 1(ON user), 2(ON gas), 3(ON auto)
+      longActiveUserChanged = 0
+      #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
-        longActiveUserChanged = True
+        longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
 
       if self.e2eMode:
@@ -385,13 +385,13 @@ class LongitudinalMpc:
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xstate == "E2E_STOP2": 
-          if carstate.gasPressed:
+          if carstate.gasPressed or longActiveUserChanged==1:
             self.xstate = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
         else:
           if self.status:
             self.xstate = "LEAD"
-          elif stopSign:                 #신호인식이 되면 정지모드
+          elif stopSign and not self.e2ePaused:                 #신호인식이 되면 정지모드
             self.xstate = "E2E_STOP"
           else:
             self.xstate = "E2E_CRUISE"
