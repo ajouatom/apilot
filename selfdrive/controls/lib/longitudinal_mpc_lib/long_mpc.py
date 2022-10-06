@@ -394,7 +394,7 @@ class LongitudinalMpc:
       else:
         self.xstate = "CRUISE"
 
-      if v_ego*CV.MS_TO_KPH > 20.0:
+      if v_ego*CV.MS_TO_KPH > 20.0 or longActiveUserChanged==1:
         self.e2ePaused = False
       if self.xstate in ["LEAD", "CRUISE"]:
         self.e2ePaused = False
