@@ -141,7 +141,7 @@ public:
   UIScene scene = {};
 
   bool awake;
-  int prime_type = 0;
+  int prime_type;
   QString language;
 
   QTransform car_space_transform;
@@ -151,6 +151,7 @@ public:
 signals:
   void uiUpdate(const UIState &s);
   void offroadTransition(bool offroad);
+  void primeTypeChanged(int prime_type);
 
 private slots:
   void update();
@@ -158,6 +159,7 @@ private slots:
 private:
   QTimer *timer;
   bool started_prev = false;
+  int prime_type_prev = -1;
 };
 
 UIState *uiState();
@@ -171,9 +173,6 @@ public:
   Device(QObject *parent = 0);
 
 private:
-  // auto brightness
-  const float accel_samples = 5*UI_FREQ;
-
   bool awake = false;
   int interactive_timeout = 0;
   bool ignition_on = false;

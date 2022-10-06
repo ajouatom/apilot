@@ -31,7 +31,7 @@ COST_E_DIM = 5
 COST_DIM = COST_E_DIM + 1
 CONSTR_DIM = 4
 
-X_EGO_OBSTACLE_COST = 4.#3.
+X_EGO_OBSTACLE_COST = 5.#3.
 X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
@@ -280,9 +280,6 @@ class LongitudinalMpc:
     elif self.mode == 'blended':
       cost_weights = [0., 0.1, 0.2, 5.0, 0.0, 1.0]
       constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 50.0]
-    elif self.mode == 'e2e':
-      cost_weights = [0., 0.2, 0.25, 1., 0.0, .1]
-      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 0.0]
     else:
       raise NotImplementedError(f'Planner mode {self.mode} not recognized in planner cost set')
     self.set_cost_weights(cost_weights, constraint_cost_weights)
@@ -371,7 +368,7 @@ class LongitudinalMpc:
         stopSign = (probe > 0.3) and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95))
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
 
-        #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시
+        #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
         if self.xstate == "E2E_STOP" and not self.e2ePaused: 
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xstate = "LEAD"
@@ -379,7 +376,6 @@ class LongitudinalMpc:
             self.xstate = "E2E_CRUISE"
           if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.xstate = "E2E_STOP2"
-            self.e2ePaused = True
           if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xstate = "E2E_CRUISE"
             self.e2ePaused = True

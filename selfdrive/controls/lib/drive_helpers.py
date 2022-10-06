@@ -15,7 +15,7 @@ V_CRUISE_INITIAL = 255  # kph
 
 V_CRUISE_DELTA_MI = 5 * CV.MPH_TO_KPH
 V_CRUISE_DELTA_KM = 10
-LAT_MPC_N = 32
+LAT_MPC_N = 16
 LON_MPC_N = 32
 CONTROL_N = 17
 CAR_ROTATION_RADIUS = 0.0
@@ -33,12 +33,6 @@ CRUISE_INTERVAL_SIGN = {
   ButtonType.accelCruise: +1,
   ButtonType.decelCruise: -1,
 }
-
-
-class MPC_COST_LAT:
-  PATH = 1.0
-  HEADING = 1.0
-  STEER_RATE = 1.0
 
 
 def apply_deadzone(error, deadzone):

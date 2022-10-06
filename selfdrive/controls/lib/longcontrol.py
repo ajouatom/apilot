@@ -7,9 +7,6 @@ from selfdrive.modeld.constants import T_IDXS
 
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
-# As per ISO 15622:2018 for all speeds
-ACCEL_MIN_ISO = -3.5  # m/s^2
-ACCEL_MAX_ISO = 2.0  # m/s^2
 
 def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
                              v_target_1sec, brake_pressed, cruise_standstill):
@@ -100,7 +97,7 @@ class LongControl:
       self.pid.pos_limit = accel_limits[1]*0.6
     # 핸들을 돌리고 있으면, 엑셀을 제한한다.... 커브돌리고 있는데 가속을 하면 자꾸 브레이크를 밟게 됨..
     if abs(CS.steeringAngleDeg) > 60:
-      self.pid.pos_limit = accel_limits[1]*0.1
+      self.pid.pos_limit = accel_limits[1]*0.2
 
     output_accel = self.last_output_accel
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
