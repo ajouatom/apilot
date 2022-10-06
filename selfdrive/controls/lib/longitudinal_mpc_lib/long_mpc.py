@@ -330,7 +330,7 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.cruise_max_a = max_a
 
-  def update(self, carstate, radarstate, model, v_cruise, x, v, a, j):
+  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j):
     v_ego = self.x0[1]
     self.lo_timer += 1
     if self.lo_timer > 100:
@@ -359,10 +359,12 @@ class LongitudinalMpc:
 
       stopline_x = model.stopLine.x
       model_x = x[N]
-      if self.longActiveUser > 0:  #1: on User, 2: on Auto, 0: off brake, -1: off user, -2: off auto 
-        self.e2ePaused = False
-        #self.xstate = "CRUISE"
-        pass
+      longActiveUserChanged = False
+      #active_mode => -2(OFF auto), -1(OFF user), 0(OFF brake), 1(ON user), 2(ON gas), 3(ON auto)
+      if controls.longActiveUser != self.longActiveUser:
+        longActiveUserChanged = True
+      self.longActiveUser = controls.longActiveUser
+
       if self.e2eMode:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
         startSign = v[-1] > 5.0
@@ -383,10 +385,7 @@ class LongitudinalMpc:
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xstate == "E2E_STOP2": 
-          if False: #stopSign:                   #신호인식이 되면 다시 정지모드로 전환
-            self.xstate = "E2E_STOP"
-            self.e2ePaused = False
-          elif carstate.gasPressed:
+          if carstate.gasPressed:
             self.xstate = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
         else:

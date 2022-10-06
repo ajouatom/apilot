@@ -149,7 +149,7 @@ class CruiseHelper:
   
     return curve_speed_ms
 
-  def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -2(OFF auto), -1(OFF user), 0(OFF brake), 1(ON user), 2(ON auto)
+  def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -2(OFF auto), -1(OFF user), 0(OFF brake), 1(ON user), 2(ON gas), 3(ON auto)
     if controls.enabled:
       if active_mode > 0:
         if self.longActiveUser <= 0:
@@ -253,6 +253,7 @@ class CruiseHelper:
       elif CS.gasPressed:
         if self.longActiveUser > 0 and self.activate_E2E == True and CS.gas > resumeGasPedal:
           self.activate_E2E = False
+          self.cruise_control(controls, CS, 2)
           controls.events.add(EventName.cruiseResume)
 
         if self.longActiveUser <= 0:
@@ -262,7 +263,7 @@ class CruiseHelper:
             controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
             self.v_cruise_kph_backup = controls.v_cruise_kph
-            self.cruise_control(controls, CS, 2)
+            self.cruise_control(controls, CS, 3)
         # 엑셀을 밟고 주행속도가 설정속도보다 높아지면..
         elif vEgo_cruise_kph > controls.v_cruise_kph - 10.0:
           #설정속도를 주행속도도 변경함.. (파라미터화?)
@@ -301,7 +302,7 @@ class CruiseHelper:
           dRel = lead.dRel if lead is not None else 0
           #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
           if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist <  dRel < 100 :
-            self.cruise_control(controls, CS, 2)
+            self.cruise_control(controls, CS, 3)
             #controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
           # 60km/h 이하.. 직선도로 곡선 5M이내, 150M이내 정지선, 자동E2E모드 전환.
@@ -310,7 +311,7 @@ class CruiseHelper:
             self.v_cruise_kph_current = controls.v_cruise_kph
             #if controls.v_cruise_kph > 30.0:
             #  controls.v_cruise_kph = 30.0
-            self.cruise_control(controls, CS, 2)
+            self.cruise_control(controls, CS, 3)
             self.activate_E2E = True
           # 40km/h이상, 전방에 레이더가 잡히지 않으면, 운전자가 너무빠르다고 판단.. 브레이크를 밟았을것이라고 판단....브레이크를 떼는 순간의 속도로 유지...
           elif v_ego_kph >= 40.0:
@@ -319,18 +320,18 @@ class CruiseHelper:
             else:
               controls.v_cruise_kph = vEgo_cruise_kph + 1.0
               self.v_cruise_kph_current = controls.v_cruise_kph
-              self.cruise_control(controls, CS, 2)
+              self.cruise_control(controls, CS, 3)
           # 정지상태에서 전방에 10M이내 차가 있으면 Cruise control 활성화
           elif v_ego_kph < 1.0 and resume_cond and 2 < dRel < 10:
             if self.autoResumeFromBrakeReleaseLeadCar:
-              self.cruise_control(controls, CS, 2)
+              self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
         lead = self.get_lead(controls.sm)
         dRel = lead.dRel if lead is not None else 0
         vRel = lead.vRel if lead is not None else 0
         #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
-          self.cruise_control(controls, CS, 2)
+          self.cruise_control(controls, CS, 3)
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
         self.cruise_control(controls, CS, -2)
         self.userCruisePaused = True

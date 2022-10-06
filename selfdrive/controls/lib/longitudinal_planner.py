@@ -94,7 +94,7 @@ class LongitudinalPlanner:
     v_cruise_kph = sm['controlsState'].vCruise
     #ajouatom
     self.activateE2E = sm['controlsState'].activateE2E 
-    self.mpc.longActiveUser = sm['controlsState'].longActiveUser
+    
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
@@ -146,7 +146,7 @@ class LongitudinalPlanner:
         self.mpc.mode = 'acc'
         self.mpc.e2eMode = False
 
-    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], v_cruise, x, v, a, j)
+    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
