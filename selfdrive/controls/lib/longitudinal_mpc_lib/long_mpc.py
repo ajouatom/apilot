@@ -46,7 +46,7 @@ ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
 AUTO_TR_BP = [0., 50.*CV.KPH_TO_MS, 100.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
 #AUTO_TR_V = [1.0, 1.2, 1.35, 1.45]
-AUTO_TR_V = [1.0, 1.1, 1.2, 1.35]
+AUTO_TR_V = [1.0, 1.2, 1.3, 1.40]
 # Fewer timestamps don't hurt performance and lead to
 # much better convergence of the MPC with low iterations
 N = 12
