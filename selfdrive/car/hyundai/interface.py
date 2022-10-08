@@ -219,12 +219,12 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.indi.timeConstantV = [1.4]
       ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
       ret.lateralTuning.indi.actuatorEffectivenessV = [1.8]
-    elif candidate in (CAR.KIA_OPTIMA, CAR.KIA_OPTIMA_2019, CAR.KIA_OPTIMA_H):
+    elif candidate in (CAR.KIA_OPTIMA_G4, CAR.KIA_OPTIMA_G4_FL, CAR.KIA_OPTIMA_H):
       ret.mass = 3558. * CV.LB_TO_KG
       ret.wheelbase = 2.80
       ret.steerRatio = 13.75
       tire_stiffness_factor = 0.5
-      if candidate == CAR.KIA_OPTIMA:
+      if candidate == CAR.KIA_OPTIMA_G4:
         ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif candidate == CAR.KIA_STINGER:
@@ -323,7 +323,19 @@ class CarInterface(CarInterfaceBase):
           ret.flags |= HyundaiFlags.CANFD_ALT_BUTTONS.value
           ret.safetyConfigs[1].safetyParam |= Panda.FLAG_HYUNDAI_CANFD_ALT_BUTTONS
     else:
+      print("fingerprint:", fingerprint)
       ret.enableBsm = 0x58b in fingerprint[0]
+      ret.sccBus = 2 if 1056 in fingerprint[2] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
+        else 0 if 1056 in fingerprint[0] else -1
+
+      print("***************************************************************************")
+      print("sccBus = ", ret.sccBus)
+      if ret.sccBus >= 0:
+        ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
+        ret.hasScc14 = 905 in fingerprint[ret.sccBus]
+
+      ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
+      ret.hasLfaHda = 1157 in fingerprint[0]
 
       if candidate in LEGACY_SAFETY_MODE_CAR:
         # these cars require a special panda safety mode due to missing counters and checksums in the messages
@@ -359,8 +371,9 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def init(CP, logcan, sendcan):
     if CP.openpilotLongitudinalControl:
-      disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x28\x83\x01')
-      enable_radar_tracks(CP, logcan, sendcan)
+      #disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x28\x83\x01')
+      #enable_radar_tracks(CP, logcan, sendcan)
+      pass
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)

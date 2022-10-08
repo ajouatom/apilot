@@ -3,10 +3,8 @@ APILOT: SantaFe Hybrid 2022 만 지원합니다.
 Panda코드를 수정하였으므로, connect에 연결되면 BAN당함!
 Panda코드의 중요한부분(brake부분)을 수정하였으므로, 코드를 잘못수정하면 사고의 위험이 있음.
 
-* EnableRadarTracks 지원되는경우에만 사용가능..  (controlsd.py의 radar fwVersion에 자신의 차량것을 넣거나 추가하면 될것으로 보임)
-* Settings => Toggles: DisableOnAccelerator  => OFF
-* Settings => Toggles: EndToEndLong => ON
-* 
+* 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
+* ExperimentalLongitudinal: ON인경우에만 테스트함.
 
 ![](https://i.imgur.com/b0ZyIx5.jpg)
 

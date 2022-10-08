@@ -323,7 +323,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
-    bool steer_req = 1;//GET_BIT(to_send, 27U) != 0U;
+    bool steer_req = 1;//ajouatom GET_BIT(to_send, 27U) != 0U;
 
     if (steer_torque_cmd_checks(desired_torque, steer_req, HYUNDAI_STEERING_LIMITS)) {
       tx = 0;
@@ -331,7 +331,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   }
 
   // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
-  if (addr == 2000) {
+  if ((addr == 2000) && 0) {  // ajouatom
     if ((GET_BYTES_04(to_send) != 0x00803E02U) || (GET_BYTES_48(to_send) != 0x0U)) {
       tx = 0;
     }
@@ -361,7 +361,9 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
     bus_fwd = 2;
   }
   if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-    bus_fwd = 0;
+    // ajouatom
+    if((addr != 1056) && (addr != 1057) && (addr != 1290) && (addr != 905))
+      bus_fwd = 0;
   }
 
   return bus_fwd;

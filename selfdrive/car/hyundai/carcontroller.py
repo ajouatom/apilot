@@ -103,9 +103,9 @@ class CarController:
     else:
 
       # tester present - w/ no response (keeps radar disabled)
-      if self.CP.openpilotLongitudinalControl:
-        if self.frame % 100 == 0:
-          can_sends.append([0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0])
+      #if self.CP.openpilotLongitudinalControl:
+      #  if self.frame % 100 == 0:
+      #    can_sends.append([0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0])
 
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, apply_steer, CC.latActive,
                                      CS.lkas11, sys_warning, sys_state, CC.enabled,
@@ -132,8 +132,8 @@ class CarController:
 
         stopping = actuators.longControlState == LongCtrlState.stopping
         set_speed_in_units = hud_control.setSpeed * (CV.MS_TO_MPH if CS.clu11["CF_Clu_SPEED_UNIT"] == 1 else CV.MS_TO_KPH)
-        can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
-                                                        hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed))
+        can_sends.extend(hyundaican.create_acc_commands2(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
+                                                        hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed, CS.scc11, CS.scc12, CS.scc13, CS.scc14))
         self.accel = accel
 
       # 20 Hz LFA MFA message
@@ -144,12 +144,12 @@ class CarController:
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled))
 
       # 5 Hz ACC options
-      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl:
-        can_sends.extend(hyundaican.create_acc_opt(self.packer))
+      #if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl:
+      #  can_sends.extend(hyundaican.create_acc_opt(self.packer))
 
       # 2 Hz front radar options
-      if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl:
-        can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
+      #if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl:
+      #  can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / self.params.STEER_MAX
