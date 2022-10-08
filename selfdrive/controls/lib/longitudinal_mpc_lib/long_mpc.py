@@ -361,6 +361,8 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
+      if v_ego*CV.MS_TO_KPH > 20.0 or longActiveUserChanged==1:
+        self.e2ePaused = False
 
       if self.e2eMode:
         probe = model.stopLine.prob if abs(carstate.steeringAngleDeg)<20 else 0.0 # 커브를 돌고 있으면 Stopline이 부정확한것 같음... prob를 0으로..
@@ -381,6 +383,7 @@ class LongitudinalMpc:
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xstate == "E2E_STOP2": 
+          stopline_x = 0.0
           if carstate.gasPressed or longActiveUserChanged==1:
             self.xstate = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
@@ -394,13 +397,11 @@ class LongitudinalMpc:
       else:
         self.xstate = "CRUISE"
 
-      if v_ego*CV.MS_TO_KPH > 20.0 or longActiveUserChanged==1:
-        self.e2ePaused = False
       if self.xstate in ["LEAD", "CRUISE"]:
         self.e2ePaused = False
         model_x = 400.0
       elif self.xstate == "E2E_CRUISE":
-        if probe < 0.1 and not self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
+        if probe < 0.1 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
           model_x = 400.0
       elif self.xstate == "E2E_STOP2":
         model_x = stopline_x
