@@ -31,7 +31,7 @@ COST_E_DIM = 5
 COST_DIM = COST_E_DIM + 1
 CONSTR_DIM = 4
 
-X_EGO_OBSTACLE_COST = 5.#3.
+X_EGO_OBSTACLE_COST = 6.#3.
 X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
@@ -65,7 +65,7 @@ def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
-  if np.all(v_lead - v_ego > 0):
+  if False:#np.all(v_lead - v_ego > 0):
     v_diff_offset = ((v_lead - v_ego) * 1.)
     v_diff_offset = np.clip(v_diff_offset, 0, STOP_DISTANCE / 2)
     v_diff_offset = np.maximum(v_diff_offset * ((10 - v_ego)/10), 0)
