@@ -81,6 +81,7 @@ const int HYUNDAI_PARAM_EV_GAS = 1;
 const int HYUNDAI_PARAM_HYBRID_GAS = 2;
 const int HYUNDAI_PARAM_LONGITUDINAL = 4;
 const int HYUNDAI_PARAM_CAMERA_SCC = 8;
+const int HYUNDAI_PARAM_SCC_BUS2 = 16;
 
 enum {
   HYUNDAI_BTN_NONE = 0,
@@ -99,6 +100,7 @@ bool hyundai_ev_gas_signal = false;
 bool hyundai_hybrid_gas_signal = false;
 bool hyundai_camera_scc = false;
 bool hyundai_longitudinal = false;
+bool hyundai_scc_bus2 = false;
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
 
@@ -331,7 +333,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   }
 
   // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
-  if ((addr == 2000) && 0) {  // ajouatom
+  if ((addr == 2000) && !hyundai_scc_bus2) {  // ajouatom
     if ((GET_BYTES_04(to_send) != 0x00803E02U) || (GET_BYTES_48(to_send) != 0x0U)) {
       tx = 0;
     }
@@ -360,10 +362,12 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   if (bus_num == 0) {
     bus_fwd = 2;
   }
-  if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-    // ajouatom
-    if((addr != 1056) && (addr != 1057) && (addr != 1290) && (addr != 905))
-      bus_fwd = 0;
+  if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {    
+      if (hyundai_scc_bus2) {
+          if ((addr != 1056) && (addr != 1057) && (addr != 1290) && (addr != 905))
+              bus_fwd = 0;
+      }
+      else bus_fwd = 0;
   }
 
   return bus_fwd;
@@ -375,6 +379,7 @@ static const addr_checks* hyundai_init(uint16_t param) {
   hyundai_hybrid_gas_signal = !hyundai_ev_gas_signal && GET_FLAG(param, HYUNDAI_PARAM_HYBRID_GAS);
   hyundai_camera_scc = GET_FLAG(param, HYUNDAI_PARAM_CAMERA_SCC);
   hyundai_last_button_interaction = HYUNDAI_PREV_BUTTON_SAMPLES;
+  hyundai_scc_bus2 = GET_FLAG(param, HYUNDAI_PARAM_SCC_BUS2);
 
 #ifdef ALLOW_DEBUG
   // TODO: add longitudinal support for camera-based SCC platform
@@ -395,6 +400,7 @@ static const addr_checks* hyundai_legacy_init(uint16_t param) {
   hyundai_legacy = true;
   hyundai_longitudinal = false;
   hyundai_camera_scc = false;
+  hyundai_scc_bus2 = false;
   hyundai_ev_gas_signal = GET_FLAG(param, HYUNDAI_PARAM_EV_GAS);
   hyundai_hybrid_gas_signal = !hyundai_ev_gas_signal && GET_FLAG(param, HYUNDAI_PARAM_HYBRID_GAS);
   hyundai_last_button_interaction = HYUNDAI_PREV_BUTTON_SAMPLES;

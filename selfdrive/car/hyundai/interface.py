@@ -335,7 +335,7 @@ class CarInterface(CarInterfaceBase):
         ret.hasScc14 = 905 in fingerprint[ret.sccBus]
 
       ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
-      ret.hasLfaHda = 1157 in fingerprint[0]
+      ret.hasLfaHda = 1157 in fingerprint[0] or 1157 in fingerprint[2]
 
       if candidate in LEGACY_SAFETY_MODE_CAR:
         # these cars require a special panda safety mode due to missing counters and checksums in the messages
@@ -355,6 +355,9 @@ class CarInterface(CarInterfaceBase):
       if candidate in CAMERA_SCC_CAR:
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_CAMERA_SCC
 
+      if ret.sccBus == 2:
+        ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_SCC_BUS2
+
     ret.centerToFront = ret.wheelbase * 0.4
 
     # TODO: get actual value, for now starting with reasonable value for
@@ -370,10 +373,9 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl:
-      #disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x28\x83\x01')
-      #enable_radar_tracks(CP, logcan, sendcan)
-      pass
+    if CP.openpilotLongitudinalControl and CP.sccBus != 2:
+      disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x28\x83\x01')
+      enable_radar_tracks(CP, logcan, sendcan)      
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)

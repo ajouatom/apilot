@@ -243,8 +243,9 @@ class CruiseHelper:
     # 브레이크를 밟거나 엑셀을 밟으면
     blinker = CS.leftBlinker or CS.rightBlinker
     resumeGasPedal = 0.4
-    #깜박이OFF, 핸들각도가 20도이내, 핸들에 토크가 없고..
-    resume_cond = not blinker and abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
+    #핸들각도가 20도이내, 핸들에 토크가 없고..
+    #resume_cond = not blinker and abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
+    resume_cond = abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
     if controls.enabled:              
       #브레이크를 밟으면... cruise해제,...
       if CS.brakePressed:

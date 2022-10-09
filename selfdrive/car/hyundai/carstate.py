@@ -171,12 +171,13 @@ class CarState(CarStateBase):
     ret.tpms.rl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RL"]
     ret.tpms.rr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RR"]
 
-    self.scc11 = cp.vl["SCC11"]
-    self.scc12 = cp.vl["SCC12"]
-    if self.CP.hasScc13:
-      self.scc13 = cp.vl["SCC13"]
-    if self.CP.hasScc14:
-      self.scc14 = cp.vl["SCC14"]
+    if self.CP.sccBus == 2:
+      self.scc11 = cp.vl["SCC11"]
+      self.scc12 = cp.vl["SCC12"]
+      if self.CP.hasScc13:
+        self.scc13 = cp.vl["SCC13"]
+      if self.CP.hasScc14:
+        self.scc14 = cp.vl["SCC14"]
 
     return ret
 

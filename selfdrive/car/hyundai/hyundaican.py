@@ -92,12 +92,50 @@ def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
     "HDA_Active": 1 if hda_set_speed else 0,
     "HDA_Icon_State": 2 if hda_set_speed else 0,
     "HDA_VSetReq": hda_set_speed,
-  }
+    "HDA_USM" : 2,
+    "HDA_Icon_Wheel" : 1 if enabled else 0,
+    "HDA_Chime" : 1 if enabled else 0,
+}
   # VAL_ 1157 LFA_Icon_State 0 "no_wheel" 1 "white_wheel" 2 "green_wheel" 3 "green_wheel_blink";
   # VAL_ 1157 LFA_SysWarning 0 "no_message" 1 "switching_to_hda" 2 "switching_to_scc" 3 "lfa_error" 4 "check_hda" 5 "keep_hands_on_wheel_orange" 6 "keep_hands_on_wheel_red";
   # VAL_ 1157 HDA_Icon_State 0 "no_hda" 1 "white_hda" 2 "green_hda";
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
+
+def create_acc_commands_mix_scc(packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, gas_pressed, scc11, scc12, scc13, scc14, ):
+  commands = []
+  values = copy.copy(scc11)
+  values["MainMode_ACC"] = 1
+  values["TauGapSet"] = 4
+  values["VSetDis"] = set_speed if enabled else 0
+  values["AliveCounterACC"] = idx % 0x10
+  values["ObjValid"] = 1
+  commands.append(packer.make_can_msg("SCC11", 0, values))
+
+  values = copy.copy(scc12)
+  values["ACCMode"] = 2 if enabled and gas_pressed else 1 if enabled else 0
+  values["StopReq"] = 1 if stopping else 0
+  values["aReqRaw"] = accel
+  values["aReqValue"] = accel
+  values["CR_VSM_Alive"] = idx % 0xF
+  scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
+  values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
+
+  commands.append(packer.make_can_msg("SCC12", 0, values))
+
+  values = copy.copy(scc13)
+  commands.append(packer.make_can_msg("SCC13", 0, values))
+
+  values = copy.copy(scc14)
+  values["ComfortBandUpper"] = 0.0
+  values["ComfortBandLower"] = 0.0
+  values["JerkUpperLimit"] = upper_jerk
+  values["JerkLowerLimit"] = 5.0
+  values["ACCMode"] = 2 if enabled and gas_pressed else 1 if enabled else 4
+  values["ObjGap"] = 2 if lead_visible else 0
+  commands.append(packer.make_can_msg("SCC14", 0, values))
+
+  return commands
 
 def create_acc_commands(packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, gas_pressed):
   commands = []
@@ -148,41 +186,6 @@ def create_acc_commands(packer, enabled, accel, upper_jerk, idx, lead_visible, s
   fca11_dat = packer.make_can_msg("FCA11", 0, fca11_values)[2]
   fca11_values["CR_FCA_ChkSum"] = hyundai_checksum(fca11_dat[:7])
   commands.append(packer.make_can_msg("FCA11", 0, fca11_values))
-
-  return commands
-
-def create_acc_commands2(packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, gas_pressed, scc11, scc12, scc13, scc14, ):
-  commands = []
-  values = copy.copy(scc11)
-  values["MainMode_ACC"] = 1
-  values["TauGapSet"] = 4
-  values["VSetDis"] = set_speed if enabled else 0
-  values["AliveCounterACC"] = idx % 0x10
-  values["ObjValid"] = 1
-  commands.append(packer.make_can_msg("SCC11", 0, values))
-
-  values = copy.copy(scc12)
-  values["ACCMode"] = 2 if enabled and gas_pressed else 1 if enabled else 0
-  values["StopReq"] = 1 if stopping else 0
-  values["aReqRaw"] = accel
-  values["aReqValue"] = accel
-  values["CR_VSM_Alive"] = idx % 0xF
-  scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
-  values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
-
-  commands.append(packer.make_can_msg("SCC12", 0, values))
-
-  values = copy.copy(scc13)
-  commands.append(packer.make_can_msg("SCC13", 0, values))
-
-  values = copy.copy(scc14)
-  values["ComfortBandUpper"] = 0.0
-  values["ComfortBandLower"] = 0.0
-  values["JerkUpperLimit"] = upper_jerk
-  values["JerkLowerLimit"] = 5.0
-  values["ACCMode"] = 2 if enabled and gas_pressed else 1 if enabled else 4
-  values["ObjGap"] = 2 if lead_visible else 0
-  commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands
 

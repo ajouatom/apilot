@@ -103,9 +103,9 @@ class CarController:
     else:
 
       # tester present - w/ no response (keeps radar disabled)
-      #if self.CP.openpilotLongitudinalControl:
-      #  if self.frame % 100 == 0:
-      #    can_sends.append([0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0])
+      if self.CP.openpilotLongitudinalControl and self.CP.sccBus != 2:
+        if self.frame % 100 == 0:
+          can_sends.append([0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0])
 
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, apply_steer, CC.latActive,
                                      CS.lkas11, sys_warning, sys_state, CC.enabled,
@@ -132,7 +132,11 @@ class CarController:
 
         stopping = actuators.longControlState == LongCtrlState.stopping
         set_speed_in_units = hud_control.setSpeed * (CV.MS_TO_MPH if CS.clu11["CF_Clu_SPEED_UNIT"] == 1 else CV.MS_TO_KPH)
-        can_sends.extend(hyundaican.create_acc_commands2(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
+        if self.CP.sccBus != 2:
+          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
+                                                        hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed))
+        else:
+          can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
                                                         hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed, CS.scc11, CS.scc12, CS.scc13, CS.scc14))
         self.accel = accel
 
@@ -141,15 +145,15 @@ class CarController:
                                                           CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
                                                           CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
                                                           CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022):
-        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled))
+        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, CC.enabled and CC.longActive))
 
       # 5 Hz ACC options
-      #if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl:
-      #  can_sends.extend(hyundaican.create_acc_opt(self.packer))
+      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus != 2:
+        can_sends.extend(hyundaican.create_acc_opt(self.packer))
 
       # 2 Hz front radar options
-      #if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl:
-      #  can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
+      if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus != 2:
+        can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / self.params.STEER_MAX

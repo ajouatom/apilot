@@ -1,10 +1,32 @@
-APILOT: SantaFe Hybrid 2022 만 지원합니다.
+APILOT: Openpilot에서 지원하는 현대/기아차량 (Santafe Hybrid 2022만 시험됨).
 ------
-Panda코드를 수정하였으므로, connect에 연결되면 BAN당함!
-Panda코드의 중요한부분(brake부분)을 수정하였으므로, 코드를 잘못수정하면 사고의 위험이 있음.
-
+* Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함!
+* Panda코드의 중요한부분(brake부분)을 수정하였으므로, 코드를 잘못수정하면 사고의 위험이 있음.
 * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
 * ExperimentalLongitudinal: ON인경우에만 테스트함.
+* NDA지원
+* GAP설정: 속도에 따른 자동차간거리,
+  * 1단계: 연비절감모드,
+  * 2단계: 연비절감모드2: GAS페달에서 떼면 관성주행, 단,전방레이더 감지시 크루즈주행,
+  * 3단계: 일반주행,
+  * 4단계: E2E(blended) 주행 => Comma에서 제공하는 E2E모드
+* 자동 E2E 전환:
+  * 인게이지: E2E모드 시작,
+  * GAS페달 60%이상: E2E OFF,
+  * Button: Accel(+): E2E OFF,
+  * Button: Decel(-): E2E ON, 한번더누르면: Cruise OFF
+* 자동 인게이지
+  * GAS: 30Km/h(파라미터) 이상 주행시
+  * 선행차량 감지 및 가까와질때 (버튼으로 크루즈 해지된상태에서만...)
+  * 브레이크에서 떼었을때
+    * 직선도로, 100M이내 정지선, 60km/h이하,
+    * 전방에 차량이 있을때
+    * 전방에 차량이 없지만, 속도가 40km/h이상일때
+* E2E(신호감지)모드
+  * 예외상황
+    * 신호정지상태에서 GAS페달: 20Km/h이상에 도달할때까지 신호무시
+    * 신호정지상태에서 Brake페달: 신호무시하고 정지유지
+  
 
 ![](https://i.imgur.com/b0ZyIx5.jpg)
 

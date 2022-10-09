@@ -1253,6 +1253,9 @@ void NvgWindow::drawDebugText(QPainter &p) {
   auto controls_state = sm["controlsState"].getControlsState();
   auto car_control = sm["carControl"].getCarControl();
   //auto car_state = sm["carState"].getCarState();
+  const auto car_params = sm["carParams"].getCarParams();
+
+  int sccBus = (int)car_params.getSccBus();
 
   //float applyAccel = 0.;//controls_state.getApplyAccel();
 
@@ -1281,6 +1284,10 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.setRenderHint(QPainter::TextAntialiasing);
 
   str.sprintf("State: %s\n", long_state[longControlState]);
+  p.drawText(text_x, y, str);
+
+  y += height;
+  str.sprintf("SCCBus: %d\n", sccBus);
   p.drawText(text_x, y, str);
 
 #if 0
