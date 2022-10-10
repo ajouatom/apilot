@@ -450,7 +450,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   ScrollView *scroller = new ScrollView(homeWidget, this);
   scroller->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-  vlayout->addWidget(scroller, 1);
 
   main_layout->addWidget(homeScreen);
 
@@ -466,6 +465,9 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   QHBoxLayout* layoutBtn = new QHBoxLayout(homeWidget);
 
   layoutBtn->addWidget(selectCarBtn);
+  vlayout->addSpacing(10);
+  vlayout->addLayout(layoutBtn, 0);
+  vlayout->addWidget(scroller, 1);
 
   auto updateBtn = new ButtonControl("업데이트 체크 및 적용", "업데이트");
   QObject::connect(updateBtn, &ButtonControl::clicked, [=]()
