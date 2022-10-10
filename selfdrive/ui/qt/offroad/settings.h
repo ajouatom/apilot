@@ -108,6 +108,7 @@ class CommunityPanel : public QWidget {
 private:
   QStackedLayout* main_layout = nullptr;
   QWidget* homeScreen = nullptr;
+  SelectCar* selectCar = nullptr;
 
   QWidget* homeWidget;
 
