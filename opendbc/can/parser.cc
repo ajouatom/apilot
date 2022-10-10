@@ -283,17 +283,15 @@ void CANParser::UpdateValid(uint64_t sec) {
     if (state.counter_fail >= MAX_BAD_COUNTER) {
       _counters_valid = false;
     }
-    static missing_count = 0;
+
     const bool missing = state.last_seen_nanos == 0;
     const bool timed_out = (sec - state.last_seen_nanos) > state.check_threshold;
     if (state.check_threshold > 0 && (missing || timed_out)) {
       if (show_missing && !bus_timeout) {
-        if (missing && missing_count<10) {
+        if (missing) {
           LOGE("0x%X NOT SEEN", state.address);
-          missing_count++;
-        } else if (timed_out && missing_count<10) {
+        } else if (timed_out) {
           LOGE("0x%X TIMED OUT", state.address);
-          missing_count++;
         }
       }
       _valid = false;
