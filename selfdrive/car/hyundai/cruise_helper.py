@@ -250,7 +250,7 @@ class CruiseHelper:
     resumeGasPedal = 0.4
     #핸들각도가 20도이내, 핸들에 토크가 없고..
     #resume_cond = not blinker and abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
-    resume_cond = abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
+    resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     if controls.enabled:              
       #브레이크를 밟으면... cruise해제,...
       if CS.brakePressed:
