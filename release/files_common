@@ -110,7 +110,6 @@ selfdrive/car/torque_data/params.yaml
 selfdrive/car/torque_data/substitute.yaml
 selfdrive/car/torque_data/override.yaml
 
-selfdrive/car/body/*.py
 selfdrive/car/chrysler/*.py
 selfdrive/car/ford/*.py
 selfdrive/car/gm/*.py
