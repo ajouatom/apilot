@@ -950,10 +950,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.NO_ENTRY: NoEntryAlert("LKAS Disabled"),
   },
   EventName.cruisePaused: {
-    ET.WARNING: EngagementAlert(AudibleAlert.prompt),
+    ET.WARNING: EngagementAlert(AudibleAlert.longDisengaged),
   },
   EventName.cruiseResume: {
-    ET.WARNING: EngagementAlert(AudibleAlert.engage),
+    ET.WARNING: EngagementAlert(AudibleAlert.longEngaged),
   },
 
 }

@@ -406,6 +406,9 @@ struct CarControl {
       prompt @6;
       promptRepeat @7;
       promptDistracted @8;
+
+      longEngaged @9;
+      longDisengaged @10;
     }
   }
 
