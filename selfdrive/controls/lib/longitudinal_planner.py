@@ -184,5 +184,6 @@ class LongitudinalPlanner:
 
     longitudinalPlan.debugText = self.mpc.debugText
     longitudinalPlan.trafficState = self.mpc.trafficState
+    longitudinalPlan.xState = self.mpc.xState
 
     pm.send('longitudinalPlan', plan_send)

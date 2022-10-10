@@ -160,7 +160,7 @@ class CruiseHelper:
         self.longActiveUser = active_mode
         self.userCruisePaused = False
       else:
-        if self.longControlActiveSound >= 2:
+        if self.longActiveUser > 0 and self.longControlActiveSound >= 2:
           controls.events.add(EventName.cruisePaused)
         self.longActiveUser = active_mode
 
