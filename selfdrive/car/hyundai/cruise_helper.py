@@ -155,12 +155,12 @@ class CruiseHelper:
       if active_mode > 0:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
-        if self.longControlActiveSound >= 2:
+        if self.longControlActiveSound >= 2 and self.longActiveUser != active_mode:
           controls.events.add(EventName.cruiseResume)
         self.longActiveUser = active_mode
         self.userCruisePaused = False
       else:
-        if self.longActiveUser > 0 and self.longControlActiveSound >= 2:
+        if self.longActiveUser != active_mode and self.longControlActiveSound >= 2:
           controls.events.add(EventName.cruisePaused)
         self.longActiveUser = active_mode
 
