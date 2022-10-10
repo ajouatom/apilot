@@ -136,7 +136,7 @@ class CarController:
           can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
                                                         hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed))
         else:
-          can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
+          can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
                                                         hud_control.leadVisible, set_speed_in_units, stopping, CS.out.gasPressed, CS.scc11, CS.scc12, CS.scc13, CS.scc14))
         self.accel = accel
 
