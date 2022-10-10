@@ -335,6 +335,10 @@ class CarInterface(CarInterfaceBase):
         else 0 if 1056 in fingerprint[0] else -1
 
       # 왜그런진 모르겠네... 1056이 sccBus0와 sccBus2과 같이 있으면 0로 처리하자... 시험~
+      if Params().get_bool("LongControlSccBus2"):
+        ret.sccBus = 2
+      else:
+        ret.sccBus = 0
 
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)
