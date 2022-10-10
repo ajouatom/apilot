@@ -52,7 +52,7 @@ class CruiseHelper:
     self.position_x = 1000.0
     self.position_y = 300.0
     self.activate_E2E = False
-    self.userCruisePaused = False
+    self.userCruisePaused = True
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -339,7 +339,7 @@ class CruiseHelper:
         #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph > 3.0 and xState == "E2E_STOP" and self.activate_E2E:
+        elif v_ego_kph > 20.0 and xState == "E2E_STOP" and self.activate_E2E:
           self.cruise_control(controls, CS, 3)
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
         self.cruise_control(controls, CS, -3)
