@@ -487,7 +487,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
     }
     toggleLayout->addWidget(toggle);
   }
-  toggleLayout->addWidget(new ParamControl("IsOpenpilotViewEnabled", "OnRoad Preview", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "CruiseON:Gas_Speed", "Enable Cruise control from Gas, Speed", "../assets/offroad/icon_road.png", 20, 40, 5));
   toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "CruiseON:BrakeRelease", "While Driving\nCruise On when radar detected over a certain distance ", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "CruiseON:BrakeReleaseDist", "While Driving\nMinimum Cruise On Distance\nDuring long control, it may operate abnormally due to surrounding obstacles.", "../assets/offroad/icon_road.png", 0, 80, 5));
