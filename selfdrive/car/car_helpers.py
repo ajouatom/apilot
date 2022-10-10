@@ -182,6 +182,10 @@ def get_car(logcan, sendcan):
 
   experimental_long = Params().get_bool("ExperimentalLongitudinalEnabled")
 
+  selected_car = Params().get("SelectedCar")
+  if selected_car:
+    candidate = selected_car.decode("utf-8")
+
   CarInterface, CarController, CarState = interfaces[candidate]
   CP = CarInterface.get_params(candidate, fingerprints, car_fw, experimental_long)
   CP.carVin = vin

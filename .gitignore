@@ -26,8 +26,6 @@ a.out
 *.o-*
 *.os
 *.os-*
-*.so
-*.a
 *.clb
 *.class
 *.pyxbldc
@@ -39,7 +37,6 @@ compile_commands.json
 compare_runtime*.html
 
 persist
-board/obj/
 selfdrive/boardd/boardd
 selfdrive/logcatd/logcatd
 selfdrive/mapd/default_speeds_by_region.json
