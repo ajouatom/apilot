@@ -333,7 +333,11 @@ class CarInterface(CarInterfaceBase):
       ret.enableBsm = 0x58b in fingerprint[0]
       ret.sccBus = 2 if 1056 in fingerprint[2] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
         else 0 if 1056 in fingerprint[0] else -1
-      #ret.sccBus = 0 if 1056 in fingerprint[0] else ret.sccBus
+
+      # 왜그런진 모르겠네... 1056이 sccBus0와 sccBus2과 같이 있으면 0로 처리하자... 시험~
+      if ret.sccBus==2:
+        if 1056 in fingerprint[0]:
+          ret.sccBus = 0
 
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)
