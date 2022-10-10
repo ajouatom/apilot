@@ -76,7 +76,7 @@ class CruiseHelper:
     if all or (frame + 60) % 100 == 0:
       self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
-      self.longControlActiveSound = Params().get_bool("LongControlActiveSound")
+      self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
 
   @staticmethod
   def get_lead(sm):
@@ -155,12 +155,12 @@ class CruiseHelper:
       if active_mode > 0:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
-        if self.longControlActiveSound:
+        if self.longControlActiveSound >= 2:
           controls.events.add(EventName.cruiseResume)
         self.longActiveUser = active_mode
         self.userCruisePaused = False
       else:
-        if self.longControlActiveSound:
+        if self.longControlActiveSound >= 2:
           controls.events.add(EventName.cruisePaused)
         self.longActiveUser = active_mode
 
@@ -258,7 +258,8 @@ class CruiseHelper:
         if self.longActiveUser > 0 and self.activate_E2E == True and CS.gas > resumeGasPedal:
           self.activate_E2E = False
           self.cruise_control(controls, CS, 2)
-          controls.events.add(EventName.cruiseResume)
+          if self.longControlActiveSound >= 1:
+            controls.events.add(EventName.cruiseResume)
 
         if self.longActiveUser <= 0:
           # auto resuming 30KM/h가 넘을때..
@@ -382,7 +383,8 @@ class CruiseHelper:
       # accel button을 눌렀을때...
       if button_type == ButtonType.accelCruise and self.longActiveUser > 0 and self.activate_E2E == True:
           self.activate_E2E = False
-          controls.events.add(EventName.cruiseResume)
+          if self.longControlActiveSound >= 1:
+            controls.events.add(EventName.cruiseResume)
       elif button_type == ButtonType.accelCruise:
         self.cruise_control(controls, CS, 1)
 
@@ -418,7 +420,8 @@ class CruiseHelper:
         # Cruise가 중지된상황이면, E2E로 시작..
         if self.activate_E2E == False:
           self.activate_E2E = True
-          controls.events.add(EventName.cruiseResume)
+          if self.longControlActiveSound >= 1:
+            controls.events.add(EventName.cruiseResume)
           if self.longActiveUser <= 0: 
             self.cruise_control(controls, CS, 1)
             v_cruise_kph = vEgo_cruise_kph + 0.0
