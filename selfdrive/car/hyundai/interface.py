@@ -333,7 +333,7 @@ class CarInterface(CarInterfaceBase):
       ret.enableBsm = 0x58b in fingerprint[0]
       ret.sccBus = 2 if 1056 in fingerprint[2] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
         else 0 if 1056 in fingerprint[0] else -1
-      ret.sccBus = 0 if 1056 in fingerprint[0] else ret.sccBus
+      #ret.sccBus = 0 if 1056 in fingerprint[0] else ret.sccBus
 
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)
