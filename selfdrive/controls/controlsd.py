@@ -135,8 +135,8 @@ class Controls:
       safety_config.safetyModel = car.CarParams.SafetyModel.noOutput
       self.CP.safetyConfigs = [safety_config]
 
-    if is_tested_branch():
-      self.CP.experimentalLongitudinalAvailable = False
+    #if is_tested_branch():
+    #  self.CP.experimentalLongitudinalAvailable = False
 
     # Write CarParams for radard
     cp_bytes = self.CP.to_bytes()
@@ -325,7 +325,8 @@ class Controls:
       else:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
-      if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200:
+      if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 500:
+        #print('mismatch = {},{},{}'.format(safety_mismatch, pandaState.safetyRxChecksInvalid, self.mismatch_counter)) 
         self.events.add(EventName.controlsMismatch)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:

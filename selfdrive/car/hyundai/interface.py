@@ -228,12 +228,18 @@ class CarInterface(CarInterfaceBase):
         ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif candidate == CAR.KIA_STINGER:
-      ret.lateralTuning.pid.kf = 0.00005
+      #ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1825. + STD_CARGO_KG
       ret.wheelbase = 2.78
       ret.steerRatio = 14.4 * 1.15   # 15% higher at the center seems reasonable
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
+      #ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
+      #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
+      ret.longitudinalTuning.kpBP = [0., 130.*CV.KPH_TO_MS]
+      ret.longitudinalTuning.kpV = [1.2, 0.52]
+      ret.longitudinalTuning.kiBP = [0., 130. * CV.KPH_TO_MS]
+      ret.longitudinalTuning.kiV = [0.1, 0.05]
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+
     elif candidate == CAR.KIA_FORTE:
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 3558. * CV.LB_TO_KG
@@ -327,6 +333,12 @@ class CarInterface(CarInterfaceBase):
       ret.enableBsm = 0x58b in fingerprint[0]
       ret.sccBus = 2 if 1056 in fingerprint[2] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
         else 0 if 1056 in fingerprint[0] else -1
+
+      # 왜그런진 모르겠네... 1056이 sccBus0와 sccBus2과 같이 있으면 0로 처리하자... 시험~
+      if Params().get_bool("LongControlSccBus2"):
+        ret.sccBus = 2
+      else:
+        ret.sccBus = 0
 
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)

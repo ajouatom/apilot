@@ -176,8 +176,12 @@ class CarState(CarStateBase):
       self.scc12 = cp.vl["SCC12"]
       if self.CP.hasScc13:
         self.scc13 = cp.vl["SCC13"]
+      else:
+        self.scc13 = 0
       if self.CP.hasScc14:
         self.scc14 = cp.vl["SCC14"]
+      else:
+        self.scc14 = 0
 
     return ret
 

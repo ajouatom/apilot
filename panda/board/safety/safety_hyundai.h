@@ -77,6 +77,15 @@ AddrCheckStruct hyundai_legacy_addr_checks[] = {
 };
 #define HYUNDAI_LEGACY_ADDR_CHECK_LEN (sizeof(hyundai_legacy_addr_checks) / sizeof(hyundai_legacy_addr_checks[0]))
 
+AddrCheckStruct hyundai_legacy_long_addr_checks[] = {
+  {.msg = {{608, 0, 8, .check_checksum = true, .max_counter = 3U, .expected_timestep = 10000U},
+           {881, 0, 8, .expected_timestep = 10000U}, { 0 }}},
+  {.msg = {{902, 0, 8, .expected_timestep = 10000U}, { 0 }, { 0 }}},
+  {.msg = {{916, 0, 8, .expected_timestep = 10000U}, { 0 }, { 0 }}},
+  {.msg = {{1265, 0, 4, .check_checksum = false, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
+};
+#define HYUNDAI_LEGACY_LONG_ADDR_CHECK_LEN (sizeof(hyundai_legacy_long_addr_checks) / sizeof(hyundai_legacy_long_addr_checks[0]))
+
 const int HYUNDAI_PARAM_EV_GAS = 1;
 const int HYUNDAI_PARAM_HYBRID_GAS = 2;
 const int HYUNDAI_PARAM_LONGITUDINAL = 4;
@@ -363,11 +372,14 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
     bus_fwd = 2;
   }
   if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {    
-      if (hyundai_scc_bus2) {
-          if ((addr != 1056) && (addr != 1057) && (addr != 1290) && (addr != 905))
-              bus_fwd = 0;
-      }
+      if ((addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905));
       else bus_fwd = 0;
+
+      //if (hyundai_scc_bus2) {
+      //    if ((addr != 1056) && (addr != 1057) && (addr != 1290) && (addr != 905))
+      //        bus_fwd = 0;
+      // }
+      //else bus_fwd = 0;
   }
 
   return bus_fwd;
@@ -398,13 +410,18 @@ static const addr_checks* hyundai_init(uint16_t param) {
 
 static const addr_checks* hyundai_legacy_init(uint16_t param) {
   hyundai_legacy = true;
-  hyundai_longitudinal = false;
+  hyundai_longitudinal = GET_FLAG(param, HYUNDAI_PARAM_LONGITUDINAL);
   hyundai_camera_scc = false;
   hyundai_scc_bus2 = false;
   hyundai_ev_gas_signal = GET_FLAG(param, HYUNDAI_PARAM_EV_GAS);
   hyundai_hybrid_gas_signal = !hyundai_ev_gas_signal && GET_FLAG(param, HYUNDAI_PARAM_HYBRID_GAS);
   hyundai_last_button_interaction = HYUNDAI_PREV_BUTTON_SAMPLES;
-  hyundai_rx_checks = (addr_checks){hyundai_legacy_addr_checks, HYUNDAI_LEGACY_ADDR_CHECK_LEN};
+  if (hyundai_longitudinal) {
+      hyundai_rx_checks = (addr_checks){ hyundai_legacy_long_addr_checks, HYUNDAI_LEGACY_LONG_ADDR_CHECK_LEN };
+  }
+  else {
+      hyundai_rx_checks = (addr_checks){ hyundai_legacy_addr_checks, HYUNDAI_LEGACY_ADDR_CHECK_LEN };
+  }
   return &hyundai_rx_checks;
 }
 

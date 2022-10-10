@@ -272,6 +272,7 @@ void CANParser::UpdateCans(uint64_t sec, const capnp::DynamicStruct::Reader& cms
   state_it->second.parse(sec, data);
 }
 
+int _missingCount = 0;
 void CANParser::UpdateValid(uint64_t sec) {
   const bool show_missing = (last_sec - first_sec) > 8e9;
 
@@ -287,7 +288,8 @@ void CANParser::UpdateValid(uint64_t sec) {
     const bool missing = state.last_seen_nanos == 0;
     const bool timed_out = (sec - state.last_seen_nanos) > state.check_threshold;
     if (state.check_threshold > 0 && (missing || timed_out)) {
-      if (show_missing && !bus_timeout) {
+      if (_missingCount < 10 && show_missing && !bus_timeout) {
+          _missingCount++;
         if (missing) {
           LOGE("0x%X NOT SEEN", state.address);
         } else if (timed_out) {

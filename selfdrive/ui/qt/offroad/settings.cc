@@ -97,8 +97,9 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   for (auto &[param, title, desc, icon] : toggle_defs) {
     auto toggle = new ParamControl(param, title, desc, icon, this);
 
-    bool locked = params.getBool((param + "Lock").toStdString());
-    toggle->setEnabled(!locked);
+    //bool locked = params.getBool((param + "Lock").toStdString());
+    //toggle->setEnabled(!locked);
+    toggle->setEnabled(true);
 
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
@@ -467,6 +468,14 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   layoutBtn->addWidget(selectCarBtn);
   vlayout->addSpacing(10);
   vlayout->addLayout(layoutBtn, 0);
+  
+  auto tmuxlog_btn = new ButtonControl("Tmux error log", tr("RUN"));
+  QObject::connect(tmuxlog_btn, &ButtonControl::clicked, [=]() {
+    const std::string txt = util::read_file("/data/tmux_error.log");
+    RichTextDialog::alert(QString::fromStdString(txt), this);
+  });
+  vlayout->addWidget(tmuxlog_btn);
+
   vlayout->addWidget(scroller, 1);
 
   auto updateBtn = new ButtonControl("업데이트 체크 및 적용", "업데이트");
@@ -539,6 +548,8 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "SpeedControl: VisionCurve(50~150%)", "", "../assets/offroad/icon_road.png", 50, 150, 5));
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA Manager: NAVI speed", "", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA:RoadLimit(1:Limit,2:Apply)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
+  toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Long Active Sound 0:OFF,1:Half ON, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 2));
+  toggleLayout->addWidget(new ParamControl("LongControlSccBus2", "LongControl SccBus2 ON:2, OFF:0", "", "../assets/offroad/icon_road.png", this));
 
 }
 

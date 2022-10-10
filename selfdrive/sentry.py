@@ -1,4 +1,7 @@
 """Install exception handler for process crash."""
+import datetime
+import traceback
+
 import sentry_sdk
 from enum import Enum
 from sentry_sdk.integrations.threading import ThreadingIntegration
@@ -29,6 +32,9 @@ def report_tombstone(fn: str, message: str, contents: str) -> None:
 
 
 def capture_exception(*args, **kwargs) -> None:
+  with open('/data/tmux_error.log', 'w') as f:
+    now = datetime.datetime.now()
+    f.write(now.strftime('[%Y-%m-%d %H:%M:%S]') + "\n\n" + str(traceback.format_exc()))
   cloudlog.error("crash", exc_info=kwargs.get('exc_info', 1))
 
   try:
