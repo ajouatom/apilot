@@ -548,6 +548,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "SpeedControl: VisionCurve(50~150%)", "", "../assets/offroad/icon_road.png", 50, 150, 5));
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA Manager: NAVI speed", "", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA:RoadLimit(1:Limit,2:Apply)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
+  toggleLayout->addWidget(new ParamControl("LongControlActiveSound", "LongControl Active Sound", "", "../assets/offroad/icon_road.png", this));
 
 }
 

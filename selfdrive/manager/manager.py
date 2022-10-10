@@ -55,6 +55,7 @@ def manager_init() -> None:
     ("AutoResumeFromBrakeRelease", "1"),
     ("AutoResumeFromBrakeReleaseDist", "10"),
     ("AutoResumeFromBrakeReleaseLeadCar", "1"),
+    ("LongControlActiveSound", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

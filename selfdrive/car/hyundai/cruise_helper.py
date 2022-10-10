@@ -76,6 +76,7 @@ class CruiseHelper:
     if all or (frame + 60) % 100 == 0:
       self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
+      self.longControlActiveSound = Params().get_bool("LongControlActiveSound")
 
   @staticmethod
   def get_lead(sm):
@@ -154,11 +155,13 @@ class CruiseHelper:
       if active_mode > 0:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
-        controls.events.add(EventName.cruiseResume)
+        if self.longControlActiveSound:
+          controls.events.add(EventName.cruiseResume)
         self.longActiveUser = active_mode
         self.userCruisePaused = False
       else:
-        controls.events.add(EventName.cruisePaused)
+        if self.longControlActiveSound:
+          controls.events.add(EventName.cruisePaused)
         self.longActiveUser = active_mode
 
   @staticmethod
