@@ -85,6 +85,23 @@ private:
   Params params;
   QFileSystemWatcher *fs_watch;
 };
+
+
+
+
+class SelectCar : public QWidget {
+  Q_OBJECT
+public:
+  explicit SelectCar(QWidget* parent = 0);
+
+private:
+
+signals:
+  void backPress();
+  void selectedCar();
+
+};
+
 class CommunityPanel : public QWidget {
   Q_OBJECT
 
