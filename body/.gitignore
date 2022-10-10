@@ -11,5 +11,4 @@ a.out
 .#*
 .vscode*
 .DS_Store
-board/obj/
 .sconsign.dblite
