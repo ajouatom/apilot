@@ -463,6 +463,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
      main_layout->setCurrentWidget(homeScreen);
   });
   main_layout->addWidget(selectCar);
+  QHBoxLayout* layoutBtn = new QHBoxLayout(homeWidget);
+
+  layoutBtn->addWidget(lateralControlBtn);
+  layoutBtn->addSpacing(10);
+  layoutBtn->addWidget(selectCarBtn);
 
   auto updateBtn = new ButtonControl("업데이트 체크 및 적용", "업데이트");
   QObject::connect(updateBtn, &ButtonControl::clicked, [=]()
