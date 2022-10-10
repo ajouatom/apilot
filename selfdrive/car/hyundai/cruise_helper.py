@@ -183,7 +183,7 @@ class CruiseHelper:
     
     v_ego_kph = CS.vEgo * CV.MS_TO_KPH    #실제속도
 
-    xState = self.sm['longitudinalPlan'].xState
+    xState = controls.sm['longitudinalPlan'].xState
 
     if self.autoNaviSpeedCtrl:
       clu11_speed = CS.cluSpeedMs * CV.MS_TO_KPH
