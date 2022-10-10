@@ -288,6 +288,26 @@ void DevicePanel::poweroff() {
   }
 }
 
+static QStringList get_list(const char* path)
+{
+  QStringList stringList;
+  QFile textFile(path);
+  if(textFile.open(QIODevice::ReadOnly))
+  {
+      QTextStream textStream(&textFile);
+      while (true)
+      {
+        QString line = textStream.readLine();
+        if (line.isNull())
+            break;
+        else
+            stringList.append(line);
+      }
+  }
+
+  return stringList;
+}
+
 void SettingsWindow::showEvent(QShowEvent *event) {
   panel_widget->setCurrentIndex(0);
   nav_btns->buttons()[0]->setChecked(true);
