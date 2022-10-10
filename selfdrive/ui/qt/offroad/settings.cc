@@ -467,6 +467,14 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   layoutBtn->addWidget(selectCarBtn);
   vlayout->addSpacing(10);
   vlayout->addLayout(layoutBtn, 0);
+  
+  auto tmuxlog_btn = new ButtonControl("Tmux error log", tr("RUN"));
+  QObject::connect(tmuxlog_btn, &ButtonControl::clicked, [=]() {
+    const std::string txt = util::read_file("/data/tmux_error.log");
+    RichTextDialog::alert(QString::fromStdString(txt), this);
+  });
+  vlayout->addWidget(tmuxlog_btn);
+
   vlayout->addWidget(scroller, 1);
 
   auto updateBtn = new ButtonControl("업데이트 체크 및 적용", "업데이트");
