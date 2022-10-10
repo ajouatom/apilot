@@ -135,8 +135,8 @@ class Controls:
       safety_config.safetyModel = car.CarParams.SafetyModel.noOutput
       self.CP.safetyConfigs = [safety_config]
 
-    if is_tested_branch():
-      self.CP.experimentalLongitudinalAvailable = False
+    #if is_tested_branch():
+    #  self.CP.experimentalLongitudinalAvailable = False
 
     # Write CarParams for radard
     cp_bytes = self.CP.to_bytes()
