@@ -956,6 +956,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
 
   debugText @36 : Text;
   trafficState @37 : Int32;
+  xState @38 : Text;
   enum LongitudinalPlanSource {
     cruise @0;
     lead0 @1;

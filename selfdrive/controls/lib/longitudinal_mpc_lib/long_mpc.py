@@ -218,7 +218,7 @@ class LongitudinalMpc:
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
-    self.xstate = "CRUISE"
+    self.xState = "CRUISE"
     self.e2ePaused = False
     self.longActiveUser = 0
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -241,7 +241,7 @@ class LongitudinalMpc:
     self.u_sol = np.zeros((N,1))
     self.params = np.zeros((N+1, PARAM_DIM))
     self.t_follow = T_FOLLOW
-    self.xstate = "CRUISE"
+    self.xState = "CRUISE"
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
     self.last_cloudlog_t = 0
@@ -371,39 +371,39 @@ class LongitudinalMpc:
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
 
         #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
-        if self.xstate == "E2E_STOP" and not self.e2ePaused: 
+        if self.xState == "E2E_STOP" and not self.e2ePaused: 
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
-            self.xstate = "LEAD"
+            self.xState = "LEAD"
           elif startSign:
-            self.xstate = "E2E_CRUISE"
+            self.xState = "E2E_CRUISE"
           if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
-            self.xstate = "E2E_STOP2"
+            self.xState = "E2E_STOP2"
           if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
-            self.xstate = "E2E_CRUISE"
+            self.xState = "E2E_CRUISE"
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
-        elif self.xstate == "E2E_STOP2": 
+        elif self.xState == "E2E_STOP2": 
           stopline_x = 0.0
           if carstate.gasPressed or longActiveUserChanged==1:
-            self.xstate = "E2E_CRUISE"
+            self.xState = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
         else:
           if self.status:
-            self.xstate = "LEAD"
+            self.xState = "LEAD"
           elif stopSign and not self.e2ePaused:                 #신호인식이 되면 정지모드
-            self.xstate = "E2E_STOP"
+            self.xState = "E2E_STOP"
           else:
-            self.xstate = "E2E_CRUISE"
+            self.xState = "E2E_CRUISE"
       else:
-        self.xstate = "CRUISE"
+        self.xState = "CRUISE"
 
-      if self.xstate in ["LEAD", "CRUISE"]:
+      if self.xState in ["LEAD", "CRUISE"]:
         self.e2ePaused = False
         model_x = 400.0
-      elif self.xstate == "E2E_CRUISE":
+      elif self.xState == "E2E_CRUISE":
         if probe < 0.1 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
           model_x = 400.0
-      elif self.xstate == "E2E_STOP2":
+      elif self.xState == "E2E_STOP2":
         model_x = stopline_x
       elif self.e2ePaused:
           model_x = 400.0
@@ -422,7 +422,7 @@ class LongitudinalMpc:
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
       str1 = 'TR={:.2f},state={} {},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.t_follow, self.xstate, self.e2ePaused, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
+        self.t_follow, self.xState, self.e2ePaused, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
       self.debugText = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]

@@ -5,6 +5,7 @@ APILOT: Openpilot에서 지원하는 현대/기아차량 (Santafe Hybrid 2022만
 * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
 * ExperimentalLongitudinal: ON인경우에만 테스트함.
 * NDA지원
+* 조향시 20%의 가속하도록 함.
 * GAP설정: 속도에 따른 자동차간거리,
   * 1단계: 연비절감모드,
   * 2단계: 연비절감모드2: GAS페달에서 떼면 관성주행, 단,전방레이더 감지시 크루즈주행,
@@ -13,8 +14,8 @@ APILOT: Openpilot에서 지원하는 현대/기아차량 (Santafe Hybrid 2022만
 * 자동 E2E 전환:
   * 인게이지: E2E모드 시작,
   * GAS페달 60%이상: E2E OFF,
-  * Button: Accel(+): E2E OFF,
-  * Button: Decel(-): E2E ON, 한번더누르면: Cruise OFF
+  * Button: Accel(+): E2E OFF, 한번더 누르면 속도증가: 최초 로드스피드, 30,50,70,100,...
+  * Button: Decel(-): E2E ON, 한번더누르면: Cruise OFF, 또 누르면 현재속도로 셋
 * 자동 인게이지
   * GAS: 30Km/h(파라미터) 이상 주행시
   * 선행차량 감지 및 가까와질때 (버튼으로 크루즈 해지된상태에서만...)

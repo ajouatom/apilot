@@ -183,6 +183,8 @@ class CruiseHelper:
     
     v_ego_kph = CS.vEgo * CV.MS_TO_KPH    #실제속도
 
+    xState = self.sm['longitudinalPlan'].xState
+
     if self.autoNaviSpeedCtrl:
       clu11_speed = CS.cluSpeedMs * CV.MS_TO_KPH
       road_speed_limiter = get_road_speed_limiter()
@@ -336,6 +338,8 @@ class CruiseHelper:
         vRel = lead.vRel if lead is not None else 0
         #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
+          self.cruise_control(controls, CS, 3)
+        elif v_ego_kph > 3.0 and xState == "E2E_STOP" and self.activate_E2E:
           self.cruise_control(controls, CS, 3)
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
         self.cruise_control(controls, CS, -3)
