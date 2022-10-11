@@ -266,7 +266,7 @@ class CruiseHelper:
         if self.longActiveUser <= 0:
           # auto resuming 30KM/h가 넘을때..
           #if CS.gas > resumeGasPedal and resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
-          if resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed and self.autoResumeFromGas:
+          if resume_cond and CS.vEgo*CV.MS_TO_KPH >=  self.autoResumeFromGasSpeed:
             controls.v_cruise_kph = vEgo_cruise_kph + 1.0
             self.v_cruise_kph_current = controls.v_cruise_kph
             self.v_cruise_kph_backup = controls.v_cruise_kph
