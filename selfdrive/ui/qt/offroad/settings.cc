@@ -99,7 +99,6 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
 
     bool locked = true;// params.getBool((param + "Lock").toStdString());
     toggle->setEnabled(!locked);
-    toggle->setEnabled(true);
 
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
