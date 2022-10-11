@@ -180,6 +180,8 @@ def get_car(logcan, sendcan):
     cloudlog.warning("car doesn't match any fingerprints: %r", fingerprints)
     candidate = "mock"
 
+  ## apilot은 롱컨만 지원하니... 항상 켜주자~
+  Params().put_bool("ExperimentalLongitudinalEnabled", True)
   experimental_long = Params().get_bool("ExperimentalLongitudinalEnabled")
 
   selected_car = Params().get("SelectedCar")

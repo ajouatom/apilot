@@ -97,8 +97,8 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   for (auto &[param, title, desc, icon] : toggle_defs) {
     auto toggle = new ParamControl(param, title, desc, icon, this);
 
-    //bool locked = params.getBool((param + "Lock").toStdString());
-    //toggle->setEnabled(!locked);
+    bool locked = true;// params.getBool((param + "Lock").toStdString());
+    toggle->setEnabled(!locked);
     toggle->setEnabled(true);
 
     addItem(toggle);
