@@ -208,6 +208,10 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AutoResumeFromBrakeRelease", PERSISTENT },
     { "AutoResumeFromBrakeReleaseDist", PERSISTENT },
     { "AutoResumeFromBrakeReleaseLeadCar", PERSISTENT },
+    { "XEgoObstacleCost", PERSISTENT },
+    { "JEgoCost", PERSISTENT },
+    { "AChangeCost", PERSISTENT },
+    { "DangerZoneCost", PERSISTENT },
     { "LongControlActiveSound", PERSISTENT },
     { "LongControlSccBus2", PERSISTENT },
 };

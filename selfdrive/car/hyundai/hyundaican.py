@@ -6,7 +6,7 @@ from selfdrive.car.hyundai.values import CAR, CHECKSUM, CAMERA_SCC_CAR
 hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 
 def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
-                  lkas11, sys_warning, sys_state, enabled,
+                  torque_fault, lkas11, sys_warning, sys_state, enabled,
                   left_lane, right_lane,
                   left_lane_depart, right_lane_depart):
   values = lkas11
@@ -16,6 +16,7 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   values["CF_Lkas_LdwsRHWarning"] = right_lane_depart
   values["CR_Lkas_StrToqReq"] = apply_steer
   values["CF_Lkas_ActToi"] = steer_req
+  values["CF_Lkas_ToiFlt"] = torque_fault  # seems to allow actuation on CR_Lkas_StrToqReq
   values["CF_Lkas_MsgCount"] = frame % 0x10
 
   if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
@@ -102,9 +103,9 @@ def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, gas_pressed, scc11, scc12, scc13, scc14):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, gas_pressed, CS):
   commands = []
-  values = copy.copy(scc11)
+  values = copy.copy(CS.scc11)
   values["MainMode_ACC"] = 1
   values["TauGapSet"] = 4
   values["VSetDis"] = set_speed if enabled else 0
@@ -112,7 +113,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lea
   values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 
-  values = copy.copy(scc12)
+  values = copy.copy(CS.scc12)
   values["ACCMode"] = 2 if enabled and gas_pressed else 1 if enabled else 0
   values["StopReq"] = 1 if stopping else 0
   values["aReqRaw"] = accel
@@ -124,11 +125,11 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lea
   commands.append(packer.make_can_msg("SCC12", 0, values))
 
   if CP.hasScc13:
-    values = copy.copy(scc13)
+    values = copy.copy(CS.scc13)
     commands.append(packer.make_can_msg("SCC13", 0, values))
 
   if CP.hasScc14:
-    values = copy.copy(scc14)
+    values = copy.copy(CS.scc14)
     values["ComfortBandUpper"] = 0.0
     values["ComfortBandLower"] = 0.0
     values["JerkUpperLimit"] = upper_jerk

@@ -46,7 +46,7 @@ ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
 AUTO_TR_BP = [0., 50.*CV.KPH_TO_MS, 100.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
 #AUTO_TR_V = [1.0, 1.2, 1.35, 1.45]
-AUTO_TR_V = [1.0, 1.2, 1.3, 1.40]
+AUTO_TR_V = [1.2, 1.2, 1.3, 1.40]
 # Fewer timestamps don't hurt performance and lead to
 # much better convergence of the MPC with low iterations
 N = 12
@@ -65,7 +65,7 @@ def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
-  if False:#np.all(v_lead - v_ego > 0):
+  if np.all(v_lead - v_ego > 0):
     v_diff_offset = ((v_lead - v_ego) * 1.)
     v_diff_offset = np.clip(v_diff_offset, 0, STOP_DISTANCE / 2)
     v_diff_offset = np.maximum(v_diff_offset * ((10 - v_ego)/10), 0)
@@ -215,6 +215,11 @@ class LongitudinalMpc:
     self.onStopping = False
     self.debugText = ""
     self.trafficState = 0
+    self.debugLong = 0
+    self.XEgoObstacleCost = 3.
+    self.JEgoCost = 5.
+    self.AChangeCost = 200.
+    self.DangerZoneCost = 100.
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -274,9 +279,11 @@ class LongitudinalMpc:
 
   def set_weights(self, prev_accel_constraint=True):
     if self.mode == 'acc':
-      a_change_cost = A_CHANGE_COST if prev_accel_constraint else 0
-      cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
-      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST]
+      #xEgoCost = 0.2 if self.e2eMode else X_EGO_COST
+      a_change_cost = self.AChangeCost if prev_accel_constraint else 0
+      #cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
+      cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
+      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
     elif self.mode == 'blended':
       cost_weights = [0., 0.1, 0.2, 5.0, 0.0, 1.0]
       constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 50.0]
@@ -332,6 +339,11 @@ class LongitudinalMpc:
     self.lo_timer += 1
     if self.lo_timer > 100:
       self.lo_timer = 0
+      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
+      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
+      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
+      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+    self.debugLong = 0
     self.trafficState = 0
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
@@ -361,7 +373,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 20.0 or longActiveUserChanged==1:
+      if v_ego*CV.MS_TO_KPH > 30.0 or longActiveUserChanged<0:
         self.e2ePaused = False
 
       if self.e2eMode:
@@ -376,7 +388,7 @@ class LongitudinalMpc:
             self.xState = "LEAD"
           elif startSign:
             self.xState = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
+          if longActiveUserChanged == -2 and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.xState = "E2E_STOP2"
           if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
