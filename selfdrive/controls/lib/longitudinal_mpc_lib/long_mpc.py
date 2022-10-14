@@ -378,7 +378,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0:
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"]:
         self.e2ePaused = False
 
       if self.e2eMode:
@@ -414,8 +414,7 @@ class LongitudinalMpc:
       else:
         self.xState = "CRUISE"
 
-      if self.xState in ["LEAD", "CRUISE"]:
-        self.e2ePaused = False
+      if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
         model_x = 400.0
       elif self.xState == "E2E_CRUISE":
         if probe < 0.1 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
@@ -423,8 +422,6 @@ class LongitudinalMpc:
       elif self.xState == "E2E_STOP2":
         model_x = stopline_x
         self.comfort_brake = 1.9
-      elif self.e2ePaused:
-          model_x = 400.0
 
       x2 = model_x * np.ones(N+1)
 

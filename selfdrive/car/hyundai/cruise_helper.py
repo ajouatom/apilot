@@ -53,6 +53,8 @@ class CruiseHelper:
     self.position_y = 300.0
     self.activate_E2E = False
     self.userCruisePaused = True
+    self.accelLimitEco = 0.6
+    self.accelLimitTurn = 0.2
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -77,6 +79,8 @@ class CruiseHelper:
       self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
       self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
+      self.accelLimitEco = float(int(Params().get("AccelLimitEconomy", encoding="utf8"))) / 100.
+      self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
 
   @staticmethod
   def get_lead(sm):

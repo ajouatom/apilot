@@ -91,14 +91,6 @@ class LongControl:
 
     self.pid.neg_limit = accel_limits[0]
     self.pid.pos_limit = accel_limits[1] 
-
-    # cruiseGap이 1,2이면 accel 제한모드(연비운전)
-    if CS.cruiseGap <= 2:
-      self.pid.pos_limit = accel_limits[1]*0.6
-    # 핸들을 돌리고 있으면, 엑셀을 제한한다.... 커브돌리고 있는데 가속을 하면 자꾸 브레이크를 밟게 됨..
-    if abs(CS.steeringAngleDeg) > 60:
-      self.pid.pos_limit = accel_limits[1]*0.2
-
     output_accel = self.last_output_accel
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        v_target, v_target_1sec, CS.brakePressed,

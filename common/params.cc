@@ -214,6 +214,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "DangerZoneCost", PERSISTENT },
     { "LongControlActiveSound", PERSISTENT },
     { "LongControlSccBus2", PERSISTENT },
+    { "AccelLimitEconomy", PERSISTENT },
+    { "AccelLimitTurn", PERSISTENT },
 };
 
 } // namespace

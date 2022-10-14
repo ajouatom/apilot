@@ -61,6 +61,8 @@ def manager_init() -> None:
     ("DangerZoneCost", "100"),
     ("LongControlActiveSound", "2"),
     ("LongControlSccBus2", "1"),
+    ("AccelLimitEconomy", "60"),
+    ("AccelLimitTurn", "20"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
