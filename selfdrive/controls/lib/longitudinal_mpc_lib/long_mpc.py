@@ -222,6 +222,8 @@ class LongitudinalMpc:
     self.JEgoCost = 5.
     self.AChangeCost = 200.
     self.DangerZoneCost = 100.
+    self.trafficStopDistanceAdjust = 0.
+    self.applyLongDynamicCost = False
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -281,13 +283,40 @@ class LongitudinalMpc:
     for i in range(N):
       self.solver.cost_set(i, 'Zl', Zl)
 
-  def set_weights(self, prev_accel_constraint=True):
+  def get_cost_multipliers(self, v_lead0, v_lead1):
+    v_ego = self.x0[1]
+    v_ego_bps = [0, 10]
+    TFs = [1.2, 1.45, 1.8]
+    # KRKeegan adjustments to costs for different TFs
+    # these were calculated using the test_longitudial.py deceleration tests
+  #TF에 의한 a,j,d cost변경
+    a_change_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게 < 이것이 민감하다는 것인가?
+    j_ego_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게 <- 이것이 민감하다는 것인가?
+    d_zone_tf = interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게 <- 민감?
+
+# 전방차량과의 상대속도에 의한 j,a cost변경
+    # KRKeegan adjustments to improve sluggish acceleration
+    # do not apply to deceleration
+    j_ego_v_ego = 1
+    a_change_v_ego = 1
+    if (v_lead0 - v_ego >= 0) and (v_lead1 - v_ego >= 0):
+      j_ego_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
+      a_change_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
+    # Select the appropriate min/max of the options
+    j_ego = min(j_ego_tf, j_ego_v_ego)
+    a_change = min(a_change_tf, a_change_v_ego)
+    return (a_change, j_ego, d_zone_tf)
+
+  def set_weights(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
     if self.mode == 'acc':
-      #xEgoCost = 0.2 if self.e2eMode else X_EGO_COST
       a_change_cost = self.AChangeCost if prev_accel_constraint else 0
-      #cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
-      cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
-      constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
+      if self.applyLongDynamicCost:
+        cost_mulitpliers = self.get_cost_multipliers(v_lead0, v_lead1)
+        cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost * cost_mulitpliers[0], self.JEgoCost * cost_mulitpliers[1]]
+        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost * cost_mulitpliers[2]]
+      else:
+        cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
+        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
     elif self.mode == 'blended':
       cost_weights = [0., 0.1, 0.2, 5.0, 0.0, 1.0]
       constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 50.0]
@@ -338,7 +367,7 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.cruise_max_a = max_a
 
-  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j):
+  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, prev_accel_constraint):
     v_ego = self.x0[1]
     self.lo_timer += 1
     if self.lo_timer > 100:
@@ -347,6 +376,8 @@ class LongitudinalMpc:
       self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
       self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
       self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+      self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
+      self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
     self.debugLong = 0
     self.trafficState = 0
 
@@ -358,6 +389,7 @@ class LongitudinalMpc:
     
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
+    self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
@@ -371,8 +403,8 @@ class LongitudinalMpc:
       self.params[:,1] = self.cruise_max_a
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      stopline_x = model.stopLine.x
-      model_x = x[N]
+      stopline_x = model.stopLine.x + self.trafficStopDistanceAdjust
+      model_x = x[N] + self.trafficStopDistanceAdjust
       longActiveUserChanged = 0
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:

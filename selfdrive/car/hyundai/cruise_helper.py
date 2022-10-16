@@ -55,6 +55,8 @@ class CruiseHelper:
     self.userCruisePaused = True
     self.accelLimitEco = 0.6
     self.accelLimitTurn = 0.2
+    self.accelBoost = 1.0
+    self.autoSpeedUptoRoadSpeed = False
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -81,6 +83,8 @@ class CruiseHelper:
       self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
       self.accelLimitEco = float(int(Params().get("AccelLimitEconomy", encoding="utf8"))) / 100.
       self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
+      self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
+      self.autoSpeedUptoRoadSpeed = Params().get_bool("AutoSpeedUptoRoadSpeed")
 
   @staticmethod
   def get_lead(sm):
@@ -256,6 +260,10 @@ class CruiseHelper:
     #핸들각도가 20도이내, 핸들에 토크가 없고..
     #resume_cond = not blinker and abs(CS.steeringAngleDeg) < 20 and not CS.steeringPressed
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
+    lead = self.get_lead(controls.sm)
+    dRel = lead.dRel if lead is not None else 0
+    vRel = lead.vRel if lead is not None else 0
+
     if controls.enabled:              
       #브레이크를 밟으면... cruise해제,...
       if CS.brakePressed:
@@ -338,9 +346,6 @@ class CruiseHelper:
             if self.autoResumeFromBrakeReleaseLeadCar:
               self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
-        lead = self.get_lead(controls.sm)
-        dRel = lead.dRel if lead is not None else 0
-        vRel = lead.vRel if lead is not None else 0
         #전방레이더가 Params 이상 잡혀있으면 Cruise control 활성화..
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
           self.cruise_control(controls, CS, 3)
@@ -350,6 +355,11 @@ class CruiseHelper:
         self.cruise_control(controls, CS, -3)
         self.userCruisePaused = True
 
+      roadLimitSpeed = 30 if self.roadLimitSpeed == 0 else self.roadLimitSpeed
+      if controls.v_cruise_kph < roadLimitSpeed and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeed:
+        if v_ego_kph + vRel*CV.MS_TO_KPH > controls.v_cruise_kph:
+          controls.v_cruise_kph = max(controls.v_cruise_kph, min(v_ego_kph + vRel*CV.MS_TO_KPH, roadLimitSpeed))
+          controls.v_cruise_kph_current = controls.v_cruise_kph
 
     self.preBrakePressed = CS.brakePressed
     self.preGasPressed = CS.gasPressed

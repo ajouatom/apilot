@@ -613,7 +613,7 @@ class Controls:
     CC.enabled = self.enabled
     # Check which actuators can be enabled
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
-                     CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
+                   CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActiveUser = self.cruise_helper.longActiveUser
@@ -640,7 +640,7 @@ class Controls:
       elif abs(CS.steeringAngleDeg) > 40.0:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
       else:
-        pid_accel_limits = pid_accel_limits1
+        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] *  self.cruise_helper.accelBoost 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan)
 

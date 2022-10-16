@@ -31,6 +31,11 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   split->setSpacing(0);
   split->addLayout(road_view_layout);
 
+  if (getenv("DUAL_CAMERA_VIEW")) {
+    CameraViewWidget *arCam = new CameraViewWidget("camerad", VISION_STREAM_ROAD, true, this);
+    split->insertWidget(0, arCam);
+  }
+
   stacked_layout->addWidget(split_wrapper);
 
   alerts = new OnroadAlerts(this);
