@@ -638,7 +638,7 @@ class Controls:
       if CS.cruiseGap <= 2: #연비운전모드
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
       elif abs(CS.steeringAngleDeg) > 40.0:
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] = pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
+        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
       else:
         pid_accel_limits = pid_accel_limits1
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL

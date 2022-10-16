@@ -378,7 +378,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"]:
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or stopline_x > 20.0:
         self.e2ePaused = False
 
       if self.e2eMode:
@@ -393,7 +393,7 @@ class LongitudinalMpc:
             self.xState = "LEAD"
           elif startSign:
             self.xState = "E2E_CRUISE"
-          if longActiveUserChanged == -2 and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
+          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 5.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.xState = "E2E_STOP2"
           if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
@@ -419,8 +419,11 @@ class LongitudinalMpc:
       elif self.xState == "E2E_CRUISE":
         if probe < 0.1 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
           model_x = 400.0
+        elif probe == 0.0:
+          self.e2ePaused = False
       elif self.xState == "E2E_STOP2":
         model_x = stopline_x
+      elif self.xState == "E2E_STOP":
         self.comfort_brake = 1.9
 
       x2 = model_x * np.ones(N+1)
