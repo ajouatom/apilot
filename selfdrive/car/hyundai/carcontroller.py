@@ -5,7 +5,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
-from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR
+from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, CAMERA_SCC_CAR
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -84,11 +84,25 @@ class CarController:
     # *** common hyundai stuff ***
 
     # tester present - w/ no response (keeps relevant ECU disabled)
-    if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.sccBus != 2:
+    if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.carFingerprint not in CAMERA_SCC_CAR and self.CP.sccBus == 0:
       addr, bus = 0x7d0, 0
       if self.CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
       can_sends.append([addr, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", bus])
+
+    # >90 degree steering fault prevention
+    # Count up to MAX_ANGLE_FRAMES, at which point we need to cut torque to avoid a steering fault
+    if CC.latActive and abs(CS.out.steeringAngleDeg) >= MAX_ANGLE:
+      self.angle_limit_counter += 1
+    else:
+      self.angle_limit_counter = 0
+
+    # Cut steer actuation bit for two frames and hold torque with induced temporary fault
+    torque_fault = CC.latActive and self.angle_limit_counter > MAX_ANGLE_FRAMES
+    lat_active = CC.latActive and not torque_fault
+
+    if self.angle_limit_counter >= MAX_ANGLE_FRAMES + MAX_ANGLE_CONSECUTIVE_FRAMES:
+      self.angle_limit_counter = 0
 
     # CAN-FD platforms
     if self.CP.carFingerprint in CANFD_CAR:
@@ -96,7 +110,7 @@ class CarController:
       hda2_long = hda2 and self.CP.openpilotLongitudinalControl
 
       # steering control
-      can_sends.extend(hyundaicanfd.create_steering_messages(self.packer, self.CP, CC.enabled, CC.latActive, apply_steer))
+      can_sends.extend(hyundaicanfd.create_steering_messages(self.packer, self.CP, CC.enabled, lat_active, apply_steer))
 
       # disable LFA on HDA2
       if self.frame % 5 == 0 and hda2:
@@ -131,19 +145,6 @@ class CarController:
                 can_sends.append(hyundaicanfd.create_buttons(self.packer, CS.buttons_counter+1, Buttons.RES_ACCEL))
               self.last_button_frame = self.frame
     else:
-      # Count up to MAX_ANGLE_FRAMES, at which point we need to cut torque to avoid a steering fault
-      if CC.latActive and abs(CS.out.steeringAngleDeg) >= MAX_ANGLE:
-        self.angle_limit_counter += 1
-      else:
-        self.angle_limit_counter = 0
-
-      # Cut steer actuation bit for two frames and hold torque with induced temporary fault
-      torque_fault = CC.latActive and self.angle_limit_counter > MAX_ANGLE_FRAMES
-      lat_active = CC.latActive and not torque_fault
-
-      if self.angle_limit_counter >= MAX_ANGLE_FRAMES + MAX_ANGLE_CONSECUTIVE_FRAMES:
-        self.angle_limit_counter = 0
-
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, apply_steer, lat_active,
                                                 torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
@@ -162,8 +163,8 @@ class CarController:
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
         jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
-        if self.CP.sccBus != 2:
-          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
+        if self.CP.sccBus == 0:
+          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2), CS.fca11, self.CP.carFingerprint,
                                                         hud_control.leadVisible, set_speed_in_units, stopping, CC.cruiseControl.override))
         else:
           can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2),
@@ -177,11 +178,11 @@ class CarController:
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, CC.enabled and CC.longActive))
 
       # 5 Hz ACC options
-      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus != 2:
-        can_sends.extend(hyundaican.create_acc_opt(self.packer))
+      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus == 0:
+        can_sends.extend(hyundaican.create_acc_opt(self.packer, CS.fca12, self.CP.carFingerprint))
 
       # 2 Hz front radar options
-      if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus != 2:
+      if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus == 0:
         can_sends.append(hyundaican.create_frt_radar_opt(self.packer))
 
     new_actuators = actuators.copy()

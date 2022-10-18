@@ -83,30 +83,30 @@ class Controls:
 
     self.log_sock = messaging.sub_sock('androidLog')
 
-    if CI is None:
-      # wait for one pandaState and one CAN packet
-      print("Waiting for CAN messages...")
-      get_one_can(self.can_sock)
-
-      self.CI, self.CP = get_car(self.can_sock, self.pm.sock['sendcan'])
-    else:
-      self.CI, self.CP = CI, CI.CP
-
     params = Params()
-    self.joystick_mode = params.get_bool("JoystickDebugMode") or (self.CP.notCar and sm is None)
-    joystick_packet = ['testJoystick'] if self.joystick_mode else []
-
     self.sm = sm
     if self.sm is None:
-      ignore = []
+      ignore = ['testJoystick']
       if SIMULATION:
         ignore += ['driverCameraState', 'managerState']
       if params.get_bool('WideCameraOnly'):
         ignore += ['roadCameraState']
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters', 'roadLimitSpeed'] + self.camera_packets + joystick_packet,
-                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
+                                     'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters', 'testJoystick', 'roadLimitSpeed'] + self.camera_packets,
+                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan', 'testJoystick'])
+
+    if CI is None:
+      # wait for one pandaState and one CAN packet
+      print("Waiting for CAN messages...")
+      get_one_can(self.can_sock)
+
+      num_pandas = len(messaging.recv_one_retry(self.sm.sock['pandaStates']).pandaStates)
+      self.CI, self.CP = get_car(self.can_sock, self.pm.sock['sendcan'], num_pandas)
+    else:
+      self.CI, self.CP = CI, CI.CP
+
+    self.joystick_mode = params.get_bool("JoystickDebugMode") or (self.CP.notCar and sm is None)
 
     # set alternative experiences from parameters
     self.disengage_on_accelerator = params.get_bool("DisengageOnAccelerator")
@@ -349,6 +349,7 @@ class Controls:
     if self.rk.lagging:
       self.events.add(EventName.controlsdLagging)
     if len(self.sm['radarState'].radarErrors) or not self.sm.all_checks(['radarState']):
+      #print("radarFault: ######################")
       self.events.add(EventName.radarFault)
     if not self.sm.valid['pandaStates']:
       self.events.add(EventName.usbError)
@@ -635,10 +636,11 @@ class Controls:
     if not self.joystick_mode:
       # accel PID loop
       pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
-      if CS.cruiseGap <= 2: #연비운전모드
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
-      elif abs(CS.steeringAngleDeg) > 40.0:
+
+      if abs(CS.steeringAngleDeg) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
+      elif CS.cruiseGap <= 2: #연비운전모드
+        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
       else:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] *  self.cruise_helper.accelBoost 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL

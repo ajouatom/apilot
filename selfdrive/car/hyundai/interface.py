@@ -28,7 +28,7 @@ class CarInterface(CarInterfaceBase):
     #gas_max_bp = [10., 20., 50., 70., 130., 150.]
     #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
     gas_max_bp = [10., 70., 100., 150.]
-    gas_max_v = [1.5, 0.8, 0.3, 0.1]
+    gas_max_v = [1.5, 1.0, 0.5, 0.1]
 
     return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
 
@@ -109,20 +109,22 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.65
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
     elif candidate == CAR.HYUNDAI_GENESIS:
-      ret.lateralTuning.pid.kf = 0.00005
+      #ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
       ret.steerRatio = 16.5
-      ret.lateralTuning.init('indi')
-      ret.lateralTuning.indi.innerLoopGainBP = [0.]
-      ret.lateralTuning.indi.innerLoopGainV = [3.5]
-      ret.lateralTuning.indi.outerLoopGainBP = [0.]
-      ret.lateralTuning.indi.outerLoopGainV = [2.0]
-      ret.lateralTuning.indi.timeConstantBP = [0.]
-      ret.lateralTuning.indi.timeConstantV = [1.4]
-      ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
-      ret.lateralTuning.indi.actuatorEffectivenessV = [2.3]
+      #ret.lateralTuning.init('indi')
+      #ret.lateralTuning.indi.innerLoopGainBP = [0.]
+      #ret.lateralTuning.indi.innerLoopGainV = [3.5]
+      #ret.lateralTuning.indi.outerLoopGainBP = [0.]
+      #ret.lateralTuning.indi.outerLoopGainV = [2.0]
+      #ret.lateralTuning.indi.timeConstantBP = [0.]
+      #ret.lateralTuning.indi.timeConstantV = [1.4]
+      #ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
+      #ret.lateralTuning.indi.actuatorEffectivenessV = [2.3]
       ret.minSteerSpeed = 60 * CV.KPH_TO_MS
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+
     elif candidate in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):
       ret.mass = {CAR.KONA_EV: 1685., CAR.KONA_HEV: 1425., CAR.KONA_EV_2022: 1743.}.get(candidate, 1275.) + STD_CARGO_KG
       ret.wheelbase = 2.6
@@ -315,7 +317,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kiV = [0.1, 0.05]
       ret.longitudinalActuatorDelayLowerBound = 0.5
       ret.longitudinalActuatorDelayUpperBound = 0.5
-      ret.experimentalLongitudinalAvailable = candidate not in (LEGACY_SAFETY_MODE_CAR | CAMERA_SCC_CAR)  or candidate in {CAR.KIA_STINGER}
+      ret.experimentalLongitudinalAvailable = candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS}
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
 
@@ -336,17 +338,15 @@ class CarInterface(CarInterfaceBase):
     else:
       print("fingerprint:", fingerprint)
       ret.enableBsm = 0x58b in fingerprint[0]
-      ret.sccBus = 2 if 1056 in fingerprint[2] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
-        else 0 if 1056 in fingerprint[0] else -1
-
-      # 왜그런진 모르겠네... 1056이 sccBus0와 sccBus2과 같이 있으면 0로 처리하자... 시험~
-      if Params().get_bool("LongControlSccBus2"):
-        ret.sccBus = 2
-      else:
-        ret.sccBus = 0
+      ret.mdpsBus = 1 if 593 in fingerprint[1] and 1296 not in fingerprint[1] else 0
+      ret.sasBus = 1 if 688 in fingerprint[1] and 1296 not in fingerprint[1] else 0
+      ret.sccBus = 0 if 1056 in fingerprint[0] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
+        else 2 if 1056 in fingerprint[2] else -1
 
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)
+      print("mdpsBus= ", ret.mdpsBus)
+      print("sasBus=  ", ret.sasBus)
       if ret.sccBus >= 0:
         ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
         ret.hasScc14 = 905 in fingerprint[ret.sccBus]
@@ -363,9 +363,6 @@ class CarInterface(CarInterfaceBase):
       if candidate in CAMERA_SCC_CAR:
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_CAMERA_SCC
 
-      if ret.sccBus == 2:
-        ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_SCC_BUS2
-        
     if ret.openpilotLongitudinalControl:
       ret.safetyConfigs[-1].safetyParam |= Panda.FLAG_HYUNDAI_LONG
     if candidate in HYBRID_CAR:
@@ -387,7 +384,7 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl and CP.sccBus != 2:
+    if CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR and CP.sccBus == 0:
       addr, bus = 0x7d0, 0
       if CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5

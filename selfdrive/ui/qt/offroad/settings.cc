@@ -539,7 +539,8 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   }
 #if 1
   toggleLayout->addWidget(new CValueControl("AccelLimitEconomy", "연비운전 가속비율(10~100%)", "연비운전시(크루즈갭1,2) 가속비율을 설정합니다.", "../assets/offroad/icon_road.png", 10, 100, 10));
-  toggleLayout->addWidget(new CValueControl("AccelLimitTurn", "조향시 가속비율(10~100%)", "조향시 가속율을 줄여 급가속을 피해줍니다.", "../assets/offroad/icon_road.png", 10, 100, 10));
+  toggleLayout->addWidget(new CValueControl("AccelLimitTurn", "조향가속비율(10~100%)", "조향시 가속율을 줄여 급가속을 피해줍니다.", "../assets/offroad/icon_road.png", 10, 100, 10));
+  toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(50~200%)", "가속도를 제어합니다. 크루즈갭:3일 때 만 적용됨 ", "../assets/offroad/icon_road.png", 50, 200, 10));
   toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "신호정지 위치 조정(-1000~1000cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
   toggleLayout->addWidget(new ParamControl("AutoSpeedUptoRoadSpeed", "자동속도증가모드", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", this));
@@ -556,7 +557,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA 지원", "별도의 단말기에 NDA Manager를 설치하고 같은 네트웍에 물리고 Tmap을 실행하세요", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA: 속도제한(0:None,1:Limit,2:Apply)", "Limit: 속도를 제한합니다. Apply: 제한속도로 실시간 적용합니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("LongControlSccBus2", "LongControl SccBus2 ON:2, OFF:0", "롱컨개조가 되어 있으면 ON합니다. CAN2로 연결해야함", "../assets/offroad/icon_road.png", this));
   
 #else
   toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "CruiseON:Gas_Speed", "Enable Cruise control from Gas, Speed", "../assets/offroad/icon_road.png", 20, 40, 5));
@@ -570,7 +570,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA Manager: NAVI speed", "", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA:RoadLimit(1:Limit,2:Apply)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Long Sound 0:OFF,1:Half ON, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("LongControlSccBus2", "LongControl SccBus2 ON:2, OFF:0", "", "../assets/offroad/icon_road.png", this));
 #endif
 }
 

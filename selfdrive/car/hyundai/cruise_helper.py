@@ -85,6 +85,8 @@ class CruiseHelper:
       self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.autoSpeedUptoRoadSpeed = Params().get_bool("AutoSpeedUptoRoadSpeed")
+      self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
+      
 
   @staticmethod
   def get_lead(sm):
@@ -359,7 +361,8 @@ class CruiseHelper:
       if controls.v_cruise_kph < roadLimitSpeed and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeed:
         if v_ego_kph + vRel*CV.MS_TO_KPH > controls.v_cruise_kph:
           controls.v_cruise_kph = max(controls.v_cruise_kph, min(v_ego_kph + vRel*CV.MS_TO_KPH, roadLimitSpeed))
-          controls.v_cruise_kph_current = controls.v_cruise_kph
+          self.v_cruise_kph_current = controls.v_cruise_kph
+          self.v_cruise_kph_backup = controls.v_cruise_kph
 
     self.preBrakePressed = CS.brakePressed
     self.preGasPressed = CS.gasPressed

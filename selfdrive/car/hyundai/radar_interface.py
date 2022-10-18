@@ -12,7 +12,7 @@ RADAR_MSG_COUNT = 32
 
 def get_radar_can_parser(CP):
 
-  if CP.sccBus != 2: #Params().get_bool("NewRadarInterface"):
+  if CP.sccBus == 0 and CP.openpilotLongitudinalControl: #Params().get_bool("NewRadarInterface"):
 
     signals = []
     checks = []
@@ -27,7 +27,9 @@ def get_radar_can_parser(CP):
         ("REL_SPEED", msg),
       ]
       checks += [(msg, 50)]
-    return CANParser('hyundai_kia_mando_front_radar_generated', signals, checks, 1)
+    print("RadarInterface: RadarTracks..")
+    return CANParser(DBC[CP.carFingerprint]['radar'], signals, checks, 1)
+    #return CANParser('hyundai_kia_mando_front_radar_generated', signals, checks, 1)
 
   else:
     signals = [
@@ -41,13 +43,14 @@ def get_radar_can_parser(CP):
     checks = [
       ("SCC11", 50),
     ]
+    print("RadarInterface: SCCRadar...")
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CP.sccBus)
 
 
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.new_radar = CP.sccBus != 2 #Params().get_bool("NewRadarInterface")
+    self.new_radar = CP.sccBus == 0 and CP.openpilotLongitudinalControl #Params().get_bool("NewRadarInterface")
     self.updated_messages = set()
     self.trigger_msg = 0x420 if not self.new_radar else RADAR_START_ADDR + RADAR_MSG_COUNT - 1
     self.track_id = 0
@@ -83,7 +86,6 @@ class RadarInterface(RadarInterfaceBase):
     ret.errors = errors
 
     if self.new_radar:
-
       for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT):
         msg = self.rcp.vl[f"RADAR_TRACK_{addr:x}"]
 

@@ -60,13 +60,13 @@ def manager_init() -> None:
     ("AChangeCost", "200"),
     ("DangerZoneCost", "100"),
     ("LongControlActiveSound", "2"),
-    ("LongControlSccBus2", "1"),
     ("AccelLimitEconomy", "60"),
     ("AccelLimitTurn", "20"),
     ("AccelBoost", "100"),
     ("TrafficStopDistanceAdjust", "0"),
     ("AutoSpeedUptoRoadSpeed", "0"),
-    ("ApplyLongDynamicCost", "0"),    
+    ("ApplyLongDynamicCost", "0"), 
+    ("AccelLimitConfusedModel", "0"),     
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

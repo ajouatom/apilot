@@ -213,13 +213,14 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AChangeCost", PERSISTENT },
     { "DangerZoneCost", PERSISTENT },
     { "LongControlActiveSound", PERSISTENT },
-    { "LongControlSccBus2", PERSISTENT },
     { "AccelLimitEconomy", PERSISTENT },
     { "AccelLimitTurn", PERSISTENT },
     { "AccelBoost", PERSISTENT },
     { "TrafficStopDistanceAdjust", PERSISTENT },
     { "AutoSpeedUptoRoadSpeed", PERSISTENT },
     { "ApplyLongDynamicCost", PERSISTENT },
+    { "AccelLimitConfusedModel", PERSISTENT },
+        
 };
 
 } // namespace
