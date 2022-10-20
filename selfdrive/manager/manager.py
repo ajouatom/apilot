@@ -68,7 +68,10 @@ def manager_init() -> None:
     ("ApplyLongDynamicCost", "0"), 
     ("AccelLimitConfusedModel", "1"),   
     ("AutoSpeedAdjustWithLeadCar", "0"),   
-    ("TrafficStopAccel", "80"),       
+    ("TrafficStopAccel", "80"),     
+    ("CruiseButtonMode", "0"),      
+    ("InitCruiseGap", "3"),      
+    ("AutoSyncCruiseSpeed", "1"),          
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

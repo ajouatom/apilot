@@ -15,6 +15,7 @@ V_CRUISE_INITIAL = 255  # kph
 
 V_CRUISE_DELTA_MI = 5 * CV.MPH_TO_KPH
 V_CRUISE_DELTA_KM = 10
+MIN_SPEED = 1.0
 LAT_MPC_N = 16
 LON_MPC_N = 32
 CONTROL_N = 17
@@ -104,7 +105,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
     psis = [0.0]*CONTROL_N
     curvatures = [0.0]*CONTROL_N
     curvature_rates = [0.0]*CONTROL_N
-  v_ego = max(v_ego, 0.1)
+  v_ego = max(MIN_SPEED, v_ego)
 
   # TODO this needs more thought, use .2s extra for now to estimate other delays
   delay = CP.steerActuatorDelay + .2

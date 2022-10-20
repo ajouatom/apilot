@@ -14,6 +14,7 @@ from selfdrive.car import apply_hysteresis, gen_empty_fingerprint
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, apply_deadzone
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
+from common.params import Params
 
 ButtonType = car.CarState.ButtonEvent.Type
 GearShifter = car.CarState.GearShifter
@@ -70,7 +71,7 @@ class CarInterfaceBase(ABC):
     self.CS = None
     self.can_parsers = []
 
-    self.cruiseGap = 1
+    self.cruiseGap = int(Params().get("InitCruiseGap"))
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -220,8 +221,8 @@ class CarInterfaceBase(ABC):
 
     if cs_out.doorOpen:
       events.add(EventName.doorOpen)
-    if cs_out.seatbeltUnlatched:
-      events.add(EventName.seatbeltNotLatched)
+    #if cs_out.seatbeltUnlatched:
+    #  events.add(EventName.seatbeltNotLatched)
     if cs_out.gearShifter != GearShifter.drive and (extra_gears is None or
        cs_out.gearShifter not in extra_gears):
       events.add(EventName.wrongGear)

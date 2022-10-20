@@ -33,7 +33,7 @@ int default_rx_hook(CANPacket_t *to_push) {
       LKAS11_bus0_cnt = 10;
       if (Fwd_bus2) {
         Fwd_bus2 = false;
-        puts("  LKAS11 on bus0: forwarding disabled\n");
+        puts("SD:  LKAS11 on bus0: forwarding disabled\n");
       }
     }
     if (bus == 2) {
@@ -41,16 +41,16 @@ int default_rx_hook(CANPacket_t *to_push) {
         LKAS11_bus0_cnt--;
         } else if (!Fwd_bus2) {
           Fwd_bus2 = true;
-          puts("  LKAS11 on bus2: forwarding enabled\n");
+          puts("SD:  LKAS11 on bus2: forwarding enabled\n");
       }
       if (OBD_cnt == 20) {
-        puts("  LKAS11 on bus2: forwarding enabled\n");
+        puts("SD:  LKAS11 on bus2: forwarding enabled\n");
       }
       if (Lcan_bus1_cnt > 0) {
         Lcan_bus1_cnt--;
         } else if (Lcan_bus1) {
           Lcan_bus1 = false;
-          puts("  Lcan not on bus1\n");
+          puts("SD:  Lcan not on bus1\n");
       }
       if (OBD_cnt > 0) {
         OBD_cnt--;
@@ -64,7 +64,7 @@ int default_rx_hook(CANPacket_t *to_push) {
     if (Fwd_bus1 || !Lcan_bus1) {
       Lcan_bus1 = true;
       Fwd_bus1 = false;
-      puts("  LCAN on bus1: forwarding disabled\n");
+      puts("SD:  LCAN on bus1: forwarding disabled\n");
     }
   }
   // check if we have a MDPS or SCC on Bus1
@@ -72,10 +72,10 @@ int default_rx_hook(CANPacket_t *to_push) {
     if (!Fwd_bus1 && OBD_cnt > 1 && OBD_cnt < 11 && current_board->has_obd) {
       Fwd_obd = true;
       OBD_cnt = 0;
-      puts("  MDPS or SCC on OBD2 CAN: setting can mode obd\n");
+      puts("SD:  MDPS or SCC on OBD2 CAN: setting can mode obd\n");
     } else if (!Fwd_bus1 && !Lcan_bus1) {
       Fwd_bus1 = true;
-      puts("  MDPS or SCC on bus1: forwarding enabled\n");
+      puts("SD:  MDPS or SCC on bus1: forwarding enabled\n");
     }
   }
   if ((addr == 593) && (MDPS12_checksum == -1)){
@@ -124,7 +124,6 @@ static int default_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   UNUSED(bus_num);
   UNUSED(to_fwd);
   return -1;
-  return default_hkg_fwd_hook(int bus_num, CANPacket_t *to_fwd)
 }
 #else
 static int default_fwd_hook(int bus_num, CANPacket_t *to_fwd) {

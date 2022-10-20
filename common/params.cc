@@ -221,7 +221,10 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ApplyLongDynamicCost", PERSISTENT },
     { "AccelLimitConfusedModel", PERSISTENT },
     { "AutoSpeedAdjustWithLeadCar", PERSISTENT },
-    { "TrafficStopAccel", PERSISTENT },        
+    { "TrafficStopAccel", PERSISTENT },
+    { "CruiseButtonMode", PERSISTENT },
+    { "InitCruiseGap", PERSISTENT },
+    { "AutoSyncCruiseSpeed", PERSISTENT },        
 };
 
 } // namespace

@@ -656,9 +656,8 @@ struct ControlsState @0x97ff69c53601abf1 {
 
   debugText1 @64 : Text;
   debugText2 @65 : Text;
-  vCruiseTarget @66 :Float32;
-  activateE2E @67 : Bool; #ajouatom
-  longActiveUser @68: Int32;
+  activateE2E @66 : Bool; #ajouatom
+  longActiveUser @67: Int32;
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
     disabled @0;
@@ -808,9 +807,6 @@ struct ModelDataV2 {
   leads @11 :List(LeadDataV2);
   leadsV3 @18 :List(LeadDataV3);
 
-  # predicted stop line
-  stopLine @21 :StopLineData;
-
   meta @12 :MetaData;
 
   # All SI units and in device frame
@@ -851,29 +847,6 @@ struct ModelDataV2 {
     vStd @8 :List(Float32);
     a @9 :List(Float32);
     aStd @10 :List(Float32);
-  }
-
-  struct StopLineData {
-    prob @0 :Float32;
-
-    x @1 :Float32;
-    xStd @2 :Float32;
-    y @3 :Float32;
-    yStd @4 :Float32;
-    z @5 :Float32;
-    zStd @6 :Float32;
-
-    roll @7 :Float32;
-    rollStd @8 :Float32;
-    pitch @9 :Float32;
-    pitchStd @10 :Float32;
-    yaw @11 :Float32;
-    yawStd @12 :Float32;
-
-    speedAtLine @13 :Float32;
-    speedAtLineStd @14 :Float32;
-    secondsUntilLine @15 :Float32;
-    secondsUntilLineStd @16 :Float32;
   }
 
   struct MetaData {
@@ -1881,6 +1854,8 @@ struct CameraOdometry {
   rot @1 :List(Float32); # rad/s in device frame
   transStd @2 :List(Float32); # std m/s in device frame
   rotStd @3 :List(Float32); # std rad/s in device frame
+  wideFromDeviceEuler @6 :List(Float32);
+  wideFromDeviceEulerStd @7 :List(Float32);
 }
 
 struct Sentinel {

@@ -493,8 +493,9 @@ class Controls:
       if not self.CP.pcmCruise:
         #self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.vEgo, CS.gasPressed, CS.buttonEvents,
         #                                    self.button_timers, self.enabled, self.is_metric)
-        self.v_cruise_kph = self.cruise_helper.update_v_cruise2(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
-        self.cruise_helper.update_cruise_navi(self, CS)
+        #self.v_cruise_kph = self.cruise_helper.update_v_cruise2(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
+        self.v_cruise_kph = self.cruise_helper.update_v_cruise_apilot(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
+        #self.cruise_helper.update_cruise_navi(self, CS)
         self.v_cruise_cluster_kph = self.v_cruise_kph
       else:
         self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
@@ -738,7 +739,7 @@ class Controls:
       CC.cruiseControl.resume = self.enabled and CS.cruiseState.standstill and speeds[-1] > 0.1
 
     hudControl = CC.hudControl
-    hudControl.setSpeed = float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
+    hudControl.setSpeed = float(self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
@@ -823,11 +824,10 @@ class Controls:
     controlsState.engageable = not self.events.any(ET.NO_ENTRY)
     controlsState.longControlState = self.LoC.long_control_state
     controlsState.vPid = float(self.LoC.v_pid)
-    controlsState.vCruise = float(self.v_cruise_kph)
+    controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
 
     #ajouatom
-    controlsState.vCruiseTarget = float(self.cruise_helper.v_cruise_kph_backup) if self.cruise_helper.longActiveUser > 0 else 0
     controlsState.activateE2E = self.cruise_helper.activate_E2E
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2

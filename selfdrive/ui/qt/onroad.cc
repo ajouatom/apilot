@@ -400,17 +400,6 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   painter.restore();
 }
 
-void AnnotatedCameraWidget::drawStopLine(QPainter& painter, const UIState* s, const cereal::ModelDataV2::StopLineData::Reader &stop_line_data, const QPolygonF &vd) {
-    painter.save();
-
-    float prob = stop_line_data.getProb();
-    if (prob < 0.6) prob = 0.6;
-    painter.setBrush(QColor::fromRgbF(1.0, 0.0, 0.0, std::clamp<float>(prob, 0.0, 1.0)));
-    painter.drawPolygon(vd);
-   
-    painter.restore();
-}
-
 void AnnotatedCameraWidget::paintGL() {
 }
 
@@ -518,12 +507,6 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   drawDeviceState(p);
   //drawTurnSignals(p);
   drawGpsStatus(p);
-  auto stop_line = (*s->sm)["modelV2"].getModelV2().getStopLine();
-  if (stop_line.getX() > 3.0) {
-      if (stop_line.getProb() > .1) {
-          drawStopLine(p, s, stop_line, s->scene.stop_line_vertices);
-      }
-  }
 
   if(s->show_debug && width() > 1200)
     drawDebugText(p);
@@ -750,7 +733,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   UIState *s = uiState();
   const SubMaster &sm = *(s->sm);
   const auto cs = sm["controlsState"].getControlsState();
-  bool activateE2E = cs.getActivateE2E();
+  //bool activateE2E = cs.getActivateE2E();
   //const auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
   const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
 
@@ -758,11 +741,12 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   bool long_control = 0;// scc_smoother.getLongControl();
 
   // kph
-  float applyMaxSpeed = cs.getVCruiseTarget();// scc_smoother.getApplyMaxSpeed();
-  float cruiseMaxSpeed = cs.getVCruise();// scc_smoother.getCruiseMaxSpeed();
+  float applyMaxSpeed = cs.getVCruise();// scc_smoother.getApplyMaxSpeed();
+  float cruiseMaxSpeed = cs.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
 
   //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
-  bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
+  //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
+  int longActiveUser = cs.getLongActiveUser();
 
   int activeNDA = road_limit_speed.getActive();
   int roadLimitSpeed = road_limit_speed.getRoadLimitSpeed();
@@ -838,7 +822,8 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   {
     p.setPen(QColor(255, 255, 255, 230));
 
-    if(is_cruise_set) {
+    //if(is_cruise_set) {
+    if(longActiveUser>0) {
       configFont(p, "Inter", 80, "Bold");
 
       if(is_metric)
@@ -864,7 +849,8 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     p.setPen(QColor(255, 255, 255, 180));
 
     configFont(p, "Inter", 50, "Bold");
-    if(is_cruise_set && applyMaxSpeed > 0) {
+    if (longActiveUser > 0) {
+    //if(is_cruise_set && applyMaxSpeed > 0) {
       if(is_metric)
         str.sprintf( "%d", (int)(applyMaxSpeed + 0.5));
       else
@@ -873,7 +859,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     else {
       str = long_control ? "OP" : "MAX";
     }
-    if (activateE2E) str = "E2E";
+    //if (activateE2E) str = "E2E";
 
     QRect speed_rect = getRect(p, Qt::AlignCenter, str);
     QRect max_speed_rect(x_start, y_start + max_speed_height/2, board_width, max_speed_height/2);

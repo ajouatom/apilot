@@ -139,14 +139,10 @@ class LongitudinalPlanner:
         self.mpc.mode = 'acc'
         self.mpc.e2eMode = False
     else:
-      if self.activateE2E:
-        self.mpc.mode = 'blended'
-        self.mpc.e2eMode = False
-      else:
         self.mpc.mode = 'acc'
-        self.mpc.e2eMode = False
+        self.mpc.e2eMode = True
 
-    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, prev_accel_constraint)
+    self.mpc.update(sm['carState'], sm['radarState'], sm['controlsState'], v_cruise, x, v, a, j, prev_accel_constraint)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
