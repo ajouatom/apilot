@@ -57,16 +57,18 @@ def manager_init() -> None:
     ("AutoResumeFromBrakeReleaseLeadCar", "1"),
     ("XEgoObstacleCost", "5"),
     ("JEgoCost", "5"),
-    ("AChangeCost", "200"),
+    ("AChangeCost", "120"),
     ("DangerZoneCost", "100"),
     ("LongControlActiveSound", "2"),
     ("AccelLimitEconomy", "60"),
     ("AccelLimitTurn", "20"),
     ("AccelBoost", "100"),
-    ("TrafficStopDistanceAdjust", "0"),
+    ("TrafficStopDistanceAdjust", "400"),
     ("AutoSpeedUptoRoadSpeed", "0"),
     ("ApplyLongDynamicCost", "0"), 
-    ("AccelLimitConfusedModel", "0"),     
+    ("AccelLimitConfusedModel", "1"),   
+    ("AutoSpeedAdjustWithLeadCar", "0"),   
+    ("TrafficStopAccel", "80"),       
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

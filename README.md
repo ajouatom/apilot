@@ -1,17 +1,21 @@
-APILOT: Openpilot에서 지원하는 현대/기아차량 (Santafe Hybrid 2022만 시험됨).
+APILOT: Openpilot에서 지원하는 현대/기아차량 
 ------
-* Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함!
-* Panda코드의 중요한부분(brake부분)을 수정하였으므로, 코드를 잘못수정하면 사고의 위험이 있음.
+* Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함(연결되어도 업로드안됨)!
 * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
 * ExperimentalLongitudinal: ON인경우에만 테스트함.
 * NDA지원
 * 조향시 20%의 가속유지
 * 롱컨 파라미터를 항상 ON하도록 함
+* 테스트된차량: SCC모듈(레이더) 배선개조 CAN BUS2로 연결된차량
+  * Hyundai SANTAFE HYBRID Hybrid 2022 (배선개조 안된것도 가능,단,AEB off됨)
+  * Kia STINGER
+  * Hyundai GENESIS (White PANDA를 이용하여 MDPS개조된차량)
+  * KONA EV: 기능은 넣었으나 아직 시험못함 (CAMERA SCC차량으로 개조필요없음)
 * GAP설정: 속도에 따른 자동차간거리,
   * 1단계: 연비절감모드,
   * 2단계: 연비절감모드2: GAS페달에서 떼면 관성주행, 단,전방레이더 감지시 크루즈주행,
   * 3단계: 일반주행,
-  * 4단계: E2E(blended) 주행 => Comma에서 제공하는 E2E모드
+  * 4단계: E2E(blended) 주행 => Comma에서 제공하는 E2E모드 (사용하지말것)
 * 자동 E2E 전환:
   * 인게이지: E2E모드 시작,
   * GAS페달 60%이상: E2E OFF,
@@ -28,7 +32,11 @@ APILOT: Openpilot에서 지원하는 현대/기아차량 (Santafe Hybrid 2022만
 * E2E(신호감지)모드
   * 예외상황
     * 신호정지상태에서 GAS페달: 신호무시, 해제조건: 50Km/h이상에 도달할때, 크루즈해제, 정지라인이 20M이상 멀어지면 신호무시
-    * 브레이크홀드기능: 정지상태에서 Brake페달: 신호무시하고 정지유지
+    * 브레이크홀드기능: 정지상태에서 Brake페달: 신호무시하고 정지유지 
+* 자동속도조절
+  * 선행차량에 맞추어 속도증가: 로드스피드 리미트까지 자동속도증가
+  * 선행차량에 맞추어 속도감소: 저속/정지된 선행차량에 맞추어 미리 주행속도를 맞춤. 정지된차량에 대한 사전 감속을 위함(시험중)
+  * NDA 과속카메라 자동감속: 연결되면 항상작동 (Neokii)
   
 
 ![](https://i.imgur.com/b0ZyIx5.jpg)

@@ -122,7 +122,7 @@ class CarInterface(CarInterfaceBase):
       #ret.lateralTuning.indi.timeConstantV = [1.4]
       #ret.lateralTuning.indi.actuatorEffectivenessBP = [0.]
       #ret.lateralTuning.indi.actuatorEffectivenessV = [2.3]
-      ret.minSteerSpeed = 60 * CV.KPH_TO_MS
+      #ret.minSteerSpeed = 60 * CV.KPH_TO_MS
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     elif candidate in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):

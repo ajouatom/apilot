@@ -57,6 +57,7 @@ class CruiseHelper:
     self.accelLimitTurn = 0.2
     self.accelBoost = 1.0
     self.autoSpeedUptoRoadSpeed = False
+    self.autoSpeedAdjustWithLeadCar = 0
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -86,6 +87,7 @@ class CruiseHelper:
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.autoSpeedUptoRoadSpeed = Params().get_bool("AutoSpeedUptoRoadSpeed")
       self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
+      self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 100.
       
 
   @staticmethod
@@ -239,8 +241,10 @@ class CruiseHelper:
 
     controls.v_cruise_kph = min( cruise_set_speed_kph_navi, curve_speed * CV.MS_TO_KPH)
     #네비 또는 커브에 의해 속도가 변경되면... 
+    autoSpeedControl = False
     if cruise_set_speed_kph_navi!= cruise_set_speed_kph or cruise_set_speed_kph_navi != controls.v_cruise_kph:
       #v_cruise_kph_current: 현재설정속도를 변경안함..
+      autoSpeedControl = True
       pass
     else:
       self.v_cruise_kph_current = cruise_set_speed_kph
@@ -363,6 +367,11 @@ class CruiseHelper:
           controls.v_cruise_kph = max(controls.v_cruise_kph, min(v_ego_kph + vRel*CV.MS_TO_KPH, roadLimitSpeed))
           self.v_cruise_kph_current = controls.v_cruise_kph
           self.v_cruise_kph_backup = controls.v_cruise_kph
+
+      elif self.autoSpeedAdjustWithLeadCar > 0.0 and dRel > 0:  #전방차량이 있을때
+        leadCarSpeed = max((v_ego_kph + vRel*CV.MS_TO_KPH) * self.autoSpeedAdjustWithLeadCar, 30)
+        if leadCarSpeed < self.v_cruise_kph_current and not autoSpeedControl:
+          controls.v_cruise_kph = leadCarSpeed
 
     self.preBrakePressed = CS.brakePressed
     self.preGasPressed = CS.gasPressed

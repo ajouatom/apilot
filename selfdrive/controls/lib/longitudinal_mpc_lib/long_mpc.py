@@ -378,6 +378,7 @@ class LongitudinalMpc:
       self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
       self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
+      self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
     self.debugLong = 0
     self.trafficState = 0
 
@@ -410,7 +411,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or stopline_x > 20.0:
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or stopline_x > 50.0:
         self.e2ePaused = False
 
       if self.e2eMode:
@@ -432,7 +433,7 @@ class LongitudinalMpc:
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xState == "E2E_STOP2": 
-          stopline_x = 0.0
+          stopline_x = -5.0
           if carstate.gasPressed or longActiveUserChanged==1:
             self.xState = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
@@ -456,7 +457,7 @@ class LongitudinalMpc:
       elif self.xState == "E2E_STOP2":
         model_x = stopline_x
       elif self.xState == "E2E_STOP":
-        self.comfort_brake = 1.9
+        self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
 
       x2 = model_x * np.ones(N+1)
 

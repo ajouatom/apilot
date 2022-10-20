@@ -1016,7 +1016,7 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 0) : 0;
 
   rect.setRect(x, y + 240, 600, width);
-  str.sprintf("L:%.1f(%.1f)-V%.1f=%.1f\n", radar_dist, radar_rel_speed * 3.6, vision_dist, (radar_dist - vision_dist));
+  str.sprintf("L:%.1f,V%.1f(%.1f)\n", radar_dist, vision_dist, radar_rel_speed * 3.6);
   p.drawText(rect, Qt::AlignLeft, str);
 
 
@@ -1291,6 +1291,15 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   y += height;
+  p.drawText(text_x, y, debugText1);
+  y += height;
+  p.drawText(text_x, y, debugText2);
+
+  y += height;
+  str.sprintf("FPS: %d\n", m_fps);
+  p.drawText(text_x, y, str);
+
+  y += height;
   str.sprintf("SCCBus: %d\n", sccBus);
   p.drawText(text_x, y, str);
 
@@ -1344,15 +1353,6 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   str.sprintf("Lead: %.1f(%.1f)/%.1f/%.1f\n", radar_dist, radar_rel_speed*3.6, vision_dist, (radar_dist - vision_dist));
   p.drawText(text_x, y, str);
 #endif
-
-  y += height;
-  p.drawText(text_x, y, debugText1);
-  y += height;
-  p.drawText(text_x, y, debugText2);
-
-  y += height;
-  str.sprintf("FPS: %d\n", m_fps);
-  p.drawText(text_x, y, str);
 
   const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
   const auto lpSource = lp.getLongitudinalPlanSource();
