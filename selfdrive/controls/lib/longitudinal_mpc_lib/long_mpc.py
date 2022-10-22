@@ -415,12 +415,12 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (model_x > 50.0 and y[N]<3.0):
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (model_x > 50.0 and abs(y[N])<3.0):
         self.e2ePaused = False
 
       if self.e2eMode:
         startSign = v[-1] > 5.0
-        stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and y[N] < 3.0 #직선도로에서만 감지하도록 함~
+        stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
 
         #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
