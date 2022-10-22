@@ -508,6 +508,10 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   QList<ParamControl*> toggles;
 
   toggleLayout->addWidget(horizontal_line());
+  
+  toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
+  toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayUpperBound", "LongitudinalActuatorDelayUpperBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
+  toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayLowerBound", "LongitudinalActuatorDelayLowerBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
   toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_OBSTACLE_COST(6)", "증가할수록 정지선정지가 정확해지나, 급감속이 강해집니다.", "../assets/offroad/icon_road.png", 0, 100, 1));
   toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
   toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(80)", "적으면 선행차에 대한 반응이 강해집니다. 차량간격유지 동적제어를 켜면 130정도로 하십시오", "../assets/offroad/icon_road.png", 0, 400, 10));
@@ -538,6 +542,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(toggle);
   }
 #if 1
+  
   toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("InitCruiseGap", "크루즈갭 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:E2E OFF모드", "../assets/offroad/icon_road.png", 1, 4, 1));
   toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:관성주행모드(-)버튼이용.", "../assets/offroad/icon_road.png", 0, 1, 1));

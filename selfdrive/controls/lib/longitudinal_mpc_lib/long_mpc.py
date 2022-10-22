@@ -26,7 +26,7 @@ SOURCES = ['lead0', 'lead1', 'cruise', 'e2e']
 
 X_DIM = 3
 U_DIM = 1
-PARAM_DIM = 7
+PARAM_DIM = 8
 COST_E_DIM = 5
 COST_DIM = COST_E_DIM + 1
 CONSTR_DIM = 4
@@ -61,19 +61,19 @@ T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.3 #2.5
 STOP_DISTANCE = 6.5
 
-def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW):
+def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
   if np.all(v_lead - v_ego > 0):
     v_diff_offset = ((v_lead - v_ego) * 1.)
-    v_diff_offset = np.clip(v_diff_offset, 0, STOP_DISTANCE / 2)
+    v_diff_offset = np.clip(v_diff_offset, 0, stop_distance / 2)
     v_diff_offset = np.maximum(v_diff_offset * ((10 - v_ego)/10), 0)
   distance = (v_lead**2) / (2 * COMFORT_BRAKE) + v_diff_offset
   return distance
 
-def get_safe_obstacle_distance(v_ego, t_follow=T_FOLLOW, comfort_brake=COMFORT_BRAKE):
-  return (v_ego**2) / (2 * comfort_brake) + t_follow * v_ego + STOP_DISTANCE
+def get_safe_obstacle_distance(v_ego, t_follow=T_FOLLOW, comfort_brake=COMFORT_BRAKE, stop_distance=STOP_DISTANCE):
+  return (v_ego**2) / (2 * comfort_brake) + t_follow * v_ego + stop_distance
 
 def desired_follow_distance(v_ego, v_lead):
   return get_safe_obstacle_distance(v_ego) - get_stopped_equivalence_factor(v_lead, v_ego)
@@ -107,7 +107,8 @@ def gen_long_model():
   lead_t_follow = SX.sym('lead_t_follow')
   lead_danger_factor = SX.sym('lead_danger_factor')
   comfort_brake = SX.sym('comfort_brake')
-  model.p = vertcat(a_min, a_max, x_obstacle, prev_a, lead_t_follow, lead_danger_factor, comfort_brake)
+  stop_distance = SX.sym('stop_distance')
+  model.p = vertcat(a_min, a_max, x_obstacle, prev_a, lead_t_follow, lead_danger_factor, comfort_brake, stop_distance)
 
   # dynamics model
   f_expl = vertcat(v_ego, a_ego, j_ego)
@@ -144,11 +145,12 @@ def gen_long_ocp():
   lead_t_follow = ocp.model.p[4]
   lead_danger_factor = ocp.model.p[5]
   comfort_brake = ocp.model.p[6]
+  stop_distance = ocp.model.p[7]
 
   ocp.cost.yref = np.zeros((COST_DIM, ))
   ocp.cost.yref_e = np.zeros((COST_E_DIM, ))
 
-  desired_dist_comfort = get_safe_obstacle_distance(v_ego, lead_t_follow, comfort_brake)
+  desired_dist_comfort = get_safe_obstacle_distance(v_ego, lead_t_follow, comfort_brake, stop_distance)
 
   # The main cost in normal operation is how close you are to the "desired" distance
   # from an obstacle at every timestep. This obstacle can be a lead car
@@ -174,7 +176,7 @@ def gen_long_ocp():
 
   x0 = np.zeros(X_DIM)
   ocp.constraints.x0 = x0
-  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0, T_FOLLOW, LEAD_DANGER_FACTOR, COMFORT_BRAKE])
+  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0, T_FOLLOW, LEAD_DANGER_FACTOR, COMFORT_BRAKE, STOP_DISTANCE])
 
   # We put all constraint cost weights to 0 and only set them at runtime
   cost_weights = np.zeros(CONSTR_DIM)
@@ -225,6 +227,7 @@ class LongitudinalMpc:
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
+    self.stopDistance = STOP_DISTANCE
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -368,7 +371,7 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.cruise_max_a = max_a
 
-  def update(self, carstate, radarstate, controls, v_cruise, x, v, a, j, prev_accel_constraint):
+  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
     self.lo_timer += 1
     if self.lo_timer > 100:
@@ -380,6 +383,7 @@ class LongitudinalMpc:
       self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
       self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
+      self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     self.debugLong = 0
     self.trafficState = 0
 
@@ -396,8 +400,8 @@ class LongitudinalMpc:
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
     # and then treat that as a stopped car/obstacle at this new distance.
-    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1])
-    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1])
+    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
+    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
@@ -411,7 +415,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or model_x > 50.0:
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (model_x > 50.0 and y[N]<3.0):
         self.e2ePaused = False
 
       if self.e2eMode:
@@ -468,7 +472,7 @@ class LongitudinalMpc:
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, COMFORT_BRAKE)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, COMFORT_BRAKE, self.stopDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
@@ -513,6 +517,7 @@ class LongitudinalMpc:
     self.params[:,3] = np.copy(self.prev_a)
     self.params[:,4] = self.t_follow
     self.params[:,6] = self.comfort_brake
+    self.params[:,7] = self.stopDistance
     
 
     self.run()
@@ -525,9 +530,9 @@ class LongitudinalMpc:
     # Check if it got within lead comfort range
     # TODO This should be done cleaner
     if self.mode == 'blended':
-      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow)) - self.x_sol[:,0] < 0.0):
+      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.stopDistance)) - self.x_sol[:,0] < 0.0):
         self.source = 'lead0'
-      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow)) - self.x_sol[:,0] < 0.0) and \
+      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.stopDistance)) - self.x_sol[:,0] < 0.0) and \
          (lead_1_obstacle[0] - lead_0_obstacle[0]):
         self.source = 'lead1'
 

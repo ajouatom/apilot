@@ -77,12 +77,14 @@ class LongitudinalPlanner:
       v = np.interp(T_IDXS_MPC, T_IDXS, model_msg.velocity.x)
       a = np.interp(T_IDXS_MPC, T_IDXS, model_msg.acceleration.x)
       j = np.zeros(len(T_IDXS_MPC))
+      y = np.interp(T_IDXS_MPC, T_IDXS, model_msg.position.y)
     else:
       x = np.zeros(len(T_IDXS_MPC))
       v = np.zeros(len(T_IDXS_MPC))
       a = np.zeros(len(T_IDXS_MPC))
       j = np.zeros(len(T_IDXS_MPC))
-    return x, v, a, j
+      y = np.zeros(len(T_IDXS_MPC))
+    return x, v, a, j, y
 
   def update(self, sm):
     if self.param_read_counter % 50 == 0:
@@ -129,7 +131,7 @@ class LongitudinalPlanner:
     #self.mpc.set_weights(prev_accel_constraint)
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    x, v, a, j = self.parse_model(sm['modelV2'])
+    x, v, a, j, y = self.parse_model(sm['modelV2'])
 
     if sm['carState'].cruiseGap < 4:
       if self.activateE2E:
@@ -142,7 +144,7 @@ class LongitudinalPlanner:
         self.mpc.mode = 'acc'
         self.mpc.e2eMode = True
 
-    self.mpc.update(sm['carState'], sm['radarState'], sm['controlsState'], v_cruise, x, v, a, j, prev_accel_constraint)
+    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)

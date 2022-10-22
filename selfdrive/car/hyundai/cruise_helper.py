@@ -91,7 +91,6 @@ class CruiseHelper:
       self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 100.
       self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
       
-
   @staticmethod
   def get_lead(sm):
 

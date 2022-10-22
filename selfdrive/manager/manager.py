@@ -71,7 +71,10 @@ def manager_init() -> None:
     ("TrafficStopAccel", "80"),     
     ("CruiseButtonMode", "0"),      
     ("InitCruiseGap", "3"),      
-    ("AutoSyncCruiseSpeed", "1"),          
+    ("AutoSyncCruiseSpeed", "1"),       
+    ("LongitudinalActuatorDelayUpperBound", "100"),       
+    ("LongitudinalActuatorDelayLowerBound", "100"),       
+    ("StopDistance", "600"), 
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

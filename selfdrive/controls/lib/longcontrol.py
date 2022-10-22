@@ -4,6 +4,7 @@ from common.realtime import DT_CTRL
 from selfdrive.controls.lib.drive_helpers import CONTROL_N, apply_deadzone
 from selfdrive.controls.lib.pid import PIDController
 from selfdrive.modeld.constants import T_IDXS
+from common.params import Params
 
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
@@ -66,6 +67,9 @@ class LongControl:
     self.v_pid = v_pid
 
   def update(self, active, CS, long_plan, accel_limits, t_since_plan):
+    longitudinalActuatorDelayUpperBound = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) / 100.
+    longitudinalActuatorDelayLowerBound = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) / 100.
+
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Interp control trajectory
     speeds = long_plan.speeds
@@ -73,11 +77,11 @@ class LongControl:
       v_target_now = interp(t_since_plan, T_IDXS[:CONTROL_N], speeds)
       a_target_now = interp(t_since_plan, T_IDXS[:CONTROL_N], long_plan.accels)
 
-      v_target_lower = interp(self.CP.longitudinalActuatorDelayLowerBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
-      a_target_lower = 2 * (v_target_lower - v_target_now) / self.CP.longitudinalActuatorDelayLowerBound - a_target_now
+      v_target_lower = interp(self.CP.longitudinalActuatorDelayLowerBound*longitudinalActuatorDelayLowerBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
+      a_target_lower = 2 * (v_target_lower - v_target_now) / self.CP.longitudinalActuatorDelayLowerBound*longitudinalActuatorDelayLowerBound - a_target_now
 
-      v_target_upper = interp(self.CP.longitudinalActuatorDelayUpperBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
-      a_target_upper = 2 * (v_target_upper - v_target_now) / self.CP.longitudinalActuatorDelayUpperBound - a_target_now
+      v_target_upper = interp(self.CP.longitudinalActuatorDelayUpperBound*longitudinalActuatorDelayUpperBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
+      a_target_upper = 2 * (v_target_upper - v_target_now) / self.CP.longitudinalActuatorDelayUpperBound*longitudinalActuatorDelayUpperBound - a_target_now
 
       v_target = min(v_target_lower, v_target_upper)
       a_target = min(a_target_lower, a_target_upper)
