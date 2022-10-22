@@ -159,7 +159,7 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
-      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
+      #controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
     return curve_speed_ms
 
@@ -299,9 +299,10 @@ class CruiseHelper:
           self.cruise_control(controls, CS, -2)
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
+          v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 10.0 and xState == "E2E_STOP2":
-          v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
+          #v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 60.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0:
           v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
@@ -334,6 +335,7 @@ class CruiseHelper:
         leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
+      controls.debugText1 = 'LEADCAR={:3.1f},{:3.1f},ROADSPEED={:3.1f},SETSPEED={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:
