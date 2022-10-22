@@ -91,7 +91,6 @@ class CruiseHelper:
       self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 100.
       self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
       
-
   @staticmethod
   def get_lead(sm):
 
@@ -296,12 +295,16 @@ class CruiseHelper:
         if self.longActiveUser <= 0:
           if resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed:
             self.cruise_control(controls, CS, 3)
+        elif xState == "E2E_STOP2": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
+          self.cruise_control(controls, CS, -2)
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 10.0 and xState == "E2E_STOP2":
+          v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 60.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0:
+          v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph >= 40.0 and dRel==0:
           v_cruise_kph = v_ego_kph_set
