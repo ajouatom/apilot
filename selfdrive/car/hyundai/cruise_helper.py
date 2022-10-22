@@ -295,6 +295,8 @@ class CruiseHelper:
         if self.longActiveUser <= 0:
           if resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed:
             self.cruise_control(controls, CS, 3)
+        elif xState == "E2E_STOP2": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
+          self.cruise_control(controls, CS, -2)
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           self.cruise_control(controls, CS, 3)
