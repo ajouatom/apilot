@@ -88,7 +88,7 @@ class CruiseHelper:
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.autoSpeedUptoRoadSpeed = Params().get_bool("AutoSpeedUptoRoadSpeed")
       self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
-      self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 100.
+      self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
       self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
       
   @staticmethod
