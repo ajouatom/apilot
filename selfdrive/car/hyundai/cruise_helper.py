@@ -315,7 +315,7 @@ class CruiseHelper:
       elif self.userCruisePaused:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph > 20.0 and xState == "E2E_STOP" and self.activate_E2E:
+        elif v_ego_kph > 20.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0 and self.activate_E2E:
           self.cruise_control(controls, CS, 3)
         pass
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
@@ -335,7 +335,7 @@ class CruiseHelper:
         leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
-      controls.debugText1 = 'LEADCAR={:3.1f},{:3.1f},ROADSPEED={:3.1f},SETSPEED={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
+      controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:

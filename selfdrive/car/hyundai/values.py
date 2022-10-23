@@ -792,6 +792,7 @@ FW_VERSIONS = {
       b'\xf1\x87VDHLG17274082DK2wfFf\x89x\x98wUT5T\x88v\x97xgeGefTGTVvO\xff\x1c\x14\xf1\x81E19\x00\x00\x00\x00\x00\x00\x00\xf1\x00bcsh8p54  E19\x00\x00\x00\x00\x00\x00\x00SCK0T33UB2\xee[\x97S',
       b'\xf1\x87VDHLG17000192DK2xdFffT\xa5VUD$DwT\x86wveVeeD&T\x99\xba\x8f\xff\xcc\x99\xf1\x81E21\x00\x00\x00\x00\x00\x00\x00\xf1\x00bcsh8p54  E21\x00\x00\x00\x00\x00\x00\x00SCK0T33NB0\t\xb7\x17\xf5',
       b'\xf1\x00bcsh8p54  E21\x00\x00\x00\x00\x00\x00\x00SCK0T33NB0\t\xb7\x17\xf5',
+      b'\xf1\x00bcsh8p54  E21\x00\x00\x00\x00\x00\x00\x00SCK0T33NB0\x88\xa2\xe6\xf0',
     ],
   },
   CAR.PALISADE: {
@@ -1461,6 +1462,7 @@ DBC = {
   CAR.SONATA_HYBRID: dbc_dict('hyundai_kia_generic', 'hyundai_kia_mando_front_radar_generated'),
   CAR.TUCSON_HYBRID_4TH_GEN: dbc_dict('hyundai_canfd', None),
   CAR.IONIQ_5: dbc_dict('hyundai_canfd', None),
+  CAR.KIA_SPORTAGE_HYBRID_5TH_GEN: dbc_dict('hyundai_canfd', None),
 }
 
 
