@@ -335,7 +335,7 @@ class CruiseHelper:
         leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
-      controls.debugText1 = 'LEADCAR={:3.1f},{:3.1f},ROADSPEED={:3.1f},SETSPEED={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
+      controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:
