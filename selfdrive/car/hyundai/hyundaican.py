@@ -111,8 +111,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lea
   values["TauGapSet"] = cruiseGap
   values["VSetDis"] = set_speed if enabled else 0
   values["AliveCounterACC"] = idx % 0x10
-  values["SCCInfoDisplay"] = 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
-  #values["ObjValid"] = 1
+  #values["SCCInfoDisplay"] = 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 
   values = copy.copy(CS.scc12)
@@ -137,7 +137,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lea
     values["JerkUpperLimit"] = upper_jerk
     values["JerkLowerLimit"] = 5.0
     values["ACCMode"] = 2 if enabled and long_override else 1 if enabled else 4
-    values["ObjGap"] = 55#25 if lead_visible else 0
+    values["ObjGap"] = 2 if lead_visible else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands
