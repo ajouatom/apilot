@@ -104,14 +104,15 @@ def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, long_override, CS):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, long_override, CS, cruiseGap):
   commands = []
   values = copy.copy(CS.scc11)
   values["MainMode_ACC"] = 1
-  values["TauGapSet"] = 4
+  values["TauGapSet"] = cruiseGap
   values["VSetDis"] = set_speed if enabled else 0
   values["AliveCounterACC"] = idx % 0x10
-  values["ObjValid"] = 1
+  values["SCCInfoDisplay"] = 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  #values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 
   values = copy.copy(CS.scc12)
@@ -136,7 +137,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lea
     values["JerkUpperLimit"] = upper_jerk
     values["JerkLowerLimit"] = 5.0
     values["ACCMode"] = 2 if enabled and long_override else 1 if enabled else 4
-    values["ObjGap"] = 2 if lead_visible else 0
+    values["ObjGap"] = 55#25 if lead_visible else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands

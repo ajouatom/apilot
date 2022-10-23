@@ -636,7 +636,7 @@ class Controls:
       # accel PID loop
       pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
 
-      if abs(CS.steeringAngleDeg) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
+      if abs(self.cruise_helper.position_y) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
       elif CS.cruiseGap <= 2: #연비운전모드
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
@@ -744,6 +744,8 @@ class Controls:
 
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
+
+    hudControl.cruiseGap = CS.cruiseGap
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \
