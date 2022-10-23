@@ -849,7 +849,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     p.setPen(QColor(255, 255, 255, 180));
 
     configFont(p, "Inter", 50, "Bold");
-    if (longActiveUser > 0) {
+    if (applyMaxSpeed > 0) {
     //if(is_cruise_set && applyMaxSpeed > 0) {
       if(is_metric)
         str.sprintf( "%d", (int)(applyMaxSpeed + 0.5));

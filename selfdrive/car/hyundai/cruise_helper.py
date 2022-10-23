@@ -56,7 +56,7 @@ class CruiseHelper:
     self.accelLimitEco = 0.6
     self.accelLimitTurn = 0.2
     self.accelBoost = 1.0
-    self.autoSpeedUptoRoadSpeed = False
+    self.autoSpeedUptoRoadSpeedLimit = 1.0
     self.autoSpeedAdjustWithLeadCar = 0
 
     self.active_cam = False
@@ -86,7 +86,7 @@ class CruiseHelper:
       self.accelLimitEco = float(int(Params().get("AccelLimitEconomy", encoding="utf8"))) / 100.
       self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
-      self.autoSpeedUptoRoadSpeed = Params().get_bool("AutoSpeedUptoRoadSpeed")
+      self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
       self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
       self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
       self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
@@ -269,17 +269,17 @@ class CruiseHelper:
           v_cruise_kph = buttonSpeed
       else:
         self.cruiseButtons = button
-        if self.longActiveUser <= 0 and button in [ButtonType.accelCruise, ButtonType.decelCruise]:
-          if button == ButtonType.decelCruise:
-            v_cruise_kph = v_ego_kph_set  ## 현재속도도 크루즈세트
+        if button == ButtonType.accelCruise:
           self.cruise_control(controls, CS, 1)
-        elif button == ButtonType.accelCruise:
           if self.longActiveUser <= 0:
-            self.cruise_control(controls, CS, 1)
+            pass
           else:
             v_cruise_kph = buttonSpeed
         elif button == ButtonType.decelCruise:
-          if self.cruiseButtonMode==1:
+          self.cruise_control(controls, CS, 1)
+          if self.longActiveUser <= 0:
+            v_cruise_kph = v_ego_kph_set  ## 현재속도도 크루즈세트
+          elif self.cruiseButtonMode==1:
             self.userCruisePaused = True
             self.cruise_control(controls, CS, -1)
           elif CS.gasPressed and v_cruise_kph < v_ego_kph_set:
@@ -327,7 +327,8 @@ class CruiseHelper:
 
       ###### leadCar 관련 속도처리
       roadSpeed1 = 30 if roadSpeed == 0 else roadSpeed
-      if v_cruise_kph < roadSpeed1 and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeed:
+      if v_cruise_kph < roadSpeed1 and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeedLimit>0:
+        roadSpeed1 = 30 if roadSpeed1 == 30 else roadSpeed1*self.autoSpeedUptoRoadSpeedLimit
         if leadCarSpeed > v_cruise_kph:
           v_cruise_kph = max(v_cruise_kph, min(leadCarSpeed, roadSpeed1))
           self.v_cruise_kph_apply = v_cruise_kph
@@ -335,7 +336,7 @@ class CruiseHelper:
         leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
-      controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed1, self.v_cruise_kph_apply)      
+      controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:

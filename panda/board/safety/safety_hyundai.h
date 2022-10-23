@@ -18,30 +18,6 @@ const SteeringLimits HYUNDAI_STEERING_LIMITS = {
   .has_steer_req_tolerance = true,
 };
 
-#ifdef CANFD
-#else
-bool Lcan_bus1 = false;
-bool Fwd_bus1 = false;
-bool Fwd_obd = false;
-bool Fwd_bus2 = true;
-int OBD_cnt = 20;
-int LKAS11_bus0_cnt = 0;
-int Lcan_bus1_cnt = 0;
-int MDPS12_checksum = -1;
-int MDPS12_cnt = 0;
-int Last_StrColTq = 0;
-
-int LKAS11_op = 0;
-int MDPS12_op = 0;
-int CLU11_op = 0;
-int SCC12_op = 0;
-int SCC12_car = 0;
-int EMS11_op = 0;
-int MDPS_bus = -1;
-int SCC_bus = -1;
-#endif
-
-
 const int HYUNDAI_MAX_ACCEL = 200;  // 1/100 m/s2
 const int HYUNDAI_MIN_ACCEL = -350; // 1/100 m/s2
 
@@ -52,10 +28,8 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 };
 
 const CanMsg HYUNDAI_LONG_TX_MSGS[] = {
-  {593, 2, 8},                              // MDPS12, Bus 2
-  {790, 1, 8},                              // EMS11, Bus 1
-  {832, 0, 8}, {832, 1, 8}, // LKAS11 Bus 0,1
-  {1265, 0, 4}, {1265, 1, 4}, {1265, 2, 4}, // CLU11 Bus 0,1,2
+  {832, 0, 8},  // LKAS11 Bus 0
+  {1265, 0, 4}, // CLU11 Bus 0
   {1157, 0, 4}, // LFAHDA_MFC Bus 0
   {1056, 0, 8}, // SCC11 Bus 0
   {1057, 0, 8}, // SCC12 Bus 0
@@ -134,6 +108,9 @@ const int HYUNDAI_PARAM_CAMERA_SCC = 8;
 bool hyundai_legacy = false;
 bool hyundai_camera_scc = false;
 bool hyundai_scc_bus2 = false;
+
+int busSCC = -1;
+int busLKAS11 = -1;
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
 
@@ -220,78 +197,38 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
-#ifndef CANFD
-//#if 0
-  if (!valid) { puts("  CAN RX invalid: "); puth(addr); puts("\n"); }
-  if (bus == 1 && Lcan_bus1) { valid = false; }
+  int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
+  if (is_scc_msg && bus != busSCC) {
+    busSCC = bus;
+    if(bus==0) puts("SCC Bus = 0\n");
+    if(bus==1) puts("SCC Bus = 1\n");
+    if(bus==2) {
+      hyundai_scc_bus2 = true;
+      puts("SCC Bus = 2\n");
+    }
+  }
+  int is_lkas11_msg = (addr == 832);
+  if (is_lkas11_msg && bus != busLKAS11) {
+    busLKAS11 = bus;
+    if(bus==0) puts("LKAS11 Bus = 0\n");
+    if(bus==1) puts("LKAS11 Bus = 1\n");
+    if(bus==2) puts("LKAS11 Bus = 2\n");
+  }
 
-  // check if we have a LCAN on Bus1
-  if (bus == 1 && (addr == 1296 || addr == 524)) {
-      Lcan_bus1_cnt = 500;
-      if (Fwd_bus1 || !Lcan_bus1) { Lcan_bus1 = true; Fwd_bus1 = false; puts("  LCAN on bus1: forwarding disabled\n"); }
-  }
-  // check if LKAS11 on Bus0
-  if (addr == 832) {
-      if (bus == 0 && Fwd_bus2) { Fwd_bus2 = false; LKAS11_bus0_cnt = 20; puts("  LKAS11 on bus0: forwarding disabled\n"); }
-      if (bus == 2) {
-          if (LKAS11_bus0_cnt > 0) { LKAS11_bus0_cnt--; }
-          else if (!Fwd_bus2) { Fwd_bus2 = true; puts("  LKAS11 on bus2: forwarding enabled\n"); }
-          if (Lcan_bus1_cnt > 0) { Lcan_bus1_cnt--; }
-          else if (Lcan_bus1) { Lcan_bus1 = false; puts("  Lcan not on bus1\n");}
-      }
-  }
-  // check MDPS12 or MDPS11 on Bus
-  if ((addr == 593 || addr == 897) && MDPS_bus != bus) {
-      if (bus != 1 || (!Lcan_bus1 || Fwd_obd)) {
-          MDPS_bus = bus;
-          if (bus == 1 && !Fwd_obd) {
-              puts("  MDPS on bus1\n");
-              if (!Fwd_bus1 && !Lcan_bus1) { Fwd_bus1 = true; puts("  bus1 forwarding enabled\n"); }
-          }
-          else if (bus == 1) { puts("  MDPS on obd bus\n"); }
-      }
-  }
-  // check SCC11 or SCC12 on Bus
-  if ((addr == 1056 || addr == 1057) && SCC_bus != bus) {
-      if (bus != 1 || !Lcan_bus1) {
-          SCC_bus = bus;
-          if (bus == 1) {
-              hyundai_scc_bus2 = true;
-              puts("  SCC on bus1\n");
-              if (!Fwd_bus1) { Fwd_bus1 = true; puts("  bus1 forwarding enabled\n"); }
-          }
-          if (bus == 2) { 
-              hyundai_scc_bus2 = true;
-              puts("  SCC bus = bus2\n");
-          }
-      }
-  }
-#endif
-
+  
   // SCC12 is on bus 2 for camera-based SCC cars, bus 0 on all others
   if (valid && (addr == 1057) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3U;
     hyundai_common_cruise_state_check(cruise_engaged);
   }
-#ifndef CANFD
-  // MDPS12
-  if (valid) {
-      if (addr == 593 && bus == MDPS_bus) {
-          int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ff) * 0.79) - 808; // scale down new driver torque signal to match previous one
-          // update array of samples
-          update_sample(&torque_driver, torque_driver_new);
-      }
-  }
-#endif
+
   if (valid && (bus == 0)) {
-#ifdef CANFD
     if (addr == 593) {
       int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
       // update array of samples
       update_sample(&torque_driver, torque_driver_new);
     }
-#endif
 
     // ACC steering wheel buttons
     if (addr == 1265) {
@@ -350,8 +287,8 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   }
 
   // FCA11: Block any potential actuation
-  //if (addr == 909 && !hyundai_scc_bus2) {
-  if (addr == 909) {
+  if (addr == 909 && !hyundai_scc_bus2) {
+  //if (addr == 909) {
     int CR_VSM_DecCmd = GET_BYTE(to_send, 1);
     int FCA_CmdAct = GET_BIT(to_send, 20U);
     int CF_VSM_DecCmdAct = GET_BIT(to_send, 31U);
@@ -414,17 +351,9 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
       tx = 0;
     }
   }
-#ifndef CANFD
-  //int bus = GET_BUS(to_send);
-  //if (addr == 593) { MDPS12_op = 20; }
-  //if (addr == 1265 && bus == 1) { CLU11_op = 20; } // only count mesage created for MDPS
-  //if (addr == 1057) { SCC12_op = 20; if (SCC12_car > 0) { SCC12_car -= 1; } }
-  //if (addr == 790) { EMS11_op = 20; }
-#endif
 
   return tx;
 }
-int _test_count = 100;
 static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
   int bus_fwd = -1;
@@ -438,119 +367,6 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   //int is_clu11_msg = (addr == 1265);
   //int is_mdps12_msg = (addr = 593);
   //int is_ems11_msg = (addr == 790);
-// 로직에 뭔가 문제가 있는듯~~~
-//  일단... 정상적인 포워딩으로 가자`
-//#ifndef CANFD
-#if 0
-  int fwd_to_bus1 = -1;
-  if (Fwd_bus1 || Fwd_obd) { fwd_to_bus1 = 1; }
-  // forward cam to ccan and viceversa, except lkas cmd
-  if (_test_count > 0) _test_count--;
-  if (_test_count == 0) {
-      _test_count = 200;
-      //puts("test="); 
-      //puth(Fwd_bus2); puts(",");   // 1
-      //puth(CLU11_op); puts(",");   // 0
-      //puth(MDPS12_op); puts(",");   // 0
-      //puth(Fwd_bus1); puts(",");   // 0
-      //puth(Fwd_obd); puts(",");    // 0
-      //puth(SCC12_op); puts(",");    // SCCxx
-      //puth(fwd_to_bus1); puts(","); // 0     
-      //puth(LKAS11_op); puts("\n");  // 0
-  }
-  if (Fwd_bus2) {
-      if (bus_num == 0) {
-          if (CLU11_op>0 || addr != 1265 || MDPS_bus == 0) {
-              if (MDPS12_op>0 || addr != 593) {
-                  if (EMS11_op>0 || addr != 790) { bus_fwd = fwd_to_bus1 == 1 ? 12 : 2; }
-                  else { 
-                      bus_fwd = 2;  // OP create EMS11 for MDPS
-                      if(EMS11_op > 0) EMS11_op --;
-                  }
-              }
-              else {
-                  bus_fwd = fwd_to_bus1;  // OP create MDPS for LKAS
-                  if(MDPS12_op > 0) MDPS12_op --;
-              }
-          }
-          else {
-              bus_fwd = 2; // OP create CLU12 for MDPS
-              if(CLU11_op > 0) CLU11_op --;
-          }
-          //if (bus_fwd != 2) {
-              // 0x251만 bus: 2
-              //puts("bus not 2"); puth(bus_fwd); puts(","); puth(addr);  puts("\n");
-          //}
-          //bus_fwd = 2;
-      }
-      if (bus_num == 1 && (Fwd_bus1 || Fwd_obd)) {
-          if (MDPS12_op>0 || addr != 593) {
-              if (SCC12_op>0 || (addr != 1056 && addr != 1057 && addr != 1290 && addr != 905)) {
-                  bus_fwd = 20;
-              }
-              else {
-                  bus_fwd = 2;  // OP create SCC11 SCC12 SCC13 SCC14 for Car
-                  if(SCC12_op > 0) SCC12_op --;
-              }
-          }
-          else {
-              bus_fwd = 0;  // OP create MDPS for LKAS
-              if(MDPS12_op > 0) MDPS12_op --;
-          }
-          puts("bus_num:1 "); puth(addr); puts(","); puth(bus_fwd); puts("\n");
-      }
-      //if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-      //    if ((addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905));
-      //    else bus_fwd = 0;
-      //}
-      if (bus_num == 2) {
-          if (LKAS11_op > 0 || (addr != 832 && addr != 1157)) {
-              
-              if (SCC12_op > 0 || (addr != 1056 && addr != 1057 && addr != 1290 && addr != 905)) {
-                  bus_fwd = fwd_to_bus1 == 1 ? 10 : 0;
-              }
-              else {
-                  bus_fwd = fwd_to_bus1;  // OP create SCC12 for Car
-                  if(SCC12_op>0) SCC12_op --;
-              }
-          }
-          else if (MDPS_bus == 0) {
-              bus_fwd = fwd_to_bus1; // OP create LKAS and LFA for Car
-              if(LKAS11_op > 0) LKAS11_op --;
-          }
-          else {
-              if (LKAS11_op > 0) LKAS11_op --; // OP create LKAS and LFA for Car and MDPS
-          }
-      }
-  }
-  else {
-      if (bus_num == 0) {
-          bus_fwd = fwd_to_bus1;
-      }
-      if (bus_num == 1 && (Fwd_bus1 || Fwd_obd)) {
-          bus_fwd = 0;
-      }
-  }
-
-// Debug Codes
-  if (bus_num == 0 && bus_fwd != 2) {
-      puts("Bus0: fwd="); puth(bus_fwd); puts(",addr="); puth(addr); puts("\n");
-      bus_fwd = 2;
-      
-  }
-  if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-      if ((addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905)) {
-          if (bus_fwd != -1) {
-              puts("Bus-1: fwd="); puth(bus_fwd); puts(",addr="); puth(addr); puts(",SCC12_op="); puth(SCC12_op); puts("\n");
-          }
-      }
-      else {
-          if (bus_fwd != 0) {
-              puts("Bus2: fwd="); puth(bus_fwd); puts(",addr="); puth(addr); puts("\n");
-          }
-      }
-  }
-#else
   // forward cam to ccan and viceversa, except lkas cmd
   if (bus_num == 0) {
     bus_fwd = 2;
@@ -569,8 +385,6 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
           bus_fwd = 0;
       }
   }
-
-#endif
 
   return bus_fwd;
 }
