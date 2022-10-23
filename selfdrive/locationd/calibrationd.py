@@ -91,11 +91,7 @@ class Calibrator:
     else:
       self.rpy = rpy_init.copy()
 
-<<<<<<< HEAD
     if not np.isfinite(wide_from_device_euler).all() or len(wide_from_device_euler) != 3:
-=======
-    if not np.isfinite(wide_from_device_euler).all():
->>>>>>> 42ef62e39 (Use calibrator to stabilize wide transform (#26201))
       self.wide_from_device_euler = WIDE_FROM_DEVICE_EULER_INIT.copy()
     else:
       self.wide_from_device_euler = wide_from_device_euler.copy()
