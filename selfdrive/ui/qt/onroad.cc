@@ -170,10 +170,6 @@ void OnroadWindow::offroadTransition(bool offroad) {
 
   alerts->updateAlert({}, bg);
 
-  // update stream type
-  bool wide_cam = Params().getBool("WideCameraOnly");
-  nvg->setStreamType(wide_cam ? VISION_STREAM_WIDE_ROAD : VISION_STREAM_ROAD);
-
   if(offroad && recorder) {
     recorder->stop(false);
   }
@@ -277,10 +273,14 @@ void AnnotatedCameraWidget::initializeGL() {
 
 void AnnotatedCameraWidget::updateState(const UIState &s) {
 
+  this->setStreamType(s.scene.wide_cam ? VISION_STREAM_WIDE_ROAD : VISION_STREAM_ROAD);
+
   if (s.scene.calibration_valid) {
-      CameraWidget::updateCalibration(s.scene.view_from_calib);
+    CameraWidget::updateCalibration(s.scene.view_from_calib);
+    CameraWidget::updateWideCalibration(s.scene.view_from_wide_calib);
   } else {
-      CameraWidget::updateCalibration(DEFAULT_CALIBRATION);
+    CameraWidget::updateCalibration(DEFAULT_CALIBRATION);
+    CameraWidget::updateWideCalibration(DEFAULT_CALIBRATION);
   }
 
 }

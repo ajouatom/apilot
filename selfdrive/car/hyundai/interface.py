@@ -45,8 +45,8 @@ class CarInterface(CarInterfaceBase):
     ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, CAR.ELANTRA_GT_I30}
 
     if candidate in CANFD_CAR:
-      # detect HDA2 with LKAS message
-      if 0x50 in fingerprint[6]:
+      # detect HDA2 with ADAS Driving ECU
+      if Ecu.adas in [fw.ecu for fw in car_fw]:
         ret.flags |= HyundaiFlags.CANFD_HDA2.value
       else:
         # non-HDA2
