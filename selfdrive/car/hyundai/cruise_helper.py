@@ -314,6 +314,7 @@ class CruiseHelper:
           self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:          
+          v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph > 20.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0 and self.activate_E2E:
           v_cruise_kph = v_ego_kph_set
@@ -327,9 +328,8 @@ class CruiseHelper:
       self.v_cruise_kph_apply = v_cruise_kph
 
       ###### leadCar 관련 속도처리
-      roadSpeed1 = 30 if roadSpeed == 0 else roadSpeed
-      if v_cruise_kph < roadSpeed1 and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeedLimit>0:
-        roadSpeed1 = 30 if roadSpeed1 == 30 else roadSpeed1*self.autoSpeedUptoRoadSpeedLimit
+      roadSpeed1 = roadSpeed * self.autoSpeedUptoRoadSpeedLimit
+      if v_cruise_kph < roadSpeed1 and dRel > 0 and vRel > 0 and self.autoSpeedUptoRoadSpeedLimit > 0:
         if leadCarSpeed > v_cruise_kph:
           v_cruise_kph = max(v_cruise_kph, min(leadCarSpeed, roadSpeed1))
           self.v_cruise_kph_apply = v_cruise_kph
