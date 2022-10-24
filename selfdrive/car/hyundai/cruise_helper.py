@@ -313,9 +313,10 @@ class CruiseHelper:
         elif v_ego_kph < 1.0 and 2 < dRel < 10 and self.autoResumeFromBrakeReleaseLeadCar:
           self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
-        if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:
+        if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:          
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph > 20.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0 and self.activate_E2E:
+          v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, 3)
         pass
       elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:

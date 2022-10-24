@@ -98,9 +98,7 @@ typedef struct {
 
 typedef struct UIScene {
   bool calibration_valid = false;
-  bool wide_cam = false;
   mat3 view_from_calib = DEFAULT_CALIBRATION;
-  mat3 view_from_wide_calib = DEFAULT_CALIBRATION;
   cereal::PandaState::PandaType pandaType;
 
   // modelV2
@@ -147,6 +145,7 @@ public:
   QString language;
 
   QTransform car_space_transform;
+  bool wide_camera;
   bool show_debug = false;
 
 signals:
