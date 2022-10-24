@@ -1,5 +1,6 @@
-APILOT: Openpilot에서 지원하는 현대/기아차량 
+APILOT
 ------
+* 설정값을 함부로 건들면 사고의 위험이 있으며, 사고/고장 발생시 본인의 책임입니다.
 * Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함(연결되어도 업로드안됨)!
 * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
 * ExperimentalLongitudinal: ON인경우에만 테스트함.
@@ -10,7 +11,7 @@ APILOT: Openpilot에서 지원하는 현대/기아차량
   * Hyundai SANTAFE HYBRID Hybrid 2022 (배선개조 안된것도 가능,단,AEB off됨)
   * Kia STINGER
   * Hyundai GENESIS (White PANDA를 이용하여 MDPS개조된차량)
-  * KONA EV: 기능은 넣었으나 아직 시험못함 (CAMERA SCC차량으로 개조필요없음)
+  * KONA EV 2022: 기능은 넣었으나 아직 시험못함 (CAMERA SCC차량으로 개조필요없음)
 * 크루즈버튼작동모드
   * ON: 일반크루즈 버튼
   * OFF: 관성주행지원
