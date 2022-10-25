@@ -104,22 +104,24 @@ def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, long_override, CS):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, CC, CS):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
+  long_override = CC.cruiseControl.override
+  longEnabled = enabled and CC.longActive
   commands = []
   values = copy.copy(CS.scc11)
   values["MainMode_ACC"] = 1
   values["TauGapSet"] = cruiseGap
-  values["VSetDis"] = set_speed if enabled else 0
+  values["VSetDis"] = set_speed if longEnabled else 0
   values["AliveCounterACC"] = idx % 0x10
-  values["SCCInfoDisplay"] = 4 if enabled and softHold else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 2 if longEnabled else 0   #3: 전방상황주의, 4: 출발준비
   values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 
   values = copy.copy(CS.scc12)
-  values["ACCMode"] = 2 if enabled and long_override else 1 if enabled else 0
+  values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
   values["StopReq"] = 1 if stopping else 0
   values["aReqRaw"] = accel
   values["aReqValue"] = accel
@@ -139,7 +141,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["ComfortBandLower"] = 0.0
     values["JerkUpperLimit"] = upper_jerk
     values["JerkLowerLimit"] = 5.0
-    values["ACCMode"] = 2 if enabled and long_override else 1 if enabled else 4
+    values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 4
     values["ObjGap"] = 2 if lead_visible else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
