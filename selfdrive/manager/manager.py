@@ -32,7 +32,7 @@ def manager_init() -> None:
   set_time(cloudlog)
 
   # save boot log
-  #subprocess.call("./bootlog", cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
+  subprocess.call("./bootlog", cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
 
   params = Params()
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
@@ -75,6 +75,7 @@ def manager_init() -> None:
     ("LongitudinalActuatorDelayUpperBound", "100"),       
     ("LongitudinalActuatorDelayLowerBound", "100"),       
     ("StopDistance", "600"), 
+    ("CustomMapbox", "0"),     
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

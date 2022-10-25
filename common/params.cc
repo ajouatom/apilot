@@ -228,6 +228,11 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalActuatorDelayLowerBound", PERSISTENT },
     { "LongitudinalActuatorDelayUpperBound", PERSISTENT },
     { "StopDistance", PERSISTENT },
+    { "CustomMapbox", PERSISTENT },
+    { "CustomMapboxTokenPk", PERSISTENT },
+    { "CustomMapboxTokenSk", PERSISTENT },    
+    {"EnableGmap", PERSISTENT},
+    {"GmapKey", PERSISTENT},    
 };
 
 } // namespace

@@ -11,7 +11,7 @@
 #include "cereal/messaging/messaging.h"
 
 const QString MAPBOX_TOKEN = util::getenv("MAPBOX_TOKEN").c_str();
-const QString MAPS_HOST = util::getenv("MAPS_HOST", MAPBOX_TOKEN.isEmpty() ? "https://maps.comma.ai" : "https://api.mapbox.com").c_str();
+const QString MAPS_HOST = "https://api.mapbox.com"; // util::getenv("MAPS_HOST", MAPBOX_TOKEN.isEmpty() ? "https://maps.comma.ai" : "https://api.mapbox.com").c_str();
 const QString MAPS_CACHE_PATH = "/data/mbgl-cache-navd.db";
 
 QString get_mapbox_token();
