@@ -740,6 +740,7 @@ class Controls:
 
     hudControl = CC.hudControl
     hudControl.setSpeed = float(self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
+    hudControl.softHold = True if sm['longitudinalPlan'].xState == "E2E_STOP2" and self.cruise_helper.longActiveUser>0 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead

@@ -104,14 +104,17 @@ def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, lead_visible, set_speed, stopping, long_override, CS, cruiseGap):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, long_override, CS):
+  lead_visible = hud_control.leadVisible
+  cruiseGap = hud_control.cruiseGap
+  softHold = hud_control.softHold
   commands = []
   values = copy.copy(CS.scc11)
   values["MainMode_ACC"] = 1
   values["TauGapSet"] = cruiseGap
   values["VSetDis"] = set_speed if enabled else 0
   values["AliveCounterACC"] = idx % 0x10
-  #values["SCCInfoDisplay"] = 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  values["SCCInfoDisplay"] = 4 if enabled and softHold else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
   values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 

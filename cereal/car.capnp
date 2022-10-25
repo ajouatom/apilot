@@ -383,6 +383,7 @@ struct CarControl {
     leftLaneDepart @9: Bool;
     cruiseGap @10: Int32;
     objGap @11: Int32;
+    softHold @12: Bool;
 
     enum VisualAlert {
       # these are the choices from the Honda
