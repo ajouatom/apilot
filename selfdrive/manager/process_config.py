@@ -55,6 +55,8 @@ procs = [
   #PythonProcess("updated", "selfdrive.updated", enabled=not PC, onroad=False, offroad=True),
   #PythonProcess("uploader", "selfdrive.loggerd.uploader", offroad=True),
   #PythonProcess("statsd", "selfdrive.statsd", offroad=True),
+  #PythonProcess("gpxd", "selfdrive.gpxd.gpxd"),
+  PythonProcess("otisserv", "selfdrive.navd.otisserv", offroad=True),
 
   # debug procs
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], onroad=False, callback=notcar),

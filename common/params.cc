@@ -145,6 +145,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LastUpdateException", CLEAR_ON_MANAGER_START},
     {"LastUpdateTime", PERSISTENT},
     {"LiveParameters", PERSISTENT},
+    {"MapboxToken", PERSISTENT | DONT_LOG},
     {"LiveTorqueCarParams", PERSISTENT},
     {"LiveTorqueParameters", PERSISTENT | DONT_LOG},
     {"NavDestination", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
@@ -228,6 +229,9 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalActuatorDelayLowerBound", PERSISTENT },
     { "LongitudinalActuatorDelayUpperBound", PERSISTENT },
     { "StopDistance", PERSISTENT },
+    { "CustomMapbox", PERSISTENT },
+    { "CustomMapboxTokenPk", PERSISTENT },
+    { "CustomMapboxTokenSk", PERSISTENT },        
 };
 
 } // namespace
