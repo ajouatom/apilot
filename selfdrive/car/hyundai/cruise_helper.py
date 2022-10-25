@@ -270,10 +270,10 @@ class CruiseHelper:
       else:
         self.cruiseButtons = button
         if button == ButtonType.accelCruise:          
-          self.cruise_control(controls, CS, 1)
           if self.longActiveUser <= 0:
-            pass
+            self.cruise_control(controls, CS, 1)
           else:
+            self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
             v_cruise_kph = buttonSpeed
         elif button == ButtonType.decelCruise:
           if self.longActiveUser <= 0:
