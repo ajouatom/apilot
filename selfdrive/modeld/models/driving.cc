@@ -136,30 +136,6 @@ void fill_lead(cereal::ModelDataV2::LeadDataV3::Builder lead, const ModelOutputL
   lead.setAStd(to_kj_array_ptr(lead_a_std));
 }
 
-// added by opkr
-void fill_stop_line(cereal::ModelDataV2::StopLineData::Builder stop_line, const ModelOutputStopLines &stop_lines) {
-  const auto &best_data = stop_lines.get_best_prediction();
-  stop_line.setProb(sigmoid(stop_lines.prob));
-
-  stop_line.setX(best_data.mean.position.x);
-  stop_line.setY(best_data.mean.position.y);
-  stop_line.setZ(best_data.mean.position.z);
-  stop_line.setRoll(best_data.mean.rotation.x);
-  stop_line.setPitch(best_data.mean.rotation.y);
-  stop_line.setYaw(best_data.mean.rotation.z);
-  stop_line.setSpeedAtLine(best_data.mean.speed);
-  stop_line.setSecondsUntilLine(best_data.mean.time);
-
-  stop_line.setXStd(best_data.std.position.x);
-  stop_line.setYStd(best_data.std.position.y);
-  stop_line.setZStd(best_data.std.position.z);
-  stop_line.setRollStd(best_data.std.rotation.x);
-  stop_line.setPitchStd(best_data.std.rotation.y);
-  stop_line.setYawStd(best_data.std.rotation.z);
-  stop_line.setSpeedAtLineStd(best_data.std.speed);
-  stop_line.setSecondsUntilLineStd(best_data.std.time);
-}
-
 void fill_meta(cereal::ModelDataV2::MetaData::Builder meta, const ModelOutputMeta &meta_data) {
   std::array<float, DESIRE_LEN> desire_state_softmax;
   softmax(meta_data.desire_state_prob.array.data(), desire_state_softmax.data(), DESIRE_LEN);
@@ -355,9 +331,6 @@ void fill_model(cereal::ModelDataV2::Builder &framed, const ModelOutput &net_out
   // meta
   fill_meta(framed.initMeta(), net_outputs.meta);
 
-  // stop line, added by opkr
-  fill_stop_line(framed.initStopLine(), net_outputs.stop_lines);
-
   // leads
   auto leads = framed.initLeadsV3(LEAD_MHP_SELECTION);
   std::array<float, LEAD_MHP_SELECTION> t_offsets = {0.0, 2.0, 4.0};
@@ -390,14 +363,19 @@ void posenet_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_droppe
   MessageBuilder msg;
   const auto &v_mean = net_outputs.pose.velocity_mean;
   const auto &r_mean = net_outputs.pose.rotation_mean;
+  const auto &t_mean = net_outputs.wide_from_device_euler.mean;
   const auto &v_std = net_outputs.pose.velocity_std;
   const auto &r_std = net_outputs.pose.rotation_std;
+  const auto &t_std = net_outputs.wide_from_device_euler.std;
 
   auto posenetd = msg.initEvent(valid && (vipc_dropped_frames < 1)).initCameraOdometry();
   posenetd.setTrans({v_mean.x, v_mean.y, v_mean.z});
   posenetd.setRot({r_mean.x, r_mean.y, r_mean.z});
+  posenetd.setWideFromDeviceEuler({t_mean.x, t_mean.y, t_mean.z});
   posenetd.setTransStd({exp(v_std.x), exp(v_std.y), exp(v_std.z)});
   posenetd.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
+  posenetd.setWideFromDeviceEulerStd({exp(t_std.x), exp(t_std.y), exp(t_std.z)});
+
 
   posenetd.setTimestampEof(timestamp_eof);
   posenetd.setFrameId(vipc_frame_id);

@@ -410,7 +410,6 @@ class LongitudinalMpc:
       self.params[:,1] = self.cruise_max_a
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      stopline_x = model.stopLine.x + self.trafficStopDistanceAdjust
       model_x = x[N] + self.trafficStopDistanceAdjust
       longActiveUserChanged = 0
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
@@ -421,11 +420,9 @@ class LongitudinalMpc:
         self.e2ePaused = False
 
       if self.e2eMode:
-        probe = model.stopLine.prob if abs(y[N])<3.0 else 0.0 # 모델이 직선도로가 아닌경우 정지하지 않음. probe를 0로
         startSign = v[-1] > 5.0
-        stopSign = (probe > 0.3) and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0
         #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        #stopSign = ((v[-1] < 3.0) or (v[-1] < v_ego*0.80)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
+        stopSign = ((v[-1] < 3.0) or (v[-1] < v_ego*0.80)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1
@@ -445,7 +442,7 @@ class LongitudinalMpc:
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xState == "E2E_STOP2": 
-          stopline_x = -5.0
+          model_x = -5.0
           if carstate.gasPressed or longActiveUserChanged==1:
             self.xState = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
@@ -464,12 +461,13 @@ class LongitudinalMpc:
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
         model_x = 400.0
       elif self.xState == "E2E_CRUISE":
-        if probe < 0.1 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
+        if model_x > 150.0 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
           model_x = 400.0
-        elif probe == 0.0:
+        elif model_x > 100.0:
           self.e2ePaused = False
       elif self.xState == "E2E_STOP2":
-        model_x = stopline_x
+        #model_x = stopline_x
+        pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
 
@@ -486,8 +484,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'Y{:3.1f},TR={:.2f},state={} {},prob={:2.1f},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        y[N], self.t_follow, self.xState, self.e2ePaused, model.stopLine.prob, lead_0_obstacle[0], cruise_obstacle[0], x[N], stopline_x, v_ego, v[0], v[1], v[-1])
+      str1 = 'Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        y[N],self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego, v[0], v[1], v[-1])
       self.debugText = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
