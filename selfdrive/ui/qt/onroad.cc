@@ -709,14 +709,15 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   drawText(p, rect().center().x(), 350, str1, 200);
 #endif
   
-    // ajouatom: 현재시간표시
-  QTextOption  textOpt = QTextOption(Qt::AlignLeft);
-  configFont(p, "Open Sans", 120, "Bold");
-  //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
-  p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
-  configFont(p, "Open Sans", 60, "Bold");
-  p.drawText(QRect(270, 50+150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
-
+  if (width() > 1200) {
+      // ajouatom: 현재시간표시
+      QTextOption  textOpt = QTextOption(Qt::AlignLeft);
+      configFont(p, "Open Sans", 120, "Bold");
+      //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
+      p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
+      configFont(p, "Open Sans", 60, "Bold");
+      p.drawText(QRect(270, 50 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
+  }
 
   p.restore();
 }
