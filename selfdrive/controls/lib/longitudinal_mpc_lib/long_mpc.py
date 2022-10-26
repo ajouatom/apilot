@@ -62,6 +62,7 @@ COMFORT_BRAKE = 2.3 #2.5
 STOP_DISTANCE = 6.5
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
+  return (v_lead**2) / (2 * COMFORT_BRAKE)
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
