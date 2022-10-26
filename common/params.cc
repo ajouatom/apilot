@@ -230,7 +230,9 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "StopDistance", PERSISTENT },
     { "CustomMapbox", PERSISTENT },
     { "CustomMapboxTokenPk", PERSISTENT },
-    { "CustomMapboxTokenSk", PERSISTENT },        
+    { "CustomMapboxTokenSk", PERSISTENT },    
+    {"EnableGmap", PERSISTENT},
+    {"GmapKey", PERSISTENT},    
 };
 
 } // namespace
