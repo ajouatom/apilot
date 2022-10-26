@@ -229,6 +229,7 @@ class LongitudinalMpc:
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
     self.stopDistance = STOP_DISTANCE
+    self.softHoldTimer = 0
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -437,8 +438,12 @@ class LongitudinalMpc:
             self.xState = "LEAD"
           elif self.startSignCount > 10:
             self.xState = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
-            self.xState = "E2E_STOP2"
+          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 0.2:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
+            self.softHoldTimer += 1
+            if self.softHoldTimer > 30:
+              self.xState = "E2E_STOP2"
+          else:
+            self.softHoldTimer = 0
           if carstate.gasPressed or longActiveUserChanged==1:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True

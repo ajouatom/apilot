@@ -320,7 +320,7 @@ class CruiseHelper:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph < 10.0 and xState == "E2E_STOP2":
+        elif v_ego_kph < 1.0 and xState == "E2E_STOP2":
           #v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 60.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0:
