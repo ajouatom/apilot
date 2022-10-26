@@ -311,7 +311,7 @@ class CruiseHelper:
           v_cruise_kph = v_ego_kph_set
         if self.longActiveUser <= 0:
           if resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed:
-            if dRel == 0: # 전방에 레이더에 안잡히면
+            if True or dRel == 0: # 전방에 레이더에 안잡히면
               v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
             self.cruise_control(controls, CS, 3)
         elif xState == "E2E_STOP2": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
