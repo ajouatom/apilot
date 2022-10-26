@@ -439,7 +439,7 @@ class LongitudinalMpc:
             self.xState = "E2E_CRUISE"
           if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.xState = "E2E_STOP2"
-          if carstate.gasPressed:                 #예외: 정지중 accel을 밟으면 강제주행모드로 변경
+          if carstate.gasPressed or longActiveUserChanged==1:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
