@@ -9,6 +9,7 @@ from selfdrive.modeld.constants import index_function
 from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
 from common.conversions import Conversions as CV
 from common.params import Params
+from common.realtime import DT_MDL
 
 if __name__ == '__main__':  # generating code
   from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
@@ -428,7 +429,7 @@ class LongitudinalMpc:
         stopSign = ((v[-1] < 3.0) or (v[-1] < v_ego*0.80)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
-          self.startSignCount = self.startSignCount + 1
+          self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
         else:
           self.startSignCount = 0
 
@@ -436,11 +437,11 @@ class LongitudinalMpc:
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = "LEAD"
-          elif self.startSignCount > 10:
+          elif self.startSignCount*DT_MDL >= 0.5: #10*0.05 => 0.5초
             self.xState = "E2E_CRUISE"
           if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 0.2:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.softHoldTimer += 1
-            if self.softHoldTimer > 30:
+            if self.softHoldTimer*DT_MDL >= 1.5: 
               self.xState = "E2E_STOP2"
           else:
             self.softHoldTimer = 0
