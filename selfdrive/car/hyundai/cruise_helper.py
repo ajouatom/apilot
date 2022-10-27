@@ -117,24 +117,13 @@ class CruiseHelper:
 #   - 엑셀을 밟았다 떼면: zz
   def cal_curve_speed(self, controls, v_ego, frame, curve_speed_last):
     curve_speed_ms = curve_speed_last
-    bCurve = False
     md = controls.sm['modelV2']
-    if len(md.position.x) == TRAJECTORY_SIZE and len(md.position.y) == TRAJECTORY_SIZE:
+    if frame % 20 == 0 and len(md.position.x) == TRAJECTORY_SIZE and len(md.position.y) == TRAJECTORY_SIZE:
       x = md.position.x
       y = md.position.y
       self.position_x = x[-1]
       self.position_y = y[-1]
-      # 커브를 항상 계산하도록 함... 20221027
-      bCurve = True
-      #if x[-1] > 100.0 and abs(y[-1]) > 20.0:
-      #  bCurve = True
-      #else:
-      #  curve_speed_ms = 255.
-    else:
-      self.position_x = 1000.0
-      self.position_y = 300.0
 
-    if bCurve and frame % 20 == 0:
       curvature = self.curvature
       dy = np.gradient(y, x)
       d2y = np.gradient(dy, x)
@@ -161,9 +150,14 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
+    else:
+      self.position_x = 1000.0
+      self.position_y = 300.0
+
+
       controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
-    return curve_speed_ms
+    return curve_speed_ms if x[-1] > 100.0 and abs(y[-1]) > 10.0 else 255
 
   def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
     if controls.enabled:
