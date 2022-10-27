@@ -273,7 +273,7 @@ class CruiseHelper:
             self.cruise_control(controls, CS, 1)
           else:
             self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
-            if self.cruiseButtonMode==1:
+            if self.cruiseButtonMode in [1,2]:
               temp = 30 if roadSpeed < 0 else roadSpeed
               if v_cruise_kph < temp:
                 v_cruise_kph = roadSpeed
@@ -295,18 +295,16 @@ class CruiseHelper:
             self.cruise_control(controls, CS, 1)
           else:
             self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
-            if self.cruiseButtonMode==1:
-              if v_cruise_kph > v_ego_kph_set:
-                v_cruise_kph = v_ego_kph_set
-              else:
-                self.userCruisePaused = True
-                self.cruise_control(controls, CS, -1)
-            elif CS.gasPressed and v_cruise_kph < v_ego_kph_set:
+            if CS.gasPressed and v_cruise_kph < v_ego_kph_set:
               v_cruise_kph = v_ego_kph_set
             elif v_cruise_kph > v_ego_kph_set:
               v_cruise_kph = v_ego_kph_set
             else:
-              v_cruise_kph = buttonSpeed
+              if self.cruiseButtonMode==2:
+                self.userCruisePaused = True
+                self.cruise_control(controls, CS, -1)
+              else:
+                v_cruise_kph = buttonSpeed
       ###### gas, brake관련 처리...
       if CS.brakePressed:
         self.cruise_control(controls, CS, -2)
