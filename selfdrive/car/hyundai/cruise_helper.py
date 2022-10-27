@@ -150,12 +150,12 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
+      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
     else:
       self.position_x = 1000.0
       self.position_y = 300.0
 
 
-      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
     return curve_speed_ms if x[-1] > 100.0 and abs(y[-1]) > 10.0 else 255
 
