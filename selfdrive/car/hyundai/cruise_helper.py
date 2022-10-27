@@ -297,9 +297,14 @@ class CruiseHelper:
           else:
             self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
             if self.cruiseButtonMode==1:
-              self.userCruisePaused = True
-              self.cruise_control(controls, CS, -1)
+              if v_cruise_kph > v_ego_kph_set:
+                v_cruise_kph = v_ego_kph_set
+              else:
+                self.userCruisePaused = True
+                self.cruise_control(controls, CS, -1)
             elif CS.gasPressed and v_cruise_kph < v_ego_kph_set:
+              v_cruise_kph = v_ego_kph_set
+            elif v_cruise_kph > v_ego_kph_set:
               v_cruise_kph = v_ego_kph_set
             else:
               v_cruise_kph = buttonSpeed
