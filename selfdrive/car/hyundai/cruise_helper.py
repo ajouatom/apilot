@@ -330,8 +330,8 @@ class CruiseHelper:
         elif v_ego_kph < 5.0 and xState == "E2E_STOP2":
           #v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph < 60.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0:
-          v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
+        elif v_ego_kph < 60.0 and xState == "E2E_STOP" and self.position_y > 10.0 and abs(self.position_y) < 3.0:
+          v_cruise_kph = v_ego_kph_set  
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph >= 40.0 and dRel==0:
           v_cruise_kph = v_ego_kph_set
