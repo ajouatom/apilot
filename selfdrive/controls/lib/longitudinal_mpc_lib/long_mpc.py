@@ -439,10 +439,11 @@ class LongitudinalMpc:
             self.xState = "LEAD"
           elif self.startSignCount*DT_MDL >= 0.5: #10*0.05 => 0.5초
             self.xState = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 0.2:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
+          if carstate.brakePressed and v_ego < 0.1:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.softHoldTimer += 1
             if self.softHoldTimer*DT_MDL >= 1.5: 
               self.xState = "E2E_STOP2"
+              self.e2ePaused = False
           else:
             self.softHoldTimer = 0
           if carstate.gasPressed or longActiveUserChanged==1:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
