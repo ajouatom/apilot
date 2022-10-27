@@ -118,11 +118,14 @@ class CruiseHelper:
   def cal_curve_speed(self, controls, v_ego, frame, curve_speed_last):
     curve_speed_ms = curve_speed_last
     md = controls.sm['modelV2']
+    applyCurve = False
     if frame % 20 == 0 and len(md.position.x) == TRAJECTORY_SIZE and len(md.position.y) == TRAJECTORY_SIZE:
       x = md.position.x
       y = md.position.y
       self.position_x = x[-1]
       self.position_y = y[-1]
+
+      applyCurve = x[-1] > 100.0 and abs(y[-1]) > 10.0
 
       curvature = self.curvature
       dy = np.gradient(y, x)
@@ -157,7 +160,7 @@ class CruiseHelper:
 
 
   
-    return curve_speed_ms if x[-1] > 100.0 and abs(y[-1]) > 10.0 else 255
+    return curve_speed_ms if applyCurve else 255
 
   def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
     if controls.enabled:
