@@ -748,6 +748,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
   //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
   int longActiveUser = cs.getLongActiveUser();
+  int enabled = cs.getEnabled();
 
   int activeNDA = road_limit_speed.getActive();
   int roadLimitSpeed = road_limit_speed.getRoadLimitSpeed();
@@ -850,7 +851,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     p.setPen(QColor(255, 255, 255, 180));
 
     configFont(p, "Inter", 50, "Bold");
-    if (applyMaxSpeed > 0) {
+    if (enabled && applyMaxSpeed > 0) {
     //if(is_cruise_set && applyMaxSpeed > 0) {
       if(is_metric)
         str.sprintf( "%d", (int)(applyMaxSpeed + 0.5));
