@@ -124,10 +124,12 @@ class CruiseHelper:
       y = md.position.y
       self.position_x = x[-1]
       self.position_y = y[-1]
-      if x[-1] > 100.0 and abs(y[-1]) > 20.0:
-        bCurve = True
-      else:
-        curve_speed_ms = 255.
+      # 커브를 항상 계산하도록 함... 20221027
+      bCurve = True
+      #if x[-1] > 100.0 and abs(y[-1]) > 20.0:
+      #  bCurve = True
+      #else:
+      #  curve_speed_ms = 255.
     else:
       self.position_x = 1000.0
       self.position_y = 300.0
@@ -159,7 +161,7 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
-      #controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
+      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
     return curve_speed_ms
 
@@ -361,7 +363,7 @@ class CruiseHelper:
         leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
-      controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed, self.v_cruise_kph_apply)      
+      #controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:
