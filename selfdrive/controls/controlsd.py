@@ -605,7 +605,7 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = 'LiveTorque[{:.0f}]: {:.5f},{:.5f},{:.5f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
+        #self.debugText2 = 'LiveTorque[{:.0f}]: {:.5f},{:.5f},{:.5f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']
@@ -646,6 +646,7 @@ class Controls:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] *  self.cruise_helper.accelBoost 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan)
+      self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
 
       # Steering PID loop and lateral MPC
       self.desired_curvature, self.desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
