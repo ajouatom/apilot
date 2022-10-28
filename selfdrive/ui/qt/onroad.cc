@@ -533,7 +533,8 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   }
 
   QString infoText1, infoText2;
-  infoText1 = lp.getDebugLong1Text().cStr();
+  infoText1 = lp.getDebugLongText1().cStr();
+  infoText2 = lp.getDebugLongText2().cStr();
 
   p.save();
   configFont(p, "Inter", 34, "Regular");
