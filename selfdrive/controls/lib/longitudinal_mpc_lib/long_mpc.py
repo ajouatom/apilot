@@ -431,7 +431,6 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
-      self.longActiveUser = controls.longActiveUser
       if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[N])<3.0):
         self.e2ePaused = False
 
@@ -460,7 +459,7 @@ class LongitudinalMpc:
               self.e2ePaused = False
           else:
             self.softHoldTimer = 0
-          if carstate.gasPressed or longActiveUserChanged==1:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
+          if carstate.gasPressed or (self.longActiveUser> 0 and longActiveUserChanged==1):       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True
         #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
@@ -495,6 +494,7 @@ class LongitudinalMpc:
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
         applyStopDistance = self.trafficStopDistanceAdjust
 
+      self.longActiveUser = controls.longActiveUser
       x2 = model_x * np.ones(N+1)
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
@@ -508,8 +508,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'MinA={:.1f} Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.cruise_max_a, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego, v[0], v[1], v[-1])
+      str1 = 'MaxA={:.1f},VC={:.1f} Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.cruise_max_a, v_cruise_clipped*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego, v[0], v[1], v[-1])
       self.debugText = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
