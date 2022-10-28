@@ -231,6 +231,7 @@ class LongitudinalMpc:
     self.trafficStopAccel = 1.
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
+    self.accelBoost = 1.0
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
@@ -374,7 +375,7 @@ class LongitudinalMpc:
 
   def set_accel_limits(self, min_a, max_a):
     self.cruise_min_a = min_a
-    self.cruise_max_a = max_a
+    self.cruise_max_a = max_a * self.accelBoost
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
@@ -389,6 +390,8 @@ class LongitudinalMpc:
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
       self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
+      self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
+
     self.debugLong = 0
     self.trafficState = 0
 

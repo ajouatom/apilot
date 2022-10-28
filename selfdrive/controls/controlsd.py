@@ -643,7 +643,7 @@ class Controls:
       elif CS.cruiseGap <= 2: #연비운전모드
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
       else:
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] *  self.cruise_helper.accelBoost 
+        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan)
       self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
