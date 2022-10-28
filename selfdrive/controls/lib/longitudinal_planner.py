@@ -142,7 +142,7 @@ class LongitudinalPlanner:
         self.mpc.e2eMode = False
     else:
         self.mpc.mode = 'acc'
-        self.mpc.e2eMode = True
+        self.mpc.e2eMode = False
 
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 
