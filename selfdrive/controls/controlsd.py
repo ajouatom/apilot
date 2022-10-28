@@ -894,6 +894,8 @@ class Controls:
     start_time = sec_since_boot()
     self.prof.checkpoint("Ratekeeper", ignore=True)
 
+    self.is_metric = self.params.get_bool("IsMetric")
+
     # Sample data from sockets and get a carState
     CS = self.data_sample()
     cloudlog.timestamp("Data sampled")

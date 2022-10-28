@@ -11,6 +11,7 @@ from selfdrive.car.disable_ecu import disable_ecu
 from common.params import Params
 from selfdrive.car.hyundai.cruise_helper import enable_radar_tracks
 
+Ecu = car.CarParams.Ecu
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 ENABLE_BUTTONS = (Buttons.RES_ACCEL, Buttons.SET_DECEL, Buttons.CANCEL)

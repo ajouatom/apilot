@@ -518,17 +518,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
   toggleLayout->addWidget(horizontal_line());
 
-  toggles.append(new ParamControl("LaneChangeEnabled",
-                                            tr("Enable Lane Change Assist"),
-                                            tr("Perform assisted lane changes with openpilot by checking your surroundings for safety, activating the turn signal and gently nudging the steering wheel towards your desired lane. openpilot is not capable of checking if a lane change is safe. You must continuously observe your surroundings to use this feature."),
-                                            "../assets/offroad/icon_road.png",
-                                            this));
-
-  toggles.append(new ParamControl("AutoLaneChangeEnabled",
-                                            tr("Enable Auto Lane Change(Nudgeless)"),
-                                            tr("warnings: it is beta, be careful!!"),
-                                            "../assets/offroad/icon_road.png",
-                                            this));
   toggles.append(new ParamControl("ShowDebugUI",
                                             tr("Show Debug UI"),
                                             "",
