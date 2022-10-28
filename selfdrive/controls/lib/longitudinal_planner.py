@@ -180,7 +180,9 @@ class LongitudinalPlanner:
 
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time
 
-    longitudinalPlan.debugText = self.mpc.debugText
+    longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
+    self.mpc.debugLongText2 = "Vout={:3.1f},{:3.1f},{:3.1f}".format(longitudinalPlan.speeds[0],longitudinalPlan.speeds[1],longitudinalPlan.speeds[-1])
+    longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
 

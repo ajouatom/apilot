@@ -532,13 +532,14 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
       p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red);
   }
 
-  QString infoText;
-  infoText = lp.getDebugText().cStr();
+  QString infoText1, infoText2;
+  infoText1 = lp.getDebugLong1Text().cStr();
 
   p.save();
   configFont(p, "Inter", 34, "Regular");
   p.setPen(QColor(0xff, 0xff, 0xff, 200));
-  p.drawText(rect().left() + 20, rect().height() - 15, infoText);
+  p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
+  p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
   p.restore();
 
   drawBottomIcons(p);
