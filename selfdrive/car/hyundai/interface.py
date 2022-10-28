@@ -21,6 +21,7 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    print("Accel=", CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
     return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
     v_current_kph = current_speed * CV.MS_TO_KPH
