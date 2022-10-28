@@ -402,6 +402,15 @@ class LongitudinalMpc:
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
+    #leadObstacle, cruiseObstacle은 self.stopDistance로 계산.
+    #traffic에 대한 x2는 applyStopDistance적용..
+    #leadObstacle, cruiseObstacle, xObstacle중 가작 장은값적용할때....
+    # "E2E_STOP" 즉 신호정지 인경우에만... applyStopDistance를 trafficStopDistanceAdjust값을 더하고, solver로 보냄...
+    # solver에서는 이 stopdistance로 계산~
+    # x값에는 정지선에대한 보정값을 넣음...
+    # 맞게 생각한건지.....
+    applyStopDistance = self.stopDistance
+
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
     # and then treat that as a stopped car/obstacle at this new distance.
@@ -414,7 +423,7 @@ class LongitudinalMpc:
       self.params[:,1] = self.cruise_max_a
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      model_x = x[N] + self.trafficStopDistanceAdjust
+      model_x = x[N] 
       longActiveUserChanged = 0
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
@@ -435,6 +444,8 @@ class LongitudinalMpc:
 
         #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
+          if v_ego < 0.1: # 정지상태이면...
+            model_x = -5.0
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = "LEAD"
           elif self.startSignCount*DT_MDL >= 0.5: #10*0.05 => 0.5초
@@ -479,6 +490,7 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+        applyStopDistance = self.trafficStopDistanceAdjust
 
       x2 = model_x * np.ones(N+1)
 
@@ -534,7 +546,7 @@ class LongitudinalMpc:
     self.params[:,3] = np.copy(self.prev_a)
     self.params[:,4] = self.t_follow
     self.params[:,6] = self.comfort_brake
-    self.params[:,7] = self.stopDistance
+    self.params[:,7] = applyStopDistance
     
 
     self.run()
