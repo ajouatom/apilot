@@ -429,7 +429,7 @@ class LongitudinalMpc:
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
       self.longActiveUser = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 20.0 and (model_x > 50.0 and abs(y[N])<3.0):
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[N])<3.0):
         self.e2ePaused = False
 
       if self.e2eMode:
