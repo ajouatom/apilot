@@ -640,8 +640,10 @@ class Controls:
 
       if abs(self.cruise_helper.position_y) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
+        print("CunfusedModel")
       elif CS.cruiseGap <= 2: #연비운전모드
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
+        print("Echo")
       else:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] *  self.cruise_helper.accelBoost 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
