@@ -484,7 +484,7 @@ class LongitudinalMpc:
           model_x = 400.0
         elif model_x > 100.0:
           self.e2ePaused = False
-          model_x = 400.0
+        model_x = 400.0
       elif self.xState == "E2E_STOP2":
         #model_x = stopline_x
         pass
