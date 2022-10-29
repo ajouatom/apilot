@@ -182,6 +182,8 @@ def get_car(logcan, sendcan, num_pandas=1):
 
   ## apilot은 롱컨만 지원하니... 항상 켜주자~
   Params().put_bool("ExperimentalLongitudinalEnabled", True)
+  Params().put_bool("DisengageOnAccelerator", True)
+  
   experimental_long = Params().get_bool("ExperimentalLongitudinalEnabled")
 
   selected_car = Params().get("SelectedCar")
