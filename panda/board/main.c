@@ -75,30 +75,24 @@ void set_safety_mode(uint16_t mode, uint16_t param) {
   }
   safety_tx_blocked = 0;
   safety_rx_invalid = 0;
-  
-#ifdef CANFD
-#define DEFAULT_RELAY false
-#else
-#define DEFAULT_RELAY true
-#endif
 
   switch (mode_copy) {
     case SAFETY_SILENT:
-      set_intercept_relay(DEFAULT_RELAY);
+      set_intercept_relay(false);
       if (current_board->has_obd) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
       can_silent = ALL_CAN_SILENT;
       break;
     case SAFETY_NOOUTPUT:
-      set_intercept_relay(DEFAULT_RELAY);
+      set_intercept_relay(false);
       if (current_board->has_obd) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
       can_silent = ALL_CAN_LIVE;
       break;
     case SAFETY_ELM327:
-      set_intercept_relay(DEFAULT_RELAY);
+      set_intercept_relay(false);
       heartbeat_counter = 0U;
       heartbeat_lost = false;
       if (current_board->has_obd) {
@@ -234,19 +228,12 @@ void tick_handler(void) {
             heartbeat_lost = true;
           }
 
-#ifdef CANFD
           if (current_safety_mode != SAFETY_SILENT) {
             set_safety_mode(SAFETY_SILENT, 0U);
           }
           if (power_save_status != POWER_SAVE_STATUS_ENABLED) {
             set_power_save_state(POWER_SAVE_STATUS_ENABLED);
           }
-#else
-          if (current_safety_mode != SAFETY_NOOUTPUT) {
-            puts("heartbeat_enabled... SAFETY_NOOUTPUT\n");
-            set_safety_mode(SAFETY_NOOUTPUT, 0U);
-          }
-#endif
 
           // Also disable IR when the heartbeat goes missing
           current_board->set_ir_power(0U);
@@ -373,14 +360,7 @@ int main(void) {
   microsecond_timer_init();
 
   // init to SILENT and can silent
-
-#ifdef CANFD
-  puts("main:Safety_silent...\n");  
   set_safety_mode(SAFETY_SILENT, 0U);
-#else
-  puts("main:Safety_nooutput...\n");  
-  set_safety_mode(SAFETY_NOOUTPUT, 0U);
-#endif
 
   // enable CAN TXs
   current_board->enable_can_transceivers(true);

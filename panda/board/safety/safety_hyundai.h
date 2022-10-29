@@ -198,13 +198,17 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
-  if (is_scc_msg && bus != busSCC) {
-    busSCC = bus;
-    if(bus==0) puts("SCC Bus = 0\n");
-    if(bus==1) puts("SCC Bus = 1\n");
-    if(bus==2) {
-      hyundai_scc_bus2 = true;
+  if (is_scc_msg) {
+    if(bus==0 && busSCC < 0) { // SCC Bus가 0이면 배선개조 안된상태.. 배선개조되어도 0에도 scc_msg가 나옴.
+      busSCC = 0;
+      puts("SCC Bus = 0\n");
+    }
+    else if(bus==2 && busSCC != 2) { // SCC Bus가 2이면 배선개조된상태.. 
+      busSCC = 2;
       puts("SCC Bus = 2\n");
+    }
+    else if(bus==1 && busSCC != 1) {
+      puts("SCC Bus = 1, Error... Not supported...\n"); // SCC정보가 1에서 나오면 에러~ APILOT에서는 지원안함.
     }
   }
   int is_lkas11_msg = (addr == 832);
