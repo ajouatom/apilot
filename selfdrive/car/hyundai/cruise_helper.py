@@ -221,7 +221,7 @@ class CruiseHelper:
     return button_type, LongPressed, v_cruise_kph
 
   def update_speed_nda(self, CS, controls):
-    clu11_speed = CS.cluSpeedMs * CV.MS_TO_KPH
+    clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
     road_speed_limiter = get_road_speed_limiter()
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
       road_speed_limiter.get_max_speed(clu11_speed, True) #self.is_metric)

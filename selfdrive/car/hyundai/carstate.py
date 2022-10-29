@@ -63,13 +63,6 @@ class CarState(CarStateBase):
 
     ret.seatbeltUnlatched = cp.vl["CGW1"]["CF_Gway_DrvSeatBeltSw"] == 0
 
-    cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
-    decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
-    if 0. < decimal < 0.5:
-      cluSpeed += decimal
-
-    ret.cluSpeedMs = cluSpeed * speed_conv
-
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHL_SPD11"]["WHL_SPD_FL"],
       cp.vl["WHL_SPD11"]["WHL_SPD_FR"],
