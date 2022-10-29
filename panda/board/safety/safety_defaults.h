@@ -5,14 +5,6 @@ const addr_checks default_rx_checks = {
 
 int default_rx_hook(CANPacket_t *to_push) {
   UNUSED(to_push);
-  int   bus_num = GET_BUS(to_push);
-  int   addr = GET_ADDR(to_push);
-  if (bus_num == 0) {
-    int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
-    int is_fca_msg = (addr == 909) || (addr == 1155);
-    if(is_scc_msg || is_fca_msg) return false;
-  }
- 
   return true;
 }
 
