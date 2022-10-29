@@ -320,10 +320,7 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   // paint path
   QLinearGradient bg(0, height(), 0, height() / 4);
   float start_hue, end_hue;
-  //if (scene.end_to_end_long) {
-  const SubMaster &sm = *(s->sm);
-  const auto cs = sm["controlsState"].getControlsState();
-  if (cs.getActivateE2E()) {
+  if (scene.end_to_end_long) {
     const auto &acceleration = (*s->sm)["modelV2"].getModelV2().getAcceleration();
     float acceleration_future = 0;
     if (acceleration.getZ().size() > 16) {
