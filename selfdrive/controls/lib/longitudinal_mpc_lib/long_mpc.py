@@ -509,8 +509,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'MaxA={:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.cruise_max_a, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
+      str1 = 'MaxA={:.1f},VC={:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.cruise_max_a, v_cruise*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
       self.debugLongText1 = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
