@@ -325,7 +325,7 @@ class Controls:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
       if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200:
-        #print('mismatch = {},{},{}'.format(safety_mismatch, pandaState.safetyRxChecksInvalid, self.mismatch_counter)) 
+        print('mismatch = {},{},{}'.format(safety_mismatch, pandaState.safetyRxChecksInvalid, self.mismatch_counter)) 
         self.events.add(EventName.controlsMismatch)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
