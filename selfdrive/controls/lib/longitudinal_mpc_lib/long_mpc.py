@@ -501,7 +501,7 @@ class LongitudinalMpc:
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
       v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
-      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.10) #1.05를 1.10으로 변경: 임시조치... v_cruise와 v_ego의 속도차이로 120키로 이상 가속이 안됨. 시험후 수정할예정.. 20221029
+      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.20) #1.05를 1.20으로 변경: 임시조치... v_cruise와 v_ego의 속도차이로 120키로 이상 가속이 안됨. 시험후 수정할예정.. 20221029
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
