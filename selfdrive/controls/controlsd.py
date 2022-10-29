@@ -832,7 +832,6 @@ class Controls:
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
 
     #ajouatom
-    controlsState.activateE2E = self.cruise_helper.activate_E2E
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser

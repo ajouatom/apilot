@@ -50,7 +50,6 @@ class CruiseHelper:
     self.curvature = 0
     self.position_x = 1000.0
     self.position_y = 300.0
-    self.activate_E2E = False
     self.cruiseButtons = 0
     self.userCruisePaused = True
     self.accelLimitEco = 0.6
@@ -247,7 +246,6 @@ class CruiseHelper:
     return curve_speed * CV.MS_TO_KPH
 
   def update_v_cruise_apilot(self, v_cruise_kph, buttonEvents, enabled, metric, controls, CS):
-    self.activate_E2E = True # E2E모드 항상켬~
     self.update_params(controls.sm.frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
@@ -336,7 +334,7 @@ class CruiseHelper:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:          
           v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph > 20.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0 and self.activate_E2E:
+        elif v_ego_kph > 20.0 and xState == "E2E_STOP" and abs(self.position_y) < 3.0:
           v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, 3)
         pass

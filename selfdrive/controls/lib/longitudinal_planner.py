@@ -63,7 +63,6 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
-    self.activateE2E = False # ajouatom
 
   def read_param(self):
     e2e = self.params.get_bool('EndToEndLong') and self.CP.openpilotLongitudinalControl
@@ -94,8 +93,6 @@ class LongitudinalPlanner:
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise
-    #ajouatom
-    self.activateE2E = sm['controlsState'].activateE2E 
     
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
@@ -133,17 +130,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j, y = self.parse_model(sm['modelV2'])
 
-    if sm['carState'].cruiseGap < 4:
-      if self.activateE2E:
-        self.mpc.mode = 'acc'
-        self.mpc.e2eMode = True
-      else:
-        self.mpc.mode = 'acc'
-        self.mpc.e2eMode = False
-    else:
-        self.mpc.mode = 'acc'
-        self.mpc.e2eMode = False
-
+    self.mpc.mode = 'acc'
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)

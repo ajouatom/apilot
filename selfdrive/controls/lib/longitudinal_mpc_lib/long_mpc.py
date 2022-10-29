@@ -217,12 +217,9 @@ def gen_long_ocp():
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
     self.mode = mode
-    self.e2eMode = False #ajouatom
-    self.onStopping = False
     self.debugLongText1 = ""
     self.debugLongText2 = ""
     self.trafficState = 0
-    self.debugLong = 0
     self.XEgoObstacleCost = 3.
     self.JEgoCost = 5.
     self.AChangeCost = 200.
@@ -393,7 +390,6 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
 
-    self.debugLong = 0
     self.trafficState = 0
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
@@ -435,7 +431,7 @@ class LongitudinalMpc:
       if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[N])<3.0):
         self.e2ePaused = False
 
-      if self.e2eMode:
+      if carsate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
         startSign = v[-1] > 5.0
         #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.60)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
