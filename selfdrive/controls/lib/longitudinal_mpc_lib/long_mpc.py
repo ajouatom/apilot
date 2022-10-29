@@ -501,7 +501,7 @@ class LongitudinalMpc:
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
       v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
-      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.05)
+      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.10) #1.05를 1.10으로 변경: 임시조치... v_cruise와 v_ego의 속도차이로 120키로 이상 가속이 안됨. 시험후 수정할예정.. 20221029
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
@@ -509,8 +509,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'MaxA={:.1f},VC={:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.cruise_max_a, v_cruise*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
+      str1 = 'MaxA={:.1f},VC={:.1f},{:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.cruise_max_a, v_cruise*3.6, (v_ego+self.cruise_max_a*1.05)*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
       self.debugLongText1 = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
