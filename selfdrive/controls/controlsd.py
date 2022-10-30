@@ -325,7 +325,7 @@ class Controls:
         safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
 
       if safety_mismatch or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200:
-        print('mismatch = {},{},{}'.format(safety_mismatch, pandaState.safetyRxChecksInvalid, self.mismatch_counter)) 
+        #print('mismatch = {},{},{}'.format(safety_mismatch, pandaState.safetyRxChecksInvalid, self.mismatch_counter)) 
         self.events.add(EventName.controlsMismatch)
 
       if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
@@ -604,7 +604,7 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = 'LiveTorque[{:.0f}]: {:.3f},{:.3f},{:.3f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
+        #self.debugText2 = 'LiveTorque[{:.0f}]: {:.3f},{:.3f},{:.3f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']
@@ -644,8 +644,9 @@ class Controls:
       else:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
-      actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan)
+      actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
+      self.debugText2 = self.LoC.debugLoCText
       #print(self.debugText2)
 
       # Steering PID loop and lateral MPC
@@ -741,7 +742,7 @@ class Controls:
 
     hudControl = CC.hudControl
     hudControl.setSpeed = float(self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
-    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "E2E_STOP2" and self.cruise_helper.longActiveUser>0 else False
+    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead

@@ -269,7 +269,7 @@ class CruiseHelper:
           if self.longActiveUser <= 0:
             self.cruise_control(controls, CS, 1)
           else:
-            self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
+            self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
             if self.cruiseButtonMode in [1,2]:
               temp = 30 if roadSpeed < 0 else roadSpeed
               if v_cruise_kph < temp:
@@ -291,7 +291,7 @@ class CruiseHelper:
             v_cruise_kph = v_ego_kph_set  ## 현재속도도 크루즈세트
             self.cruise_control(controls, CS, 1)
           else:
-            self.cruise_control(controls, CS, 1) # E2E_STOP2인경우 버튼으로 출발할수 있도록.
+            self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
             if CS.gasPressed and v_cruise_kph < v_ego_kph_set:
               v_cruise_kph = v_ego_kph_set
             elif v_cruise_kph > v_ego_kph_set:
@@ -313,13 +313,13 @@ class CruiseHelper:
             if True or dRel == 0: # 전방에 레이더에 안잡히면
               v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
             self.cruise_control(controls, CS, 3)
-        elif xState == "E2E_STOP2": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
+        elif xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
-        elif v_ego_kph < 5.0 and xState == "E2E_STOP2":
+        elif v_ego_kph < 5.0 and xState == "SOFT_HOLD":
           #v_cruise_kph = v_ego_kph_set  # e2e오류이므로 일단 현재속도로 세트~
           self.cruise_control(controls, CS, 3)
         elif v_ego_kph < 60.0 and xState == "E2E_STOP" and self.position_y > 10.0 and abs(self.position_y) < 3.0:

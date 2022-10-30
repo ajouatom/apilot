@@ -603,8 +603,8 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
 
   // cruise gap
   int gap = car_state.getCruiseGap();
-  bool longControl = 0;// scc_smoother.getLongControl();
-  int autoTrGap = 0;// scc_smoother.getAutoTrGap();
+  //bool longControl = 0;// scc_smoother.getLongControl();
+  //int autoTrGap = 0;// scc_smoother.getAutoTrGap();
 
   p.setPen(Qt::NoPen);
   p.setBrush(QBrush(QColor(0, 0, 0, 255 * .1f)));
@@ -617,8 +617,14 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   if(gap <= 0) {
     str = "N/A";
   }
-  else if(longControl && gap == autoTrGap) {
-    str = "AUTO";
+  else if(1) { //longControl && gap == autoTrGap) {
+    switch (gap) {
+      case 1: str = "연비"; break;
+      case 2: str = "관성"; break;
+      case 3: str = "일반"; break;
+      case 4: str = "일반"; break;
+    }
+    //str = "AUTO";
     textColor = QColor(120, 255, 120, 200);
   }
   else {

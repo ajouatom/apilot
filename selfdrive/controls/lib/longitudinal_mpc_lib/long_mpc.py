@@ -27,7 +27,7 @@ SOURCES = ['lead0', 'lead1', 'cruise', 'e2e']
 
 X_DIM = 3
 U_DIM = 1
-PARAM_DIM = 8
+PARAM_DIM = 7
 COST_E_DIM = 5
 COST_DIM = COST_E_DIM + 1
 CONSTR_DIM = 4
@@ -74,8 +74,8 @@ def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distan
   distance = (v_lead**2) / (2 * COMFORT_BRAKE) + v_diff_offset
   return distance
 
-def get_safe_obstacle_distance(v_ego, t_follow=T_FOLLOW, comfort_brake=COMFORT_BRAKE, stop_distance=STOP_DISTANCE):
-  return (v_ego**2) / (2 * comfort_brake) + t_follow * v_ego + stop_distance
+def get_safe_obstacle_distance(v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
+  return (v_ego**2) / (2 * COMFORT_BRAKE) + t_follow * v_ego + stop_distance
 
 def desired_follow_distance(v_ego, v_lead):
   return get_safe_obstacle_distance(v_ego) - get_stopped_equivalence_factor(v_lead, v_ego)
@@ -108,9 +108,8 @@ def gen_long_model():
   prev_a = SX.sym('prev_a')
   lead_t_follow = SX.sym('lead_t_follow')
   lead_danger_factor = SX.sym('lead_danger_factor')
-  comfort_brake = SX.sym('comfort_brake')
   stop_distance = SX.sym('stop_distance')
-  model.p = vertcat(a_min, a_max, x_obstacle, prev_a, lead_t_follow, lead_danger_factor, comfort_brake, stop_distance)
+  model.p = vertcat(a_min, a_max, x_obstacle, prev_a, lead_t_follow, lead_danger_factor, stop_distance)
 
   # dynamics model
   f_expl = vertcat(v_ego, a_ego, j_ego)
@@ -146,13 +145,12 @@ def gen_long_ocp():
   prev_a = ocp.model.p[3]
   lead_t_follow = ocp.model.p[4]
   lead_danger_factor = ocp.model.p[5]
-  comfort_brake = ocp.model.p[6]
-  stop_distance = ocp.model.p[7]
+  stop_distance = ocp.model.p[6]
 
   ocp.cost.yref = np.zeros((COST_DIM, ))
   ocp.cost.yref_e = np.zeros((COST_E_DIM, ))
 
-  desired_dist_comfort = get_safe_obstacle_distance(v_ego, lead_t_follow, comfort_brake, stop_distance)
+  desired_dist_comfort = get_safe_obstacle_distance(v_ego, lead_t_follow, stop_distance)
 
   # The main cost in normal operation is how close you are to the "desired" distance
   # from an obstacle at every timestep. This obstacle can be a lead car
@@ -178,7 +176,7 @@ def gen_long_ocp():
 
   x0 = np.zeros(X_DIM)
   ocp.constraints.x0 = x0
-  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0, T_FOLLOW, LEAD_DANGER_FACTOR, COMFORT_BRAKE, STOP_DISTANCE])
+  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0, T_FOLLOW, LEAD_DANGER_FACTOR, STOP_DISTANCE])
 
   # We put all constraint cost weights to 0 and only set them at runtime
   cost_weights = np.zeros(CONSTR_DIM)
@@ -226,14 +224,12 @@ class LongitudinalMpc:
     self.DangerZoneCost = 100.
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
-    self.trafficStopAccel = 1.
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.accelBoost = 1.0
     self.lo_timer = 0 
 
     self.t_follow = T_FOLLOW
-    self.comfort_brake = COMFORT_BRAKE
     self.xState = "CRUISE"
     self.e2ePaused = False
     self.longActiveUser = 0
@@ -257,7 +253,6 @@ class LongitudinalMpc:
     self.u_sol = np.zeros((N,1))
     self.params = np.zeros((N+1, PARAM_DIM))
     self.t_follow = T_FOLLOW
-    self.comfort_brake = COMFORT_BRAKE
     self.xState = "CRUISE"
     self.startSignCount = 0
     for i in range(N+1):
@@ -389,6 +384,7 @@ class LongitudinalMpc:
       self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
+      self.e2eDecelSpeed = float(int(Params().get("E2eDecelSpeed", encoding="utf8")))
 
     self.trafficState = 0
 
@@ -399,7 +395,6 @@ class LongitudinalMpc:
 
     
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
-    self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
     #leadObstacle, cruiseObstacle은 self.stopDistance로 계산.
@@ -428,7 +423,7 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[N])<3.0):
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[-1])<3.0):
         self.e2ePaused = False
 
       if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
@@ -451,16 +446,16 @@ class LongitudinalMpc:
             self.xState = "E2E_CRUISE"
           if carstate.brakePressed and v_ego < 0.1:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.softHoldTimer += 1
-            if self.softHoldTimer*DT_MDL >= 1.5: 
-              self.xState = "E2E_STOP2"
+            if self.softHoldTimer*DT_MDL >= 1.0: 
+              self.xState = "SOFT_HOLD"
               self.e2ePaused = False
           else:
             self.softHoldTimer = 0
           if carstate.gasPressed or (self.longActiveUser> 0 and longActiveUserChanged==1):       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True
-        #E2E_STOP2: 정지 유지상태: 신호오류등 상황발생시 정지유지.
-        elif self.xState == "E2E_STOP2": 
+        #SOFT_HOLD: 정지 유지상태: 신호오류등 상황발생시 정지유지.
+        elif self.xState == "SOFT_HOLD": 
           model_x = -5.0
           if carstate.gasPressed or longActiveUserChanged==1:
             self.xState = "E2E_CRUISE"
@@ -472,24 +467,29 @@ class LongitudinalMpc:
             self.xState = "E2E_STOP"
           else:
             self.xState = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
-            self.xState = "E2E_STOP2"
+          if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. SOFT_HOLD
+            self.xState = "SOFT_HOLD"
       else:
         self.xState = "CRUISE"
 
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
         model_x = 400.0
       elif self.xState == "E2E_CRUISE":
-        if model_x > 150.0 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
-          model_x = 400.0
-        elif model_x > 100.0:
+        #if model_x > 150.0 or self.e2ePaused:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
+        #  model_x = 400.0
+        #elif model_x > 100.0:
+        #  self.e2ePaused = False
+        if model_x > 100.0 and abs(y[-1]) < 3.0:  #100M이상 직선감지하면 신호감지 일시정지 해제
           self.e2ePaused = False
-        model_x = 400.0
-      elif self.xState == "E2E_STOP2":
+        if 0 < v_ego*CV.MS_TO_KPH < self.e2eDecelSpeed:
+          pass
+        else:
+          model_x = 400.0                 #신호감지전까지 model.x는 참조안함.  커브길에서 자동감속은 좋으나... 깜짝놀람.. ㅠㅠ
+      elif self.xState == "SOFT_HOLD":
         #model_x = stopline_x
+        v_cruise = 0
         pass
       elif self.xState == "E2E_STOP":
-        self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
         applyStopDistance = self.trafficStopDistanceAdjust
 
       self.longActiveUser = controls.longActiveUser
@@ -498,16 +498,16 @@ class LongitudinalMpc:
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
       v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
-      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.20) #1.05를 1.20으로 변경: 임시조치... v_cruise와 v_ego의 속도차이로 120키로 이상 가속이 안됨. 시험후 수정할예정.. 20221029
+      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.05)
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, t_follow=self.t_follow, comfort_brake=self.comfort_brake, stop_distance=applyStopDistance)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, t_follow=self.t_follow, stop_distance=applyStopDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      str1 = 'MaxA={:.1f},VC={:.1f},{:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
-        self.cruise_max_a, v_cruise*3.6, (v_ego+self.cruise_max_a*1.05)*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
+      str1 = 'LA={:.1f}:{:.1f},VC={:.1f},{:.1f},{:.1f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}:{:.1f}'.format(
+        self.cruise_min_a, self.cruise_max_a, v_cruise_clipped[0]*3.6, v_lower[0]*3.6, v_upper[0]*3.6, y[N], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], x[N], model_x, v_ego*3.6, v[0]*3.6, v[1]*3.6, v[-1]*3.6)
       self.debugLongText1 = str1
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
@@ -546,8 +546,7 @@ class LongitudinalMpc:
     self.params[:,2] = np.min(x_obstacles, axis=1)
     self.params[:,3] = np.copy(self.prev_a)
     self.params[:,4] = self.t_follow
-    self.params[:,6] = self.comfort_brake
-    self.params[:,7] = applyStopDistance
+    self.params[:,6] = applyStopDistance
     
 
     self.run()
@@ -560,9 +559,9 @@ class LongitudinalMpc:
     # Check if it got within lead comfort range
     # TODO This should be done cleaner
     if self.mode == 'blended':
-      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.comfort_brake, self.stopDistance)) - self.x_sol[:,0] < 0.0):
+      if any((lead_0_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.stopDistance)) - self.x_sol[:,0] < 0.0):
         self.source = 'lead0'
-      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.comfort_brake, self.stopDistance)) - self.x_sol[:,0] < 0.0) and \
+      if any((lead_1_obstacle - get_safe_obstacle_distance(self.x_sol[:,1], self.t_follow, self.stopDistance)) - self.x_sol[:,0] < 0.0) and \
          (lead_1_obstacle[0] - lead_0_obstacle[0]):
         self.source = 'lead1'
 

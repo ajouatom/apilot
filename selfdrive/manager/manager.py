@@ -75,7 +75,8 @@ def manager_init() -> None:
     ("LongitudinalActuatorDelayUpperBound", "100"),       
     ("LongitudinalActuatorDelayLowerBound", "110"),       
     ("StopDistance", "600"), 
-    ("CustomMapbox", "0"),     
+    ("CustomMapbox", "0"),    
+    ("E2eDecelSpeed", "0"),        
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
