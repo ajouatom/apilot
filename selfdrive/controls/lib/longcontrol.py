@@ -143,5 +143,5 @@ class LongControl:
 
     self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
-    self.debugLoCText = "V:{:.1f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format((self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
+    #self.debugLoCText = "V:{:.1f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format((self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
     return self.last_output_accel
