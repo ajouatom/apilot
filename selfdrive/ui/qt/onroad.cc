@@ -619,10 +619,10 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   }
   else if(1) { //longControl && gap == autoTrGap) {
     switch (gap) {
-      case 1: str = "연비"; break;
-      case 2: str = "관성"; break;
-      case 3: str = "일반"; break;
-      case 4: str = "일반"; break;
+      case 1: str = "1"; break;
+      case 2: str = "2"; break;
+      case 3: str = "3"; break;
+      case 4: str = "4"; break;
     }
     //str = "AUTO";
     textColor = QColor(120, 255, 120, 200);
