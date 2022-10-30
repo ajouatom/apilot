@@ -224,6 +224,7 @@ class LongitudinalMpc:
     self.DangerZoneCost = 100.
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
+    self.e2eDecelSpeed = 0
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.accelBoost = 1.0
