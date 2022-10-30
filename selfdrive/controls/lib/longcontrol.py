@@ -98,6 +98,7 @@ class LongControl:
       a_target = min(a_target_lower, a_target_upper)
 
       v_target_1sec = interp(longitudinalActuatorDelayUpperBound + t_since_plan + 1.0, T_IDXS[:CONTROL_N], speeds)
+      print("delayLowerBound = ",longitudinalActuatorDelayLowerBound )
 
     else:
       v_target = 0.0
