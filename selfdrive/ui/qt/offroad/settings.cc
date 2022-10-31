@@ -157,6 +157,37 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   addItem(new LabelControl(tr("Dongle ID"), getDongleId().value_or(tr("N/A"))));
   addItem(new LabelControl(tr("Serial"), params.get("HardwareSerial").c_str()));
 
+  QHBoxLayout *reset_layout = new QHBoxLayout();
+  reset_layout->setSpacing(30);
+
+  // reset calibration button
+  QPushButton *restart_openpilot_btn = new QPushButton(tr("Soft restart"));
+  restart_openpilot_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
+  reset_layout->addWidget(restart_openpilot_btn);
+  QObject::connect(restart_openpilot_btn, &QPushButton::released, [=]() {
+    emit closeSettings();
+    QTimer::singleShot(1000, []() {
+      Params().putBool("SoftRestartTriggered", true);
+    });
+  });
+
+  // reset calibration button
+  QPushButton *reset_calib_btn = new QPushButton(tr("Reset Calibration"));
+  reset_calib_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
+  reset_layout->addWidget(reset_calib_btn);
+  QObject::connect(reset_calib_btn, &QPushButton::released, [=]() {
+    if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration and live params?"), this)) {
+      Params().remove("CalibrationParams");
+      Params().remove("LiveParameters");
+      emit closeSettings();
+      QTimer::singleShot(1000, []() {
+        Params().putBool("SoftRestartTriggered", true);
+      });
+    }
+  });
+
+  addItem(reset_layout);
+
   // offroad-only buttons
 
   auto dcamBtn = new ButtonControl(tr("Driver Camera"), tr("PREVIEW"),
@@ -221,6 +252,23 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   power_layout->addWidget(reboot_btn);
   QObject::connect(reboot_btn, &QPushButton::clicked, this, &DevicePanel::reboot);
 
+  QPushButton *rebuild_btn = new QPushButton(tr("Rebuild"));
+  rebuild_btn->setObjectName("rebuild_btn");
+  power_layout->addWidget(rebuild_btn);
+  QObject::connect(rebuild_btn, &QPushButton::clicked, [=]() {
+
+    if (ConfirmationDialog::confirm(tr("Are you sure you want to rebuild?"), this)) {
+      std::system("cd /data/openpilot && scons -c");
+      std::system("rm /data/openpilot/.sconsign.dblite");
+      std::system("rm /data/openpilot/prebuilt");
+      std::system("rm -rf /tmp/scons_cache");
+      if (Hardware::TICI())
+        std::system("sudo reboot");
+      else
+        std::system("reboot");
+    }
+  });
+
   QPushButton *poweroff_btn = new QPushButton(tr("Power Off"));
   poweroff_btn->setObjectName("poweroff_btn");
   power_layout->addWidget(poweroff_btn);
@@ -233,6 +281,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   setStyleSheet(R"(
     #reboot_btn { height: 120px; border-radius: 15px; background-color: #393939; }
     #reboot_btn:pressed { background-color: #4a4a4a; }
+    #rebuild_btn { height: 120px; border-radius: 15px; background-color: #393939; }
+    #rebuild_btn:pressed { background-color: #4a4a4a; }
     #poweroff_btn { height: 120px; border-radius: 15px; background-color: #E22C2C; }
     #poweroff_btn:pressed { background-color: #FF2424; }
   )");
@@ -327,30 +377,33 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   )");
 
   // close button
-  QPushButton *close_btn = new QPushButton(tr("×"));
+  QPushButton *close_btn = new QPushButton(tr("← Back"));
   close_btn->setStyleSheet(R"(
     QPushButton {
-      font-size: 140px;
-      padding-bottom: 20px;
+      font-size: 50px;
       font-weight: bold;
-      border 1px grey solid;
-      border-radius: 100px;
-      background-color: #292929;
-      font-weight: 400;
+      margin: 0px;
+      padding: 15px;
+      border-width: 0;
+      border-radius: 30px;
+      color: #dddddd;
+      background-color: #444444;
     }
     QPushButton:pressed {
       background-color: #3B3B3B;
     }
   )");
-  close_btn->setFixedSize(200, 200);
-  sidebar_layout->addSpacing(45);
-  sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
+  close_btn->setFixedSize(300, 110);
+  sidebar_layout->addSpacing(10);
+  sidebar_layout->addWidget(close_btn, 0, Qt::AlignRight);
+  sidebar_layout->addSpacing(10);
   QObject::connect(close_btn, &QPushButton::clicked, this, &SettingsWindow::closeSettings);
 
   // setup panels
   DevicePanel *device = new DevicePanel(this);
   QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
+  QObject::connect(device, &DevicePanel::closeSettings, this, &SettingsWindow::closeSettings);
 
   QList<QPair<QString, QWidget *>> panels = {
     {tr("Device"), device},

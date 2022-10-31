@@ -190,6 +190,7 @@ def thermald_thread(end_event, hw_queue):
   thermal_config = HARDWARE.get_thermal_config()
 
   fan_controller = None
+  restart_triggered_ts = 0.
 
   while not end_event.is_set():
     sm.update(PANDA_STATES_TIMEOUT)
@@ -198,6 +199,16 @@ def thermald_thread(end_event, hw_queue):
     peripheralState = sm['peripheralState']
 
     msg = read_thermal(thermal_config)
+
+    # neokii
+    if sec_since_boot() - restart_triggered_ts < 5.:
+      onroad_conditions["not_restart_triggered"] = False
+    else:
+      onroad_conditions["not_restart_triggered"] = True
+
+      if params.get_bool("SoftRestartTriggered"):
+        params.put_bool("SoftRestartTriggered", False)
+        restart_triggered_ts = sec_since_boot()
 
     if sm.updated['pandaStates'] and len(pandaStates) > 0:
 
