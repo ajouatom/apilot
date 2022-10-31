@@ -73,7 +73,7 @@ def manager_init() -> None:
     ("InitCruiseGap", "3"),      
     ("AutoSyncCruiseSpeed", "1"),       
     ("LongitudinalActuatorDelayUpperBound", "100"),       
-    ("LongitudinalActuatorDelayLowerBound", "110"),       
+    ("LongitudinalActuatorDelayLowerBound", "90"),       
     ("StopDistance", "600"), 
     ("CustomMapbox", "0"),    
     ("E2eDecelSpeed", "0"),        
