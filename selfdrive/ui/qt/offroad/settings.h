@@ -41,6 +41,7 @@ public:
 signals:
   void reviewTrainingGuide();
   void showDriverView();
+  void closeSettings();
 
 private slots:
   void poweroff();
