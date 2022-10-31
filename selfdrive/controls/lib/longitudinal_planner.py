@@ -97,6 +97,12 @@ class LongitudinalPlanner:
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
+    # neokii
+    vCluRatio = sm['carState'].vCluRatio
+    if vCluRatio > 0.5:
+      v_cruise *= vCluRatio
+      v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
     force_slow_decel = sm['controlsState'].forceDecel
 
@@ -125,13 +131,13 @@ class LongitudinalPlanner:
     accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05)
     accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
 
-    #self.mpc.set_weights(prev_accel_constraint)
+    self.mpc.set_weights(prev_accel_constraint)
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j, y = self.parse_model(sm['modelV2'])
 
     self.mpc.mode = 'acc'
-    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
+    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
@@ -168,7 +174,7 @@ class LongitudinalPlanner:
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time
 
     longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
-    #self.mpc.debugLongText2 = "Vout={:3.1f},{:3.1f},{:3.1f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[-1]*3.6)
+    self.mpc.debugLongText2 = "Vout={:3.2f},{:3.2f},{:3.2f},{:3.2f},{:3.2f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[2]*3.6,longitudinalPlan.speeds[3]*3.6,longitudinalPlan.speeds[-1]*3.6)
     longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState

@@ -186,6 +186,14 @@ class CarState(CarStateBase):
         self.scc14 = cp.vl["SCC14"]
       else:
         self.scc14 = 0
+    cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
+    decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
+    if 0. < decimal < 0.5:
+      cluSpeed += decimal
+
+    ret.vEgoCluster = cluSpeed * speed_conv
+    vEgoClu, aEgoClu = self.update_clu_speed_kf(ret.vEgoCluster)
+    ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
 
     return ret
 
@@ -454,6 +462,7 @@ class CarState(CarStateBase):
         ("CF_VSM_BeltCmd", "SCC12"),
         ("ACCFailInfo", "SCC12"),
         ("StopReq", "SCC12"),
+        ("ACCFailInfo", "SCC12"),
         ("CR_VSM_DecCmd", "SCC12"),
         ("aReqRaw", "SCC12"), #aReqMax
         ("TakeOverReq", "SCC12"),

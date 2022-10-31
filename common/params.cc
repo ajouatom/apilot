@@ -202,6 +202,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"ShowDebugUI", PERSISTENT},
     { "AutoResumeFromGas", PERSISTENT },
     { "AutoResumeFromGasSpeed", PERSISTENT },
+    { "AutoResumeFromGasSpeedMode", PERSISTENT },        
     { "AutoCurveSpeedCtrl", PERSISTENT },
     { "AutoCurveSpeedFactor", PERSISTENT },
     { "AutoNaviSpeedCtrl", PERSISTENT },
@@ -223,6 +224,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AccelLimitConfusedModel", PERSISTENT },
     { "AutoSpeedAdjustWithLeadCar", PERSISTENT },
     { "TrafficStopAccel", PERSISTENT },
+    { "TrafficStopModelSpeed", PERSISTENT },        
     { "CruiseButtonMode", PERSISTENT },
     { "InitCruiseGap", PERSISTENT },
     { "AutoSyncCruiseSpeed", PERSISTENT },
@@ -234,7 +236,9 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "CustomMapboxTokenSk", PERSISTENT },    
     {"EnableGmap", PERSISTENT},
     { "GmapKey", PERSISTENT },
-    { "E2eDecelSpeed", PERSISTENT },        
+    { "E2eDecelSpeed", PERSISTENT },
+    { "LongitudinalTuningKf", PERSISTENT },
+    { "LongitudinalPlanFF", PERSISTENT },        
 };
 
 } // namespace

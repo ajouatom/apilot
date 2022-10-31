@@ -219,6 +219,8 @@ struct CarState {
 
   cruiseGap @45 : Int32;
   tpms @46 : Tpms;
+  # neokii
+  vCluRatio @47 :Float32;
 
   struct Tpms {
     fl @0 :Float32;

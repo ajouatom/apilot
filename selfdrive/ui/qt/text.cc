@@ -33,9 +33,12 @@ int main(int argc, char *argv[]) {
 
   QPushButton *btn = new QPushButton();
 #ifdef __aarch64__
-  btn->setText(QObject::tr("Reboot"));
+  const char* gitpull = "/data/openpilot/selfdrive/assets/addon/sh/gitpull.sh";
+  btn->setText(QObject::tr("Update"));
   QObject::connect(btn, &QPushButton::clicked, [=]() {
-    Hardware::reboot();
+      std::system("cd /data/openpilot; rm -f prebuilt");
+      std::system(gitpull);
+      Hardware::reboot();
   });
 #else
   btn->setText(QObject::tr("Exit"));

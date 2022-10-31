@@ -47,6 +47,7 @@ def manager_init() -> None:
     ("ShowDebugUI", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
+    ("AutoResumeFromGasSpeedMode", "1"),    
     ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrl", "1"),
     ("AutoCurveSpeedFactor", "95"),
@@ -69,6 +70,7 @@ def manager_init() -> None:
     ("AccelLimitConfusedModel", "1"),   
     ("AutoSpeedAdjustWithLeadCar", "0"),   
     ("TrafficStopAccel", "80"),     
+    ("TrafficStopModelSpeed", "1"),         
     ("CruiseButtonMode", "0"),      
     ("InitCruiseGap", "3"),      
     ("AutoSyncCruiseSpeed", "1"),       
@@ -77,6 +79,8 @@ def manager_init() -> None:
     ("StopDistance", "600"), 
     ("CustomMapbox", "0"),    
     ("E2eDecelSpeed", "0"),        
+    ("LongitudinalTuningKf", "100"),     
+    ("LongitudinalPlanFF", "0"),    
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

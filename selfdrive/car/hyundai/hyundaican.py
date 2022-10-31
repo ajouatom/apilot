@@ -125,6 +125,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   values["StopReq"] = 1 if stopping else 0
   values["aReqRaw"] = accel
   values["aReqValue"] = accel
+  values["ACCFailInfo"] = 0
   values["CR_VSM_Alive"] = idx % 0xF
   scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
   values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
