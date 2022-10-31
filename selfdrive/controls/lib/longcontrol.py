@@ -81,7 +81,6 @@ class LongControl:
 
     longitudinalActuatorDelayLowerBound = self.CP.longitudinalActuatorDelayLowerBound * self.longitudinalActuatorDelayLowerBoundCost
     longitudinalActuatorDelayUpperBound = self.CP.longitudinalActuatorDelayUpperBound * self.longitudinalActuatorDelayUpperBoundCost
-    print("actuatordelaylowerbound=", self.CP.longitudinalActuatorDelayLowerBound * self.longitudinalActuatorDelayLowerBoundCost)
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Interp control trajectory
     speeds = long_plan.speeds
