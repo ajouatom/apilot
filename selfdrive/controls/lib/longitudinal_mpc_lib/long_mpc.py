@@ -312,7 +312,7 @@ class LongitudinalMpc:
   def process_lead(self, lead):
     v_ego = self.x0[1]
     if lead is not None and lead.status:
-      x_lead = lead.dRel if lead.radar else min(max(lead.dRel-DIFF_RADAR_VISION, 0.), 20.0)  #비젼의 경우 20M이내는 무시하도록 함... 테스트..
+      x_lead = lead.dRel if lead.radar else max(max(lead.dRel-DIFF_RADAR_VISION, 0.), 20.0)  #비젼의 경우 20M이내는 무시하도록 함... 테스트..
       v_lead = lead.vLead
       a_lead = lead.aLeadK
       a_lead_tau = lead.aLeadTau
