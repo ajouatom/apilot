@@ -78,7 +78,7 @@ def manager_init() -> None:
     ("LongitudinalActuatorDelayLowerBound", "90"),       
     ("StopDistance", "600"), 
     ("CustomMapbox", "0"),    
-    ("E2eDecelSpeed", "0"),        
+    ("E2eDecelSpeed", "90"),        
     ("LongitudinalTuningKf", "100"),     
     ("LongitudinalPlanFF", "0"),    
   ]
