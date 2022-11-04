@@ -400,9 +400,10 @@ class LongitudinalMpc:
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
           if v_ego < 0.5: # 정지상태이면...
             model_x = 0.0
+            v_cruise = 0.0
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = "LEAD"
-          elif self.startSignCount*DT_MDL >= 0.5: #10*0.05 => 0.5초
+          elif self.startSignCount*DT_MDL >= 0.3: # 0.3초 이상 신호바뀜..
             self.xState = "E2E_CRUISE"
           if carstate.brakePressed and v_ego < 0.1:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
             self.softHoldTimer += 1
