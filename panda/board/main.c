@@ -212,6 +212,7 @@ void tick_handler(void) {
         heartbeat_engaged_mismatches += 1U;
         if (heartbeat_engaged_mismatches >= 3U) {
           controls_allowed = 0U;
+          puts("Disengage: HeartBeat\n");
         }
       } else {
         heartbeat_engaged_mismatches = 0U;

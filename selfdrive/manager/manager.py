@@ -81,6 +81,7 @@ def manager_init() -> None:
     ("E2eDecelSpeed", "90"),        
     ("LongitudinalTuningKf", "100"),     
     ("LongitudinalPlanFF", "0"),    
+    ("EnableRadarTracks", "0"),        
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

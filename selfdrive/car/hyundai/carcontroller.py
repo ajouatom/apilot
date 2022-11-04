@@ -52,6 +52,7 @@ class CarController:
     self.apply_steer_last = 0
     self.car_fingerprint = CP.carFingerprint
     self.last_button_frame = 0
+    self.pcmCruiseButtonDelay = 0
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -162,6 +163,34 @@ class CarController:
             # send 25 messages at a time to increases the likelihood of resume being accepted
             can_sends.extend([hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint)] * 25)
             self.last_button_frame = self.frame
+        else:
+          target = set_speed_in_units
+          current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
+
+          if self.pcmCruiseButtonDelay > 0:
+            self.pcmCruiseButtonDelay -= 1
+          # 10번은 연속 10번은 쉬고: 20인경우..
+          if self.pcmCruiseButtonDelay >= 10:
+            pass
+          else:
+            if target == current or current == 0:
+              #if CS.out.cruiseState.available and not CS.out.cruiseState.enabled and CS.out.vEgo*CV.MS_TO_KPH >= 30 and Params().get_bool("AutoResumeFromGas"):
+              #if CS.out.cruiseState.available and current==0 and CC.longActive:
+              if current==0 and CC.longActive: #뭐하자는거지?
+                if hud_control.leadVisible:
+                  can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                else:
+                  can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                self.pcmCruiseButtonDelay = (self.frame % 20)
+                pass
+            elif target < current:
+              if current >= 31:
+                can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                self.pcmCruiseButtonDelay = (self.frame % 20)
+            elif target > current:
+              if current < 160:
+                can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                self.pcmCruiseButtonDelay = (self.frame % 20)
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
@@ -194,3 +223,4 @@ class CarController:
 
     self.frame += 1
     return new_actuators, can_sends
+  

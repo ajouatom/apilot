@@ -5,6 +5,7 @@ from cereal import car
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.hyundai.values import DBC
+from common.params import Params
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
@@ -12,7 +13,7 @@ RADAR_MSG_COUNT = 32
 
 def get_radar_can_parser(CP):
 
-  if CP.sccBus == 0 and CP.openpilotLongitudinalControl: #Params().get_bool("NewRadarInterface"):
+  if CP.sccBus == 0 and CP.openpilotLongitudinalControl and Params().get_bool("EnableRadarTracks"):
 
     signals = []
     checks = []
@@ -50,7 +51,7 @@ def get_radar_can_parser(CP):
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.new_radar = CP.sccBus == 0 and CP.openpilotLongitudinalControl #Params().get_bool("NewRadarInterface")
+    self.new_radar = CP.sccBus == 0 and CP.openpilotLongitudinalControl and Params().get_bool("EnableRadarTracks")
     self.updated_messages = set()
     self.trigger_msg = 0x420 if not self.new_radar else RADAR_START_ADDR + RADAR_MSG_COUNT - 1
     self.track_id = 0

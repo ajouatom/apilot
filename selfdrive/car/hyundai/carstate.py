@@ -114,7 +114,7 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = cp_cruise.vl["SCC11"]["VSetDis"] * speed_conv
 
       ret.cruiseGap = cp_cruise.vl["SCC11"]["TauGapSet"]
-      ret.cruiseState.enabled = ret.cruiseState.available #ajouatom: always enable cruise...
+      #ret.cruiseState.enabled = ret.cruiseState.available #ajouatom: always enable cruise...
     # TODO: Find brake pressure
     ret.brake = 0
     ret.brakePressed = cp.vl["TCS13"]["DriverBraking"] != 0

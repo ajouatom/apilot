@@ -19,6 +19,7 @@ enum {
 bool hyundai_ev_gas_signal = false;
 bool hyundai_hybrid_gas_signal = false;
 bool hyundai_longitudinal = false;
+bool main_engaged_prev = false;
 uint8_t hyundai_last_button_interaction;  // button messages since the user pressed an enable button
 
 void hyundai_common_init(uint16_t param) {
@@ -34,21 +35,37 @@ void hyundai_common_init(uint16_t param) {
 #endif
 }
 
-void hyundai_common_cruise_state_check(const int cruise_engaged) {
-  // some newer HKG models can re-enable after spamming cancel button,
-  // so keep track of user button presses to deny engagement if no interaction
+void hyundai_common_cruise_state_check(const int main_engaged) {
+    // some newer HKG models can re-enable after spamming cancel button,
+    // so keep track of user button presses to deny engagement if no interaction
 
-  // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
-  if (!hyundai_longitudinal) {
-    if (cruise_engaged && !cruise_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
-      controls_allowed = 1;
-    }
+    // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
+    if (!hyundai_longitudinal) {
+        if (main_engaged && !main_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
+            controls_allowed = 1;
+        }
 
-    if (!cruise_engaged) {
-      controls_allowed = 0;
+        if (!main_engaged) {
+            controls_allowed = 0;
+        }
+        main_engaged_prev = main_engaged;
     }
-    cruise_engaged_prev = cruise_engaged;
-  }
+}
+void hyundai_common_cruise_state_check2(const int cruise_engaged) {
+    // some newer HKG models can re-enable after spamming cancel button,
+    // so keep track of user button presses to deny engagement if no interaction
+
+    // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
+    if (!hyundai_longitudinal) {
+        if (cruise_engaged && !cruise_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
+            controls_allowed = 1;
+        }
+
+        if (!cruise_engaged) {
+            //controls_allowed = 0;
+        }
+        cruise_engaged_prev = cruise_engaged;
+    }
 }
 
 void hyundai_common_cruise_buttons_check(const int cruise_button, const int main_button) {

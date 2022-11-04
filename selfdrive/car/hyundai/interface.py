@@ -263,6 +263,8 @@ class CarInterface(CarInterfaceBase):
       print("sccBus = ", ret.sccBus)
       print("mdpsBus= ", ret.mdpsBus)
       print("sasBus=  ", ret.sasBus)
+      #if ret.sccBus == 2: #순서가 잘못됨.. 위로 올라가야함.
+      #  ret.openpilotLongitudinalControl = True
       if ret.sccBus >= 0:
         ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
         ret.hasScc14 = 905 in fingerprint[ret.sccBus]
@@ -306,15 +308,14 @@ class CarInterface(CarInterfaceBase):
         addr, bus = 0x730, 5
       disable_ecu(logcan, sendcan, bus=bus, addr=addr, com_cont_req=b'\x28\x83\x01')
       enable_radar_tracks(CP, logcan, sendcan)      
+    elif CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR and CP.sccBus == 2 and Params().get_bool("EnableRadarTracks"):
+      enable_radar_tracks(CP, logcan, sendcan)      
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)
-    #ajouatom
-    if not self.CS.CP.openpilotLongitudinalControl:# and c.enabled:
-      ret.cruiseState.enabled = ret.cruiseState.available
 
-
-    if self.CS.CP.openpilotLongitudinalControl and self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
+    #if self.CS.CP.openpilotLongitudinalControl and self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
+    if self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
       buttonEvents = [create_button_event(self.CS.cruise_buttons[-1], self.CS.prev_cruise_buttons, BUTTONS_DICT)]
       # Handle CF_Clu_CruiseSwState changing buttons mid-press
       if self.CS.cruise_buttons[-1] != 0 and self.CS.prev_cruise_buttons != 0:
@@ -322,7 +323,7 @@ class CarInterface(CarInterfaceBase):
 
       ret.buttonEvents = buttonEvents
 
-      if self.CS.cruise_buttons[-1] != 0:
+      if self.CS.cruise_buttons[-1] != 0 and not self.CS.CP.openpilotLongitudinalControl:
         # ajouatom
         if self.CS.cruise_buttons[-1] == Buttons.GAP_DIST:
           self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1

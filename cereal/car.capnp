@@ -385,6 +385,7 @@ struct CarControl {
     cruiseGap @10: Int32;
     objGap @11: Int32;
     softHold @12: Bool;
+    radarAlarm @13: Bool;
 
     enum VisualAlert {
       # these are the choices from the Honda

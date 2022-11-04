@@ -238,7 +238,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "GmapKey", PERSISTENT },
     { "E2eDecelSpeed", PERSISTENT },
     { "LongitudinalTuningKf", PERSISTENT },
-    { "LongitudinalPlanFF", PERSISTENT },        
+    { "LongitudinalPlanFF", PERSISTENT },
+    { "EnableRadarTracks", PERSISTENT },        
 };
 
 } // namespace

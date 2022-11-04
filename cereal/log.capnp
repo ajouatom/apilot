@@ -658,6 +658,7 @@ struct ControlsState @0x97ff69c53601abf1 {
   debugText1 @64 : Text;
   debugText2 @65 : Text;
   longActiveUser @66: Int32;
+  vCruiseOut @67: Float32;
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
     disabled @0;

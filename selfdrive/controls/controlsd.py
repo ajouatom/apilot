@@ -196,6 +196,7 @@ class Controls:
     self.cruise_helper = CruiseHelper()
     self.debugText1 = ""
     self.debugText2 = ""
+    self.longSpeed = 100.0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -497,11 +498,17 @@ class Controls:
         #self.cruise_helper.update_cruise_navi(self, CS)
         self.v_cruise_cluster_kph = self.v_cruise_kph
       else:
-        self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
-        self.v_cruise_cluster_kph = CS.cruiseState.speedCluster * CV.MS_TO_KPH
+        if CS.cruiseState.enabled:
+          self.cruise_helper.longActiveUser = 1
+        else:
+          self.cruise_helper.longActiveUser = -1
+        self.v_cruise_kph = self.cruise_helper.update_v_cruise_apilot(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
+        self.v_cruise_cluster_kph = self.v_cruise_kph
+        #self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
+        #self.v_cruise_cluster_kph = CS.cruiseState.speedCluster * CV.MS_TO_KPH
     else:
-      self.v_cruise_kph = V_CRUISE_INITIAL
-      self.v_cruise_cluster_kph = V_CRUISE_INITIAL
+      self.v_cruise_kph = 30#V_CRUISE_INITIAL
+      self.v_cruise_cluster_kph = 30#V_CRUISE_INITIAL
 
     # decrement the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
@@ -604,7 +611,7 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        #self.debugText2 = 'LiveTorque[{:.0f}]: {:.3f},{:.3f},{:.3f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
+        self.debugText2 = 'LiveTorque[{:.0f}]: {:.3f},{:.3f},{:.3f}'.format(torque_params.totalBucketPoints, torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']
@@ -646,7 +653,7 @@ class Controls:
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
-      self.debugText2 = self.LoC.debugLoCText
+      #self.debugText2 = self.LoC.debugLoCText
       #print(self.debugText2)
 
       # Steering PID loop and lateral MPC
@@ -739,10 +746,15 @@ class Controls:
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds):
       CC.cruiseControl.resume = self.enabled and CS.cruiseState.standstill and speeds[-1] > 0.1
+      self.longSpeed = speeds[0] * CV.MS_TO_KPH + 3.0
+    else:
+      self.longSpeed = 255.
 
     hudControl = CC.hudControl
-    hudControl.setSpeed = float(self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
+
+    hudControl.setSpeed = float(min(self.longSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
     hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
+    hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 0 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
@@ -829,8 +841,9 @@ class Controls:
     controlsState.engageable = not self.events.any(ET.NO_ENTRY)
     controlsState.longControlState = self.LoC.long_control_state
     controlsState.vPid = float(self.LoC.v_pid)
-    controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
+    controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) #if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
+    controlsState.vCruiseOut = min(self.longSpeed, self.cruise_helper.v_cruise_kph_apply)
 
     #ajouatom
     controlsState.debugText1 = self.debugText1

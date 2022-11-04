@@ -109,8 +109,11 @@ bool hyundai_legacy = false;
 bool hyundai_camera_scc = false;
 bool hyundai_scc_bus2 = false;
 
-int busSCC = -1;
-int busLKAS11 = -1;
+int     busSCC = -1;
+int     busLKAS11 = -1;
+bool    brakePressed = false;
+int     cruiseEngaged = 0;
+uint8_t data1056[8] = { 0, }, data1057[8] = { 0, }, data1069[9] = { 0, }, data1191[8] = { 0, };
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
 
@@ -215,14 +218,94 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     if(bus==2) puts("LKAS11 Bus = 2\n");
   }
 
-  
-  // SCC12 is on bus 2 for camera-based SCC cars, bus 0 on all others
   if (valid && (addr == 1057) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3U;
-    hyundai_common_cruise_state_check(cruise_engaged);
+    if (cruiseEngaged != cruise_engaged) {
+        puts("Cruise...: "); puth2(cruise_engaged); puts("\n");
+        cruiseEngaged = cruise_engaged;
+    }
+    hyundai_common_cruise_state_check2(cruise_engaged);
+  }
+  // SCC11 is on bus 2
+  if (valid && (addr == 1056) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
+      // 1 bits: 0
+      int cruise_engaged = (GET_BYTES_04(to_push) >> 0) & 0x1U;
+      static int cruise_engaged_pre = 0;
+      if (cruise_engaged_pre != cruise_engaged) {
+          puts("Cruise...: "); puth2(cruise_engaged); puts("\n");
+          cruise_engaged_pre = cruise_engaged;
+      }
+      hyundai_common_cruise_state_check(cruise_engaged);
   }
 
+#if 0
+  if ((addr == 1069 || addr == 1191 || addr==1056 || addr==1057)) {
+      volatile uint8_t data1, diff = 0;
+      if (addr == 1056) {
+          diff = 0;
+          for (int i = 7; i >= 0; i--) {
+              data1 = GET_BYTE(to_push, i);
+              if (i == 0) data1 &= 0x0f;
+              if (data1 != data1056[i]) diff=1;
+              data1056[i] = data1;
+          }
+          if (diff>0) {
+              puts("1056: ");
+              for (int i = 7; i >= 0; i--) {
+                  puth2(data1056[i]); puts(" ");
+              }
+              puts("\n");
+          }
+      }
+      if (addr == 1057) {
+          diff = 0;
+          for (int i = 7; i >= 0; i--) {
+              data1 = GET_BYTE(to_push, i);
+              if (i == 7) data1 = 0;
+              if (data1 != data1057[i]) diff=1;
+              data1057[i] = data1;
+          }
+          if (diff>0) {
+              puts("1057: ");
+              for (int i = 7; i >= 0; i--) {
+                  puth2(data1057[i]); puts(" ");
+              }
+              puts("\n");
+          }
+      }
+      if (addr == 1069) {
+          diff = 0;
+          for (int i = 7; i >= 0; i--) {
+              data1 = GET_BYTE(to_push, i);
+              if (data1 != data1069[i]) diff=1;
+              data1069[i] = data1;
+          }
+          if (diff>0) {
+              puts("1069: ");
+              for (int i = 7; i >= 0; i--) {
+                  puth2(data1069[i]); puts(" ");
+              }
+              puts("\n");
+          }
+      }
+      if (addr == 1191) {
+          diff = 0;
+          for (int i = 7; i >= 0; i--) {
+              data1 = GET_BYTE(to_push, i);
+              if (data1 != data1191[i]) diff=1;
+              data1191[i] = data1;
+          }
+          if (diff>0) {
+              puts("1191: ");
+              for (int i = 7; i >= 0; i--) {
+                  puth2(data1191[i]); puts(" ");
+              }
+              puts("\n");
+          }
+      }
+  }
+#endif
   if (valid && (bus == 0)) {
     if (addr == 593) {
       int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
@@ -255,7 +338,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     }
 
     if (addr == 916) {
-      //ajouatom: brake_pressed = GET_BIT(to_push, 55U) != 0U;
+      brakePressed = GET_BIT(to_push, 55U) != 0U;
     }
 
     bool stock_ecu_detected = (addr == 832);

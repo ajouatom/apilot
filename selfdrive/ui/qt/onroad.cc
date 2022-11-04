@@ -783,7 +783,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   bool long_control = 0;// scc_smoother.getLongControl();
 
   // kph
-  float applyMaxSpeed = cs.getVCruise();// scc_smoother.getApplyMaxSpeed();
+  float applyMaxSpeed = cs.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
   float cruiseMaxSpeed = cs.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
 
   //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
