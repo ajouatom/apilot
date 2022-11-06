@@ -810,6 +810,9 @@ struct ModelDataV2 {
 
   meta @12 :MetaData;
 
+  # Model perceived motion
+  simPose @21 :Pose;
+
   # All SI units and in device frame
   struct XYZTData {
     x @0 :List(Float32);
@@ -873,6 +876,13 @@ struct ModelDataV2 {
     brake4MetersPerSecondSquaredProbs @5 :List(Float32);
     brake5MetersPerSecondSquaredProbs @6 :List(Float32);
   }
+
+  struct Pose {
+    trans @0 :List(Float32); # m/s in device frame
+    rot @1 :List(Float32); # rad/s in device frame
+    transStd @2 :List(Float32); # std m/s in device frame
+    rotStd @3 :List(Float32); # std rad/s in device frame
+  }
 }
 
 struct EncodeIndex {
@@ -933,6 +943,8 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   debugLongText2 @37 : Text;
   trafficState @38 : Int32;
   xState @39 : Text;
+  xCruiseTarget @40 : Float32;
+
   enum LongitudinalPlanSource {
     cruise @0;
     lead0 @1;

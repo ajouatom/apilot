@@ -107,6 +107,14 @@ class CarState(CarStateBase):
       ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
       ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
       ret.cruiseState.standstill = False
+      ret.cruiseState.pcmMode = False
+      if self.CP.sccBus == 2:
+        if cp_cam.vl["SCC11"]["MainMode_ACC"] == 1: #배선개조했는데... 크루즈세트버튼을 누르면
+          ret.cruiseState.pcmMode = True
+          ret.cruiseState.available = True
+          ret.cruiseState.enabled = cp_cam.vl["SCC12"]["ACCMode"] != 0
+          ret.cruiseState.standstill = False
+          ret.cruiseGap = cp_cam.vl["SCC11"]["TauGapSet"]
     else:
       ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
       ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0
@@ -152,6 +160,13 @@ class CarState(CarStateBase):
       aeb_braking = cp_cruise.vl[aeb_src]["CF_VSM_DecCmdAct"] != 0 or cp_cruise.vl[aeb_src][aeb_sig] != 0
       ret.stockFcw = aeb_warning and not aeb_braking
       ret.stockAeb = aeb_warning and aeb_braking
+    elif self.CP.sccBus == 2:
+      aeb_src = "FCA11" if self.CP.carFingerprint in FEATURES["use_fca"] else "SCC12"
+      aeb_sig = "FCA_CmdAct" if self.CP.carFingerprint in FEATURES["use_fca"] else "AEB_CmdAct"
+      aeb_warning = cp_cam.vl[aeb_src]["CF_VSM_Warn"] != 0
+      aeb_braking = cp_cam.vl[aeb_src]["CF_VSM_DecCmdAct"] != 0 or cp_cam.vl[aeb_src][aeb_sig] != 0
+      ret.stockFcw = aeb_warning and not aeb_braking
+      ret.stockAeb = aeb_warning and aeb_braking
 
     if self.CP.enableBsm:
       ret.leftBlindspot = cp.vl["LCA11"]["CF_Lca_IndLeft"] != 0
@@ -160,8 +175,16 @@ class CarState(CarStateBase):
     # save the entire LKAS11 and CLU11
     self.lkas11 = copy.copy(cp_cam.vl["LKAS11"])
     self.clu11 = copy.copy(cp.vl["CLU11"])
-    self.fca11 = copy.copy(cp_cruise.vl["FCA11"])
-    self.fca12 = copy.copy(cp_cruise.vl["FCA12"])
+    if self.CP.carFingerprint in FEATURES["use_fca"]:
+      if self.CP.sccBus == 2:
+        self.fca11 = copy.copy(cp_cam.vl["FCA11"])
+        self.fca12 = copy.copy(cp_cam.vl["FCA12"])
+      else:
+        self.fca11 = copy.copy(cp_cruise.vl["FCA11"])
+        self.fca12 = copy.copy(cp_cruise.vl["FCA12"])
+    else:
+      self.fca11 = 0
+      self.fca12 = 0
     self.steer_state = cp.vl["MDPS12"]["CF_Mdps_ToiActive"]  # 0 NOT ACTIVE, 1 ACTIVE
     self.brake_error = cp.vl["TCS13"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
     #if self.brake_error:
@@ -176,14 +199,14 @@ class CarState(CarStateBase):
     ret.tpms.rr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RR"]
 
     if self.CP.sccBus == 2:
-      self.scc11 = cp.vl["SCC11"]
-      self.scc12 = cp.vl["SCC12"]
+      self.scc11 = cp_cam.vl["SCC11"]
+      self.scc12 = cp_cam.vl["SCC12"]
       if self.CP.hasScc13:
-        self.scc13 = cp.vl["SCC13"]
+        self.scc13 = cp_cam.vl["SCC13"]
       else:
         self.scc13 = 0
       if self.CP.hasScc14:
-        self.scc14 = cp.vl["SCC14"]
+        self.scc14 = cp_cam.vl["SCC14"]
       else:
         self.scc14 = 0
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
@@ -490,6 +513,38 @@ class CarState(CarStateBase):
         ("SCC11", 50),
         ("SCC12", 50),
       ]
+      if CP.carFingerprint in FEATURES["use_fca"]:
+        signals += [
+          ("CF_VSM_Prefill", "FCA11"),
+          ("CF_VSM_HBACmd", "FCA11"),
+          ("CF_VSM_BeltCmd", "FCA11"),
+          ("CR_VSM_DecCmd", "FCA11"),
+          ("FCA_Status", "FCA11"),
+          ("FCA_StopReq", "FCA11"),
+          ("FCA_DrvSetStatus", "FCA11"),
+          ("FCA_Failinfo", "FCA11"),
+          ("CR_FCA_Alive", "FCA11"),
+          ("FCA_RelativeVelocity", "FCA11"),
+          ("FCA_TimetoCollision", "FCA11"),
+          ("CR_FCA_ChkSum", "FCA11"),
+          ("PAINT1_Status", "FCA11"),
+          ("FCA_CmdAct", "FCA11"),
+          ("CF_VSM_Warn", "FCA11"),
+          ("CF_VSM_DecCmdAct", "FCA11"),
+
+          ("FCA_USM", "FCA12"),
+          ("FCA_DrvSetState", "FCA12"),
+        ]
+        checks += [
+          ("FCA11", 50),
+          ("FCA12", 50),
+        ]
+      else:
+        signals += [
+          ("AEB_CmdAct", "SCC12"),
+          ("CF_VSM_Warn", "SCC12"),
+          ("CF_VSM_DecCmdAct", "SCC12"),
+        ]
 
       if CP.hasLfaHda:
         signals += [

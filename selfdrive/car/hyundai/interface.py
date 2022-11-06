@@ -21,8 +21,9 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode):
+    if not eco_mode:
+      return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
     v_current_kph = current_speed * CV.MS_TO_KPH
 
@@ -117,6 +118,18 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.7
       ret.steerRatio = 13.73
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+    elif candidate in [CAR.GRANDEUR_IG, CAR.GRANDEUR_IG_HEV]:
+      ret.mass = 1570. + STD_CARGO_KG
+      ret.wheelbase = 2.845
+      ret.steerRatio = 16.
+      tire_stiffness_factor = 0.8
+      ret.centerToFront = ret.wheelbase * 0.385
+    elif candidate in [CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV]:
+      ret.mass = 1600. + STD_CARGO_KG
+      ret.wheelbase = 2.885
+      ret.steerRatio = 17.
+      tire_stiffness_factor = 0.8
+      ret.centerToFront = ret.wheelbase * 0.385
     elif candidate == CAR.VELOSTER:
       ret.mass = 3558. * CV.LB_TO_KG
       ret.wheelbase = 2.80
@@ -226,7 +239,7 @@ class CarInterface(CarInterfaceBase):
       #ret.longitudinalTuning.kiV = [0.1, 0.05]
       ret.longitudinalActuatorDelayLowerBound = 0.5
       ret.longitudinalActuatorDelayUpperBound = 0.5
-      ret.experimentalLongitudinalAvailable = candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV}
+      ret.experimentalLongitudinalAvailable = candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
 
@@ -263,7 +276,7 @@ class CarInterface(CarInterfaceBase):
       print("sccBus = ", ret.sccBus)
       print("mdpsBus= ", ret.mdpsBus)
       print("sasBus=  ", ret.sasBus)
-      #if ret.sccBus == 2: #순서가 잘못됨.. 위로 올라가야함.
+      #if ret.sccBus == 2: #������ �߸���.. ���� �ö󰡾���.
       #  ret.openpilotLongitudinalControl = True
       if ret.sccBus >= 0:
         ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
@@ -307,9 +320,12 @@ class CarInterface(CarInterfaceBase):
       if CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
       disable_ecu(logcan, sendcan, bus=bus, addr=addr, com_cont_req=b'\x28\x83\x01')
-      enable_radar_tracks(CP, logcan, sendcan)      
+      enable_radar_tracks(CP, logcan, sendcan)
+      Params().put_bool("EnableRadarTracks", True)
     elif CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR and CP.sccBus == 2 and Params().get_bool("EnableRadarTracks"):
       enable_radar_tracks(CP, logcan, sendcan)      
+    elif not CP.openpilotLongitudinalControl:
+      Params().put_bool("EnableRadarTracks", False)
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)
@@ -329,7 +345,7 @@ class CarInterface(CarInterfaceBase):
           self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1
           print("cruiseGap=", self.cruiseGap )
 
-    if not self.CS.CP.openpilotLongitudinalControl:
+    if not self.CS.CP.openpilotLongitudinalControl or ret.cruiseState.pcmMode:
       self.cruiseGap = ret.cruiseGap
 
     ret.cruiseGap = self.cruiseGap

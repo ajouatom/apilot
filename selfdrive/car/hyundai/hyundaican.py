@@ -87,6 +87,15 @@ def create_clu11(packer, frame, clu11, button, car_fingerprint):
   bus = 2 if car_fingerprint in CAMERA_SCC_CAR else 0
   return packer.make_can_msg("CLU11", bus, values)
 
+def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
+  values = clu11
+  values["CF_Clu_CruiseSwState"] = button
+  #values["CF_Clu_AliveCnt1"] = frame % 0x10
+  values["CF_Clu_AliveCnt1"] = (values["CF_Clu_AliveCnt1"] + 1) % 0x10
+  # send buttons to camera on camera-scc based cars
+  bus = 2 if car_fingerprint in CAMERA_SCC_CAR else 0
+  return packer.make_can_msg("CLU11", bus, values)
+
 
 def create_lfahda_mfc(packer, enabled, hda_set_speed=0):
   values = {
@@ -109,11 +118,14 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
   long_override = CC.cruiseControl.override
-  longEnabled = enabled and CC.longActive
+  if False: #CS.out.cruiseState.pcmMode:
+    longEnabled = enabled and CS.out.cruiseState.enabled and CC.longActive
+  else:
+    longEnabled = enabled and CC.longActive
   radarAlarm = hud_control.radarAlarm
   commands = []
   values = copy.copy(CS.scc11)
-  values["MainMode_ACC"] = 1
+  values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0
   values["TauGapSet"] = cruiseGap
   values["VSetDis"] = set_speed if longEnabled else 0
   values["AliveCounterACC"] = idx % 0x10
@@ -123,10 +135,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
 
   values = copy.copy(CS.scc12)
   values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
-  values["StopReq"] = 1 if stopping else 0
+  values["StopReq"] = 1 if longEnabled and stopping else 0
   values["aReqRaw"] = accel
   values["aReqValue"] = accel
-  values["ACCFailInfo"] = 0
+  #values["ACCFailInfo"] = 0
   values["CR_VSM_Alive"] = idx % 0xF
   scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
   values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
@@ -235,3 +247,10 @@ def create_frt_radar_opt(packer):
     "CF_FCA_Equip_Front_Radar": 1,
   }
   return packer.make_can_msg("FRT_RADAR11", 0, frt_radar11_values)
+
+def create_clu11_mdps(packer, frame, clu11, button, car_fingerprint, speed):
+  values = clu11
+  values["CF_Clu_CruiseSwState"] = button
+  values["CF_Clu_AliveCnt1"] = frame % 0x10
+  values["CF_Clu_Vanz"] = speed
+  return packer.make_can_msg("CLU11", 1, values)

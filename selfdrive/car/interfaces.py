@@ -252,7 +252,7 @@ class CarInterfaceBase(ABC):
     # Handle button presses
     for b in cs_out.buttonEvents:
       # Enable OP long on falling edge of enable buttons (defaults to accelCruise and decelCruise, overridable per-port)
-      if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed):
+      if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed) and not cs_out.cruiseState.pcmMode:
         events.add(EventName.buttonEnable)
       # Disable on rising edge of cancel for both stock and OP long
       if b.type == ButtonType.cancel and b.pressed:
@@ -274,11 +274,11 @@ class CarInterfaceBase(ABC):
 
     # we engage when pcm is active (rising edge)
     # enabling can optionally be blocked by the car interface
-    if pcm_enable:
+    if pcm_enable or cs_out.cruiseState.pcmMode:
       if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled and allow_enable:
         events.add(EventName.pcmEnable)
       elif not cs_out.cruiseState.enabled:
-        #events.add(EventName.pcmDisable)
+        #events.add(EventName.pcmDisable)  #ajouatom: MAD모드 구현시 이것만 코멘트하면 됨.
         pass
 
     return events

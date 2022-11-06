@@ -686,16 +686,17 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   drawIcon(p, x, y, ic_brake, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
 
   // auto hold
-  /*
-  int autohold = car_state.getAutoHold();
-  if(autohold >= 0) {
+  const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+  QString xState = lp.getXState().cStr();
+  int autohold = (xState == "SOFT_HOLD") ? 1 : 0;
+  if(true) {
+
     x = radius / 2 + (bdr_s * 2) + (radius + 50) * 3;
     img_alpha = autohold > 0 ? 1.0f : 0.15f;
     bg_alpha = autohold > 0 ? 0.3f : 0.1f;
-    drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
+    drawIcon(p, x, y, autohold ? ic_autohold_warning : ic_autohold_active,
             QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
-  */
   p.restore();
 }
 
@@ -1299,6 +1300,7 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   //int sccStockCamStatus = (int)controls_state.getSccStockCamStatus();
   QString debugText1 = controls_state.getDebugText1().cStr();
   QString debugText2 = controls_state.getDebugText2().cStr();
+  QString debugTextCC = car_control.getDebugTextCC().cStr();
 
   //float vEgo = car_state.getVEgo();
   //float vEgoRaw = car_state.getVEgoRaw();
@@ -1322,6 +1324,9 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, debugText1);
   y += height;
   p.drawText(text_x, y, debugText2);
+  y += height;
+  p.drawText(text_x, y, debugTextCC);
+  //printf("debugTextCC=%s\n", debugTextCC.toStdString().c_str());
 
   y += height;
   str.sprintf("FPS: %d\n", m_fps);

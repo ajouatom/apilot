@@ -6,6 +6,7 @@ from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, CAMERA_SCC_CAR
+import random
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -40,7 +41,6 @@ def process_hud_alert(enabled, fingerprint, hud_control):
 
   return sys_warning, sys_state, left_lane_warning, right_lane_warning
 
-
 class CarController:
   def __init__(self, dbc_name, CP, VM):
     self.CP = CP
@@ -53,6 +53,33 @@ class CarController:
     self.car_fingerprint = CP.carFingerprint
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
+    self.wait_timer = 0
+    self.alive_timer = 0
+    self.btn = Buttons.NONE
+    self.alive_index = 0
+    self.wait_index = 0
+    self.alive_count = 0
+
+    self.wait_count_list, self.alive_count_list = self.get_params_adjust_set_speed()
+    random.shuffle(self.wait_count_list)
+    random.shuffle(self.alive_count_list)
+
+  def get_params_adjust_set_speed(self):
+    return [8, 10], [12, 14, 16, 18]
+
+  def get_alive_count(self):
+    count = self.alive_count_list[self.alive_index]
+    self.alive_index += 1
+    if self.alive_index >= len(self.alive_count_list):
+      self.alive_index = 0
+    return count
+
+  def get_wait_count(self):
+    count = self.wait_count_list[self.wait_index]
+    self.wait_index += 1
+    if self.wait_index >= len(self.wait_count_list):
+      self.wait_index = 0
+    return count
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -154,6 +181,10 @@ class CarController:
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
                                                 left_lane_warning, right_lane_warning))
 
+      ##HW: 임시로 코드넣음.. 나중에  MDPS 저속(60kmh)개조 된것들은 넣어줘야함.
+      if self.frame % 2 == 0 and False: # and self.mdpsMode:
+        can_sends.append(hyundaican.create_clu11_mdps(self.packer, self.frame, CS.clu11, Buttons.NONE, self.CP.carFingerprint, 60))
+
       if not self.CP.openpilotLongitudinalControl:
         if CC.cruiseControl.cancel:
           can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.CANCEL, self.CP.carFingerprint))
@@ -167,30 +198,34 @@ class CarController:
           target = set_speed_in_units
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
-          if self.pcmCruiseButtonDelay > 0:
-            self.pcmCruiseButtonDelay -= 1
-          # 10번은 연속 10번은 쉬고: 20인경우..
-          if self.pcmCruiseButtonDelay > 2:
-            pass
-          else:
-            if target == current or current == 0:
-              #if CS.out.cruiseState.available and not CS.out.cruiseState.enabled and CS.out.vEgo*CV.MS_TO_KPH >= 30 and Params().get_bool("AutoResumeFromGas"):
-              #if CS.out.cruiseState.available and current==0 and CC.longActive:
-              if current==0 and CC.longActive: #뭐하자는거지?
-                if hud_control.leadVisible:
-                  can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
-                else:
-                  can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
-                self.pcmCruiseButtonDelay = (self.frame % 20)
-                pass
+          #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
+          # Neokii
+          if self.wait_timer > 0:
+            self.wait_timer -= 1
+          elif CC.enabled: # and (self.frame - self.last_button_frame)*DT_CTRL > 0.05:
+            self.last_button_frame = self.frame
+            if self.alive_timer == 0:
+              self.alive_count = self.get_alive_count()
+            self.alive_timer += 1
+            if self.alive_timer >= self.alive_count:
+              self.alive_timer = 0
+              self.wait_timer = self.get_wait_count()            
+            if not CS.out.cruiseState.enabled:
+              if CC.longActive: # and hud_control.leadVisible:
+                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
+              elif CC.longActive:
+                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
             elif target < current:
               if current >= 31:
-                can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
-                self.pcmCruiseButtonDelay = (self.frame % 20)
+                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
             elif target > current:
               if current < 160:
-                can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
-                self.pcmCruiseButtonDelay = (self.frame % 20)
+                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
+
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed

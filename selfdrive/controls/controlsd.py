@@ -196,7 +196,7 @@ class Controls:
     self.cruise_helper = CruiseHelper()
     self.debugText1 = ""
     self.debugText2 = ""
-    self.longSpeed = 100.0
+    self.pcmLongSpeed = 100.0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -498,10 +498,10 @@ class Controls:
         #self.cruise_helper.update_cruise_navi(self, CS)
         self.v_cruise_cluster_kph = self.v_cruise_kph
       else:
-        if CS.cruiseState.enabled:
-          self.cruise_helper.longActiveUser = 1
-        else:
-          self.cruise_helper.longActiveUser = -1
+        #if CS.cruiseState.enabled:
+        #  self.cruise_helper.longActiveUser = 1
+        #else:
+        #  self.cruise_helper.longActiveUser = -1
         self.v_cruise_kph = self.cruise_helper.update_v_cruise_apilot(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
         self.v_cruise_cluster_kph = self.v_cruise_kph
         #self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
@@ -589,7 +589,7 @@ class Controls:
           if not self.CP.pcmCruise:
             self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
             self.v_cruise_cluster_kph = self.v_cruise_kph
-          self.cruise_helper.longActiveUser = 0 
+          self.cruise_helper.longActiveUser = 1 
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
@@ -623,7 +623,7 @@ class Controls:
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
-    longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
+    longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) #and self.CP.openpilotLongitudinalControl
     longActiveUser = self.cruise_helper.longActiveUser
     CC.longActive = longActive1 and longActiveUser > 0
 
@@ -642,12 +642,10 @@ class Controls:
 
     if not self.joystick_mode:
       # accel PID loop
-      pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
+      pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS, CS.cruiseGap <= 2) # cruiseGap이 1,2는 연비운전모드
 
       if abs(self.cruise_helper.position_y) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
-      elif CS.cruiseGap <= 2: #연비운전모드
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitEco
       else:
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] 
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
@@ -746,13 +744,16 @@ class Controls:
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds):
       CC.cruiseControl.resume = self.enabled and CS.cruiseState.standstill and speeds[-1] > 0.1
-      self.longSpeed = speeds[0] * CV.MS_TO_KPH + 3.0
     else:
-      self.longSpeed = 255.
+      self.pcmLongSpeed = 255.
+    if self.sm['longitudinalPlan'].xState == "E2E_STOP":
+      self.pcmLongSpeed = min(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
+    else:
+      self.pcmLongSpeed = 255# speeds[0] * CV.MS_TO_KPH + 3.0
 
     hudControl = CC.hudControl
 
-    hudControl.setSpeed = float(min(self.longSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
+    hudControl.setSpeed = float(min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS) #float(self.v_cruise_cluster_kph * CV.KPH_TO_MS)
     hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
     hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 0 else False
     hudControl.speedVisible = self.enabled
@@ -843,7 +844,7 @@ class Controls:
     controlsState.vPid = float(self.LoC.v_pid)
     controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) #if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
     controlsState.vCruiseCluster = float(self.v_cruise_cluster_kph)
-    controlsState.vCruiseOut = min(self.longSpeed, self.cruise_helper.v_cruise_kph_apply)
+    controlsState.vCruiseOut = min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply)
 
     #ajouatom
     controlsState.debugText1 = self.debugText1

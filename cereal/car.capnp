@@ -245,6 +245,7 @@ struct CarState {
     speedOffset @3 :Float32;
     standstill @4 :Bool;
     nonAdaptive @5 :Bool;
+    pcmMode @7 :Bool;
   }
 
   enum GearShifter {
@@ -341,6 +342,7 @@ struct CarControl {
 
   cruiseControl @4 :CruiseControl;
   hudControl @5 :HUDControl;
+  debugTextCC @15 : Text;
 
   struct Actuators {
     # range from 0.0 - 1.0
