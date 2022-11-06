@@ -170,7 +170,7 @@ class CarController:
           if self.pcmCruiseButtonDelay > 0:
             self.pcmCruiseButtonDelay -= 1
           # 10번은 연속 10번은 쉬고: 20인경우..
-          if self.pcmCruiseButtonDelay >= 10:
+          if self.pcmCruiseButtonDelay > 2:
             pass
           else:
             if target == current or current == 0:
