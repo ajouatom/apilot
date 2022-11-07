@@ -219,7 +219,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     if(bus==2) puts("LKAS11 Bus = 2\n");
   }
 
-  if (valid && (addr == 1057) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
+  if (valid && (addr == 1057) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3U;
     if (cruiseEngaged != cruise_engaged) {
@@ -229,7 +229,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     hyundai_common_cruise_state_check2(cruise_engaged);
   }
   // SCC11 is on bus 2
-  if (valid && (addr == 1056) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
+  if (valid && (addr == 1056) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
       // 1 bits: 0
       int cruise_engaged = (GET_BYTES_04(to_push) >> 0) & 0x1U;
       static int cruise_engaged_pre = 0;
@@ -431,8 +431,9 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
     bool allowed_resume = (button == 1) && controls_allowed;
     bool allowed_cancel = (button == 4) && cruise_engaged_prev;
-    if (!(allowed_resume || allowed_cancel)) {
-      //tx = 0;
+    bool allowed_set = (button == 2) && controls_allowed;
+    if (!(allowed_resume || allowed_cancel || allowed_set)) {
+      tx = 0;
     }
   }
 

@@ -64,7 +64,7 @@ def manager_init() -> None:
     ("AccelLimitEconomy", "80"),
     ("AccelLimitTurn", "100"),
     ("AccelBoost", "100"),
-    ("TrafficStopDistanceAdjust", "0"),
+    ("TrafficStopDistanceAdjust", "400"),
     ("AutoSpeedUptoRoadSpeedLimit", "100"),
     ("ApplyLongDynamicCost", "0"), 
     ("AccelLimitConfusedModel", "1"),   

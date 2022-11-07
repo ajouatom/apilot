@@ -200,16 +200,16 @@ class CarController:
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
           # Neokii
-          if self.wait_timer > 0:
+          if False: #self.wait_timer > 0:
             self.wait_timer -= 1
-          elif CC.enabled: # and (self.frame - self.last_button_frame)*DT_CTRL > 0.05:
+          elif CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.05:
             self.last_button_frame = self.frame
-            if self.alive_timer == 0:
-              self.alive_count = self.get_alive_count()
-            self.alive_timer += 1
-            if self.alive_timer >= self.alive_count:
-              self.alive_timer = 0
-              self.wait_timer = self.get_wait_count()            
+            #if self.alive_timer == 0:
+            #  self.alive_count = self.get_alive_count()
+            #self.alive_timer += 1
+            #if self.alive_timer >= self.alive_count:
+            #  self.alive_timer = 0
+            #  self.wait_timer = self.get_wait_count()            
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))

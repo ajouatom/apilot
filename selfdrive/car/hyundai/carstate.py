@@ -38,10 +38,11 @@ class CarState(CarStateBase):
     self.buttons_counter = 0
 
     self.cruise_info = {}
-
+    
     # On some cars, CLU15->CF_Clu_VehicleSpeed can oscillate faster than the dash updates. Sample at 5 Hz
     self.cluster_speed = 0
     self.cluster_speed_counter = CLUSTER_SAMPLE_RATE
+
 
     self.params = CarControllerParams(CP)
 
@@ -104,17 +105,24 @@ class CarState(CarStateBase):
     # cruise state
     if self.CP.openpilotLongitudinalControl:
       # These are not used for engage/disengage since openpilot keeps track of state using the buttons
-      ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
-      ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
-      ret.cruiseState.standstill = False
-      ret.cruiseState.pcmMode = False
-      if self.CP.sccBus == 2:
-        if cp_cam.vl["SCC11"]["MainMode_ACC"] == 1: #배선개조했는데... 크루즈세트버튼을 누르면
-          ret.cruiseState.pcmMode = True
-          ret.cruiseState.available = True
+      self.pcmCruiseMode = False
+      if self.CP.sccBus != 2:
+        ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
+        ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
+        ret.cruiseState.standstill = False
+        ret.cruiseState.pcmMode = False
+      else:
+        if self.pcmCruiseMode:
+          ret.cruiseState.available = cp_cam.vl["SCC11"]["MainMode_ACC"] == 1
           ret.cruiseState.enabled = cp_cam.vl["SCC12"]["ACCMode"] != 0
           ret.cruiseState.standstill = False
           ret.cruiseGap = cp_cam.vl["SCC11"]["TauGapSet"]
+          ret.cruiseState.pcmMode = True
+        else:
+          ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
+          ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
+          ret.cruiseState.standstill = False
+          ret.cruiseState.pcmMode = False
     else:
       ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
       ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0
@@ -178,7 +186,8 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in FEATURES["use_fca"]:
       if self.CP.sccBus == 2:
         self.fca11 = copy.copy(cp_cam.vl["FCA11"])
-        self.fca12 = copy.copy(cp_cam.vl["FCA12"])
+        #self.fca12 = copy.copy(cp_cam.vl["FCA12"])
+        self.fca12 = 0
       else:
         self.fca11 = copy.copy(cp_cruise.vl["FCA11"])
         self.fca12 = copy.copy(cp_cruise.vl["FCA12"])
@@ -532,12 +541,12 @@ class CarState(CarStateBase):
           ("CF_VSM_Warn", "FCA11"),
           ("CF_VSM_DecCmdAct", "FCA11"),
 
-          ("FCA_USM", "FCA12"),
-          ("FCA_DrvSetState", "FCA12"),
+          #("FCA_USM", "FCA12"),
+          #("FCA_DrvSetState", "FCA12"),
         ]
         checks += [
           ("FCA11", 50),
-          ("FCA12", 50),
+          #("FCA12", 50),
         ]
       else:
         signals += [

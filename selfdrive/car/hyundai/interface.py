@@ -239,7 +239,7 @@ class CarInterface(CarInterfaceBase):
       #ret.longitudinalTuning.kiV = [0.1, 0.05]
       ret.longitudinalActuatorDelayLowerBound = 0.5
       ret.longitudinalActuatorDelayUpperBound = 0.5
-      ret.experimentalLongitudinalAvailable = candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
+      ret.experimentalLongitudinalAvailable = True #candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
 
