@@ -688,7 +688,11 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   // auto hold
   const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
   QString xState = lp.getXState().cStr();
+  int brake_hold = car_state.getBrakeHoldActive();
   int autohold = (xState == "SOFT_HOLD") ? 1 : 0;
+  UIState* s = uiState();
+  if(s->scene.longitudinal_control) autohold = (xState == "SOFT_HOLD") ? 1 : 0;
+  else autohold = (brake_hold > 0) ? 1 : 0;
   if(true) {
 
     x = radius / 2 + (bdr_s * 2) + (radius + 50) * 3;

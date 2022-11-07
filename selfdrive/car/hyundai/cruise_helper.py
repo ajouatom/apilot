@@ -96,7 +96,7 @@ class CruiseHelper:
   def get_lead(sm):
 
     radar = sm['radarState']
-    if radar.leadOne.status:
+    if radar.leadOne.status and radar.leadOne.radar:
       return radar.leadOne
 
     return None

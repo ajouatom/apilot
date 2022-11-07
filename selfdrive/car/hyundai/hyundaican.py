@@ -125,11 +125,12 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   radarAlarm = hud_control.radarAlarm
   commands = []
   values = copy.copy(CS.scc11)
-  values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0
+  values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0 
   values["TauGapSet"] = cruiseGap
   values["VSetDis"] = set_speed if longEnabled else 0
   values["AliveCounterACC"] = idx % 0x10
-  values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+  values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
   values["ObjValid"] = 1
   commands.append(packer.make_can_msg("SCC11", 0, values))
 

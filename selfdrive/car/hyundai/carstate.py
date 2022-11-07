@@ -43,7 +43,8 @@ class CarState(CarStateBase):
     self.cluster_speed = 0
     self.cluster_speed_counter = CLUSTER_SAMPLE_RATE
 
-
+    self.preMainMode_ACC = False
+    self.prePcmCruiseMode = True
     self.params = CarControllerParams(CP)
 
   def update(self, cp, cp_cam):
@@ -105,24 +106,35 @@ class CarState(CarStateBase):
     # cruise state
     if self.CP.openpilotLongitudinalControl:
       # These are not used for engage/disengage since openpilot keeps track of state using the buttons
-      self.pcmCruiseMode = False
       if self.CP.sccBus != 2:
         ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
         ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
         ret.cruiseState.standstill = False
         ret.cruiseState.pcmMode = False
       else:
-        if self.pcmCruiseMode:
+        mainMode_ACC = cp_cam.vl["SCC11"]["MainMode_ACC"] == 1
+        ret.cruiseState.pcmMode = self.prePcmCruiseMode
+        if not self.preMainMode_ACC and mainMode_ACC: #사용자가 CruiseSet를 눌렀거나, +-를 눌러 Enable됨.
+          if cp_cam.vl["SCC12"]["ACCMode"] != 0:
+            ret.cruiseState.pcmMode = True
+            print("Cruise:pcmMode")
+          else:
+            ret.cruiseState.pcmMode = False
+            print("Cruise:buttonMode")
+        elif not mainMode_ACC:
+          ret.cruiseState.pcmMode = False
+        self.preMainMode_ACC = mainMode_ACC
+        self.prePcmCruiseMode = ret.cruiseState.pcmMode
+
+        if ret.cruiseState.pcmMode:
           ret.cruiseState.available = cp_cam.vl["SCC11"]["MainMode_ACC"] == 1
           ret.cruiseState.enabled = cp_cam.vl["SCC12"]["ACCMode"] != 0
           ret.cruiseState.standstill = False
           ret.cruiseGap = cp_cam.vl["SCC11"]["TauGapSet"]
-          ret.cruiseState.pcmMode = True
         else:
           ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
           ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
           ret.cruiseState.standstill = False
-          ret.cruiseState.pcmMode = False
     else:
       ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
       ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0

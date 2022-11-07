@@ -427,7 +427,7 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 50.0 and abs(y[-1])<1.5)):
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 100.0 and abs(y[-1])<1.5)):
         self.e2ePaused = False
 
       if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
@@ -479,16 +479,12 @@ class LongitudinalMpc:
         self.xState = "CRUISE"
 
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
-        model_x = 700.0
+        model_x = 1000.0
       elif self.xState == "E2E_CRUISE":
-        #elif model_x > 100.0:
-        #  self.e2ePaused = False
-        if model_x > 100.0 and abs(y[-1]) < 3.0:  #100M이상 직선감지하면 신호감지 일시정지 해제
-          self.e2ePaused = False
         if carstate.gasPressed:
           self.e2ePaused = True
         if model_x > 150.0 or self.e2ePaused or v_ego*CV.MS_TO_KPH > self.e2eDecelSpeed:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
-          model_x = 700.0
+          model_x = 1000.0
         #elif self.trafficStopModelSpeed:
         #  v_cruise = v[0]
       elif self.xState == "SOFT_HOLD":
