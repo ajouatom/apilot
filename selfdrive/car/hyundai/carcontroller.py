@@ -41,6 +41,7 @@ def process_hud_alert(enabled, fingerprint, hud_control):
 
   return sys_warning, sys_state, left_lane_warning, right_lane_warning
 
+
 class CarController:
   def __init__(self, dbc_name, CP, VM):
     self.CP = CP
@@ -49,20 +50,11 @@ class CarController:
     self.angle_limit_counter = 0
     self.frame = 0
 
+    self.accel_last = 0
     self.apply_steer_last = 0
     self.car_fingerprint = CP.carFingerprint
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
-    self.wait_timer = 0
-    self.alive_timer = 0
-    self.btn = Buttons.NONE
-    self.alive_index = 0
-    self.wait_index = 0
-    self.alive_count = 0
-
-    self.wait_count_list, self.alive_count_list = self.get_params_adjust_set_speed()
-    random.shuffle(self.wait_count_list)
-    random.shuffle(self.alive_count_list)
 
   def get_params_adjust_set_speed(self):
     return [8, 10], [12, 14, 16, 18]
@@ -151,8 +143,9 @@ class CarController:
       if self.CP.openpilotLongitudinalControl:
         can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.frame))
         if self.frame % 2 == 0:
-          can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CP, CC.enabled, accel, stopping, CC.cruiseControl.override,
+          can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CP, CC.enabled, self.accel_last, accel, stopping, CC.cruiseControl.override,
                                                            set_speed_in_units))
+          self.accel_last = accel
       else:
         # button presses
         if (self.frame - self.last_button_frame) * DT_CTRL > 0.25:
@@ -199,17 +192,8 @@ class CarController:
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
-          # Neokii
-          if False: #self.wait_timer > 0:
-            self.wait_timer -= 1
-          elif CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.05:
+          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.1:
             self.last_button_frame = self.frame
-            #if self.alive_timer == 0:
-            #  self.alive_count = self.get_alive_count()
-            #self.alive_timer += 1
-            #if self.alive_timer >= self.alive_count:
-            #  self.alive_timer = 0
-            #  self.wait_timer = self.get_wait_count()            
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
@@ -258,4 +242,3 @@ class CarController:
 
     self.frame += 1
     return new_actuators, can_sends
-  

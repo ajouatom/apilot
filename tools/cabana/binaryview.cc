@@ -11,7 +11,7 @@
 
 // BinaryView
 
-const int CELL_HEIGHT = 30;
+const int CELL_HEIGHT = 26;
 
 BinaryView::BinaryView(QWidget *parent) : QTableView(parent) {
   model = new BinaryViewModel(this);
@@ -20,13 +20,12 @@ BinaryView::BinaryView(QWidget *parent) : QTableView(parent) {
   setItemDelegate(delegate);
   horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   horizontalHeader()->hide();
-  verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+  setFrameShape(QFrame::NoFrame);
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
   setMouseTracking(true);
-
-  QObject::connect(model, &QAbstractItemModel::modelReset, [this]() {
-    setFixedHeight((CELL_HEIGHT + 1) * std::min(model->rowCount(), 8) + 2);
-  });
 }
 
 void BinaryView::highlight(const Signal *sig) {
@@ -106,15 +105,9 @@ void BinaryView::leaveEvent(QEvent *event) {
 }
 
 void BinaryView::setMessage(const QString &message_id) {
-  msg_id = message_id;
   model->setMessage(message_id);
-  resizeRowsToContents();
   clearSelection();
   updateState();
-}
-
-void BinaryView::updateState() {
-  model->updateState();
 }
 
 const Signal *BinaryView::getResizingSignal() const {
@@ -177,6 +170,9 @@ void BinaryViewModel::setMessage(const QString &message_id) {
         items[idx].sigs.push_back(&dbc_msg->sigs[i]);
       }
     }
+  } else {
+    row_count = can->lastMessage(msg_id).dat.size();
+    items.resize(row_count * column_count);
   }
 
   endResetModel();
