@@ -263,6 +263,11 @@ class CarInterface(CarInterfaceBase):
       # SCC버스가 2이면 무조건 롱컨~
       if ret.sccBus == 2 and not candidate in CAMERA_SCC_CAR:
         experimental_long = True
+      elif ret.sccBus == 0 and Params().get_bool("EnableRadarTracks"):
+        experimental_long = True
+      else:
+        experimental_long = False
+
       ret.experimentalLongitudinalAvailable = True #candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
