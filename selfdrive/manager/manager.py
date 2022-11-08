@@ -61,7 +61,7 @@ def manager_init() -> None:
     ("AChangeCost", "150"),
     ("DangerZoneCost", "100"),
     ("LongControlActiveSound", "1"),
-    ("AccelLimitEconomy", "80"),
+    ("AccelLimitEcoSpeed", "20"),
     ("AccelLimitTurn", "100"),
     ("AccelBoost", "100"),
     ("TrafficStopDistanceAdjust", "400"),

@@ -123,41 +123,89 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   else:
     longEnabled = enabled and CC.longActive
   radarAlarm = hud_control.radarAlarm
+
+  # True: sccBus가 0 (순정배선) 인경우, KONA_EV는 기존 메시지 사용하면 문제생김..
+  makeNewCommands = True if CP.carFingerprint in (CAR.KONA_EV) or CP.sccBus == 0 else False
   commands = []
-  values = copy.copy(CS.scc11)
-  values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0 
-  values["TauGapSet"] = cruiseGap
-  values["VSetDis"] = set_speed if longEnabled else 0
-  values["AliveCounterACC"] = idx % 0x10
-  #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
-  values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
-  values["ObjValid"] = 1
-  commands.append(packer.make_can_msg("SCC11", 0, values))
+  if makeNewCommands:
+    scc11_values = {
+    "MainMode_ACC": 1 if CS.out.cruiseState.pcmMode or enabled else 0 ,
+    "TauGapSet": cruiseGap,
+    "VSetDis": set_speed if longEnabled else 0,
+    "AliveCounterACC": idx % 0x10,
+    "SCCInfoDisplay" : 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 0 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
+    "ObjValid": 1, # close lead makes controls tighter
+    "ACC_ObjStatus": 1, # close lead makes controls tighter
+    "ACC_ObjLatPos": 0,
+    "ACC_ObjRelSpd": 0,
+    "ACC_ObjDist": 1, # close lead makes controls tighter
+    }
+    commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
+  else:
+    values = copy.copy(CS.scc11)
+    values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0 
+    values["TauGapSet"] = cruiseGap
+    values["VSetDis"] = set_speed if longEnabled else 0
+    values["AliveCounterACC"] = idx % 0x10
+    #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+    values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
+    values["ObjValid"] = 1
+    commands.append(packer.make_can_msg("SCC11", 0, values))
 
-  values = copy.copy(CS.scc12)
-  values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
-  values["StopReq"] = 1 if longEnabled and stopping else 0
-  values["aReqRaw"] = accel
-  values["aReqValue"] = accel
-  values["ACCFailInfo"] = 0
-  values["CR_VSM_Alive"] = idx % 0xF
-  scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
-  values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
+  if makeNewCommands:
+    scc12_values = {
+      "ACCMode": 2 if longEnabled and long_override else 1 if enabled else 0,
+      "StopReq": 1 if longEnabled and stopping else 0,
+      "aReqRaw": accel,
+      "aReqValue": -10.23 if CP.carFingerprint in (CAR.KONA_EV) else accel,  # stock ramps up and down respecting jerk limit until it reaches aReqRaw
+      "CR_VSM_Alive": idx % 0xF,
+    }
+    scc12_dat = packer.make_can_msg("SCC12", 0, scc12_values)[2]
+    scc12_values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
 
-  commands.append(packer.make_can_msg("SCC12", 0, values))
+    commands.append(packer.make_can_msg("SCC12", 0, scc12_values))
+  else:
+    values = copy.copy(CS.scc12)
+    if CP.carFingerprint in (CAR.KONA_EV):
+      values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
+      values["StopReq"] = 1 if longEnabled and stopping else 0
+      values["aReqRaw"] = accel
+      #values["aReqValue"] = -10.23 #코나 EV 에서 측정값. 항상 이값임..
+    else:
+      values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
+      values["StopReq"] = 1 if longEnabled and stopping else 0
+      values["aReqRaw"] = accel
+      values["aReqValue"] = accel
+      #values["ACCFailInfo"] = 0
 
-  if CP.hasScc13:
-    values = copy.copy(CS.scc13)
-    commands.append(packer.make_can_msg("SCC13", 0, values))
+    values["CR_VSM_Alive"] = idx % 0xF
+    scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
+    values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
 
-  if CP.hasScc14:
+    commands.append(packer.make_can_msg("SCC12", 0, values))
+
+  #if CP.hasScc13:
+  #  values = copy.copy(CS.scc13)
+  #  commands.append(packer.make_can_msg("SCC13", 0, values))
+
+  if makeNewCommands or not CP.hasScc14:
+    scc14_values = {
+      "ComfortBandUpper": 0.0, # stock usually is 0 but sometimes uses higher values
+      "ComfortBandLower": 0.0, # stock usually is 0 but sometimes uses higher values
+      "JerkUpperLimit": upper_jerk, # stock usually is 1.0 but sometimes uses higher values
+      "JerkLowerLimit": 5.0, # stock usually is 0.5 but sometimes uses higher values
+      "ACCMode": 2 if enabled and long_override else 1 if enabled else 4, # stock will always be 4 instead of 0 after first disengage
+      "ObjGap": hud_control.objGap # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
+    }
+    commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
+  else:
     values = copy.copy(CS.scc14)
     values["ComfortBandUpper"] = 0.0
     values["ComfortBandLower"] = 0.0
     values["JerkUpperLimit"] = upper_jerk
     values["JerkLowerLimit"] = 5.0
     values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 4
-    values["ObjGap"] = 2 if lead_visible else 0
+    values["ObjGap"] = hud_control.objGap #2 if lead_visible else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands
@@ -220,26 +268,30 @@ def create_acc_commands(packer, enabled, accel, upper_jerk, idx, fca11, car_fing
 
   return commands
 
-def create_acc_opt(packer, fca12, car_fingerprint):
+def create_acc_opt(CP, CS, packer, fca12, car_fingerprint):
   commands = []
-
-  scc13_values = {
-    "SCCDrvModeRValue": 2,
-    "SCC_Equip": 1,
-    "Lead_Veh_Dep_Alert_USM": 2,
-  }
-  commands.append(packer.make_can_msg("SCC13", 0, scc13_values))
+  if not CP.hasScc13 or CP.carFingerprint in (CAR.KONA_EV):
+    scc13_values = {
+      "SCCDrvModeRValue": 3 if CP.carFingerprint in (CAR.KONA_EV, CAR.SANTA_FE_HEV_2022) else 2,  #KONA_EV는 3이네?, 
+      "SCC_Equip": 1,
+      "Lead_Veh_Dep_Alert_USM": 2,
+    }
+    commands.append(packer.make_can_msg("SCC13", 0, scc13_values))
+  else:
+    values = copy.copy(CS.scc13)
+    commands.append(packer.make_can_msg("SCC13", 0, values))
 
   if car_fingerprint in CAMERA_SCC_CAR:
     fca12_values = fca12
     fca12_values["FCA_DrvSetState"] = 2
     fca12_values["FCA_USM"] = 1 # AEB disabled, until a route with AEB or FCW trigger is verified
-  else:
+    commands.append(packer.make_can_msg("FCA12", 0, fca12_values))
+  elif CP.sccBus == 0:
     fca12_values = {
       "FCA_DrvSetState": 2,
       "FCA_USM": 1, # AEB disabled
     }
-  commands.append(packer.make_can_msg("FCA12", 0, fca12_values))
+    commands.append(packer.make_can_msg("FCA12", 0, fca12_values))
 
   return commands
 

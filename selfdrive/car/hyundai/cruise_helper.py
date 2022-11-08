@@ -52,7 +52,7 @@ class CruiseHelper:
     self.position_y = 300.0
     self.cruiseButtons = 0
     self.userCruisePaused = True
-    #self.accelLimitEco = 0.6
+    self.accelLimitEcoSpeed = 0
     self.accelLimitTurn = 0.2
     self.autoSpeedUptoRoadSpeedLimit = 1.0
     self.autoSpeedAdjustWithLeadCar = 0
@@ -84,7 +84,7 @@ class CruiseHelper:
       self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
       self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
-      #self.accelLimitEco = float(int(Params().get("AccelLimitEconomy", encoding="utf8"))) / 100.
+      self.accelLimitEcoSpeed = float(int(Params().get("AccelLimitEcoSpeed", encoding="utf8")))
       self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
       self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
       self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))

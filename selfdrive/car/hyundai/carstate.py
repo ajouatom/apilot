@@ -221,11 +221,11 @@ class CarState(CarStateBase):
     if self.CP.hasScc13:
       self.scc13 = cp_cruise.vl["SCC13"]
     else:
-      self.scc13 = 0
+      self.scc13 = []
     if self.CP.hasScc14:
       self.scc14 = cp_cruise.vl["SCC14"]
     else:
-      self.scc14 = 0
+      self.scc14 = []
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
     decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
     if 0. < decimal < 0.5:
@@ -235,6 +235,10 @@ class CarState(CarStateBase):
     vEgoClu, aEgoClu = self.update_clu_speed_kf(ret.vEgoCluster)
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
 
+    #scc12_2 = cp_cam.vl["SCC12"]
+    #scc12 = cp.vl["SCC12"]
+    #print("scc12_2=", scc12_2)
+    #print("scc12=", scc12)
     return ret
 
   def update_canfd(self, cp, cp_cam):

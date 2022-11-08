@@ -148,7 +148,7 @@ class Controls:
     if not self.CP.experimentalLongitudinalAvailable:
       self.params.remove("ExperimentalLongitudinalEnabled")
     if not self.CP.openpilotLongitudinalControl:
-      self.params.remove("EndToEndLong")
+      self.params.remove("ExperimentalMode")
 
     self.CC = car.CarControl.new_message()
     self.CS_prev = car.CarState.new_message()
@@ -642,7 +642,7 @@ class Controls:
 
     if not self.joystick_mode:
       # accel PID loop
-      pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS, CS.cruiseGap <= 2) # cruiseGap이 1,2는 연비운전모드
+      pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS, CS.cruiseGap <= 2, self.cruise_helper.accelLimitEcoSpeed) # cruiseGap이 1,2는 연비운전모드
 
       if abs(self.cruise_helper.position_y) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
         pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
@@ -764,6 +764,8 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     hudControl.cruiseGap = CS.cruiseGap
+    d = self.cruise_helper.radarDistance
+    hudControl.objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \

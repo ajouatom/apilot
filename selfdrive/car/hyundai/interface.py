@@ -21,11 +21,15 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode):
-    if not eco_mode:
-      return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
-
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
     v_current_kph = current_speed * CV.MS_TO_KPH
+    if not eco_mode:
+      if eco_speed == 0:
+        return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
+      gas_max_bp = [eco_speed, 150.]
+      gas_max_v = [1.5, CarControllerParams.ACCEL_MAX]
+
+      return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
 
     #gas_max_bp = [10., 20., 50., 70., 130., 150.]
     #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
@@ -282,7 +286,7 @@ class CarInterface(CarInterfaceBase):
     ret.stoppingControl = True
     ret.startingState = True
     ret.vEgoStarting = 0.1
-    ret.startAccel = 1.5 #2.0 comma
+    ret.startAccel = 1.0 #2.0 comma
     ret.longitudinalActuatorDelayLowerBound = 0.5
     ret.longitudinalActuatorDelayUpperBound = 0.5
 

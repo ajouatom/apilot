@@ -210,6 +210,7 @@ class CarController:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
+      CC.debugTextCC = "221110 SCC13:{},SCC14:{}".format(self.CP.hasScc13, self.CP.hasScc14)
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
@@ -229,8 +230,8 @@ class CarController:
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, CC.enabled and CC.longActive))
 
       # 5 Hz ACC options
-      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus == 0:
-        can_sends.extend(hyundaican.create_acc_opt(self.packer, CS.fca12, self.CP.carFingerprint))
+      if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl: #  and self.CP.sccBus == 0:
+        can_sends.extend(hyundaican.create_acc_opt(self.CP, CS, self.packer, CS.fca12, self.CP.carFingerprint))
 
       # 2 Hz front radar options
       if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus == 0:
