@@ -130,7 +130,7 @@ class CarState(CarStateBase):
           ret.cruiseState.available = cp_cam.vl["SCC11"]["MainMode_ACC"] == 1
           ret.cruiseState.enabled = cp_cam.vl["SCC12"]["ACCMode"] != 0
           ret.cruiseState.standstill = False
-          ret.cruiseGap = cp_cam.vl["SCC11"]["TauGapSet"]
+          #ret.cruiseGap = cp_cam.vl["SCC11"]["TauGapSet"]
         else:
           ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
           ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1

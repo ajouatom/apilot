@@ -239,6 +239,30 @@ class CarInterface(CarInterfaceBase):
       #ret.longitudinalTuning.kiV = [0.1, 0.05]
       ret.longitudinalActuatorDelayLowerBound = 0.5
       ret.longitudinalActuatorDelayUpperBound = 0.5
+
+      print("fingerprint:", fingerprint)
+      ret.enableBsm = 0x58b in fingerprint[0]
+      ret.mdpsBus = 1 if 593 in fingerprint[1] and 1296 not in fingerprint[1] else 0
+      ret.sasBus = 1 if 688 in fingerprint[1] and 1296 not in fingerprint[1] else 0
+      ret.sccBus = 0 if 1056 in fingerprint[0] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
+        else 2 if 1056 in fingerprint[2] else -1
+
+      print("***************************************************************************")
+      print("sccBus = ", ret.sccBus)
+      print("mdpsBus= ", ret.mdpsBus)
+      print("sasBus=  ", ret.sasBus)
+      #if ret.sccBus == 2:  필요없는 코드네~~
+      #  ret.openpilotLongitudinalControl = True
+      if ret.sccBus >= 0:
+        ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
+        ret.hasScc14 = 905 in fingerprint[ret.sccBus]
+
+      ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
+      ret.hasLfaHda = 1157 in fingerprint[0] or 1157 in fingerprint[2]
+
+      # SCC버스가 2이면 무조건 롱컨~
+      if ret.sccBus == 2 and not candidate in CAMERA_SCC_CAR:
+        experimental_long = True
       ret.experimentalLongitudinalAvailable = True #candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
@@ -265,26 +289,6 @@ class CarInterface(CarInterfaceBase):
       if ret.flags & HyundaiFlags.CANFD_ALT_BUTTONS:
         ret.safetyConfigs[1].safetyParam |= Panda.FLAG_HYUNDAI_CANFD_ALT_BUTTONS
     else:
-      print("fingerprint:", fingerprint)
-      ret.enableBsm = 0x58b in fingerprint[0]
-      ret.mdpsBus = 1 if 593 in fingerprint[1] and 1296 not in fingerprint[1] else 0
-      ret.sasBus = 1 if 688 in fingerprint[1] and 1296 not in fingerprint[1] else 0
-      ret.sccBus = 0 if 1056 in fingerprint[0] else 1 if 1056 in fingerprint[1] and 1296 not in fingerprint[1] \
-        else 2 if 1056 in fingerprint[2] else -1
-
-      print("***************************************************************************")
-      print("sccBus = ", ret.sccBus)
-      print("mdpsBus= ", ret.mdpsBus)
-      print("sasBus=  ", ret.sasBus)
-      #if ret.sccBus == 2: #������ �߸���.. ���� �ö󰡾���.
-      #  ret.openpilotLongitudinalControl = True
-      if ret.sccBus >= 0:
-        ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
-        ret.hasScc14 = 905 in fingerprint[ret.sccBus]
-
-      ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
-      ret.hasLfaHda = 1157 in fingerprint[0] or 1157 in fingerprint[2]
-
       if candidate in LEGACY_SAFETY_MODE_CAR:
         # these cars require a special panda safety mode due to missing counters and checksums in the messages
         ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiLegacy)]
@@ -345,7 +349,7 @@ class CarInterface(CarInterfaceBase):
           self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1
           print("cruiseGap=", self.cruiseGap )
 
-    if not self.CS.CP.openpilotLongitudinalControl or ret.cruiseState.pcmMode:
+    if not self.CS.CP.openpilotLongitudinalControl:# or ret.cruiseState.pcmMode:
       self.cruiseGap = ret.cruiseGap
 
     ret.cruiseGap = self.cruiseGap

@@ -301,16 +301,15 @@ class LongitudinalMpc:
     # KRKeegan adjustments to costs for different TFs
     # these were calculated using the test_longitudial.py deceleration tests
   #TF에 의한 a,j,d cost변경
-    a_change_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게 < 이것이 민감하다는 것인가?
-    j_ego_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게 <- 이것이 민감하다는 것인가?
-    d_zone_tf = interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게 <- 민감?
+    a_change_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게
+    j_ego_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게
+    d_zone_tf = interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게
 
-# 전방차량과의 상대속도에 의한 j,a cost변경
     # KRKeegan adjustments to improve sluggish acceleration
     # do not apply to deceleration
     j_ego_v_ego = 1
     a_change_v_ego = 1
-    if (v_lead0 - v_ego >= 0) and (v_lead1 - v_ego >= 0):
+    if (v_lead0 - v_ego >= 0) and (v_lead1 - v_ego >= 0):  #상대차량이 현재속도보다 빠르다면...
       j_ego_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
       a_change_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
     # Select the appropriate min/max of the options
