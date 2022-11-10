@@ -747,7 +747,10 @@ class Controls:
     else:
       self.pcmLongSpeed = 255.
     if self.sm['longitudinalPlan'].xState == "E2E_STOP":
-      self.pcmLongSpeed = min(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
+      if self.CP.openpilotLongitudinalControl:
+        self.pcmLongSpeed = self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH
+      else:
+        self.pcmLongSpeed = max(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
     else:
       self.pcmLongSpeed = 255# speeds[0] * CV.MS_TO_KPH + 3.0
 

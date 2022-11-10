@@ -118,6 +118,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
   long_override = CC.cruiseControl.override
+  brakePressed = enabled and CS.out.brakePressed
   if False: #CS.out.cruiseState.pcmMode:
     longEnabled = enabled and CS.out.cruiseState.enabled and CC.longActive
   else:
@@ -125,7 +126,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   radarAlarm = hud_control.radarAlarm
 
   # True: sccBus가 0 (순정배선) 인경우, KONA_EV는 기존 메시지 사용하면 문제생김..
-  makeNewCommands = True if CP.carFingerprint in (CAR.KONA_EV) or CP.sccBus == 0 else False
+  #makeNewCommands = True if CP.carFingerprint in (CAR.KONA_EV) or CP.sccBus == 0 else False
+  makeNewCommands = True if CP.sccBus == 0 else False
   commands = []
   if makeNewCommands:
     scc11_values = {
@@ -152,9 +154,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["ObjValid"] = 1
     commands.append(packer.make_can_msg("SCC11", 0, values))
 
+  # SCC12.ACCMode: Init: 0, Brake: 0, Accel:2, Cruise: 1   KONA_EV에서 측정함.
   if makeNewCommands:
     scc12_values = {
-      "ACCMode": 2 if longEnabled and long_override else 1 if enabled else 0,
+      "ACCMode": 0 if brakePressed else 2 if longEnabled and long_override else 1 if enabled else 0,
       "StopReq": 1 if longEnabled and stopping else 0,
       "aReqRaw": accel,
       "aReqValue": -10.23 if CP.carFingerprint in (CAR.KONA_EV) else accel,  # stock ramps up and down respecting jerk limit until it reaches aReqRaw
@@ -167,12 +170,12 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   else:
     values = copy.copy(CS.scc12)
     if CP.carFingerprint in (CAR.KONA_EV):
-      values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
+      values["ACCMode"] = 0 if brakePressed else 2 if longEnabled and long_override else 1 if longEnabled else 0
       values["StopReq"] = 1 if longEnabled and stopping else 0
       values["aReqRaw"] = accel
       #values["aReqValue"] = -10.23 #코나 EV 에서 측정값. 항상 이값임..
     else:
-      values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 0
+      values["ACCMode"] = 0 if brakePressed else 2 if longEnabled and long_override else 1 if longEnabled else 0
       values["StopReq"] = 1 if longEnabled and stopping else 0
       values["aReqRaw"] = accel
       values["aReqValue"] = accel
@@ -188,14 +191,16 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   #  values = copy.copy(CS.scc13)
   #  commands.append(packer.make_can_msg("SCC13", 0, values))
 
+  # SCC14.ACCMode: Init: 0, Brake: 4, Accel:2, Cruise: 1   KONA_EV에서 측정함.
   if makeNewCommands or not CP.hasScc14:
     scc14_values = {
       "ComfortBandUpper": 0.0, # stock usually is 0 but sometimes uses higher values
       "ComfortBandLower": 0.0, # stock usually is 0 but sometimes uses higher values
       "JerkUpperLimit": upper_jerk, # stock usually is 1.0 but sometimes uses higher values
       "JerkLowerLimit": 5.0, # stock usually is 0.5 but sometimes uses higher values
-      "ACCMode": 2 if enabled and long_override else 1 if enabled else 4, # stock will always be 4 instead of 0 after first disengage
-      "ObjGap": hud_control.objGap # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
+      "ACCMode": 4 if brakePressed else 2 if enabled and long_override else 1 if enabled else 0, # stock will always be 4 instead of 0 after first disengage
+      "ObjGap": hud_control.objGap, # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
+      "ObjGap2" : 1 if hud_control.objGap else 0
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
   else:
@@ -204,8 +209,9 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["ComfortBandLower"] = 0.0
     values["JerkUpperLimit"] = upper_jerk
     values["JerkLowerLimit"] = 5.0
-    values["ACCMode"] = 2 if longEnabled and long_override else 1 if longEnabled else 4
+    values["ACCMode"] = 4 if brakePressed else 2 if longEnabled and long_override else 1 if longEnabled else 0
     values["ObjGap"] = hud_control.objGap #2 if lead_visible else 0
+    values["ObjGap2"] = 1 if hud_control.objGap else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands

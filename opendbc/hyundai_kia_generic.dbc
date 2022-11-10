@@ -1470,10 +1470,15 @@ BO_ 905 SCC14: 8 SCC
  SG_ ComfortBandLower : 6|6@1+ (0.02,0) [0|1.26] "m/s^2" ESC
  SG_ JerkUpperLimit : 12|7@1+ (0.1,0) [0|12.7] "m/s^3" ESC
  SG_ JerkLowerLimit : 19|7@1+ (0.1,0) [0|12.7] "m/s^3" ESC
- SG_ SCC14_Signal_26 : 26|7@1+ (1,0) [0|127] "" XXX
+ SG_ SCC14_Signal_26 : 26|3@1+ (1,0) [0|7] "" XXX
+ SG_ SCC14_Signal_29 : 29|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_30 : 30|2@1+ (1,0) [0|3] "" XXX
  SG_ ACCMode : 32|3@1+ (1,0) [0|7] "" CLU,HUD,LDWS_LKAS,ESC
- SG_ SCC14_Signal_35 : 35|7@1+ (1,0) [0|127] "" XXX
- SG_ SCC14_Signal_42 : 42|14@1+ (1,0) [0|16383] "" XXX
+ SG_ SCC14_Signal_1 : 35|7@1+ (1,0) [0|127] "" XXX
+ SG_ SCC14_Signal_2 : 42|1@1+ (1,0) [0|1] "" XXX
+ SG_ ObjGap2 : 43|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_4 : 44|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_5 : 45|11@1+ (1,0) [0|2047] "" XXX
  SG_ ObjGap : 56|8@1+ (1,0) [0|255] "" CLU,HUD,ESC
 
 BO_ 1157 LFAHDA_MFC: 4 XXX

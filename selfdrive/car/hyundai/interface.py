@@ -361,7 +361,7 @@ class CarInterface(CarInterfaceBase):
 
       ret.buttonEvents = buttonEvents
 
-      if self.CS.cruise_buttons[-1] != 0 and not self.CS.CP.openpilotLongitudinalControl:
+      if self.CS.cruise_buttons[-1] != 0: # and not self.CS.CP.openpilotLongitudinalControl:
         # ajouatom
         if self.CS.cruise_buttons[-1] == Buttons.GAP_DIST:
           self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1

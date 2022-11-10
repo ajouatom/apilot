@@ -426,7 +426,7 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 100.0 and abs(y[-1])<1.5)):
+      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 100.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
       if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.

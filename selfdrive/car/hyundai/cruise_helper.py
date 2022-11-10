@@ -326,6 +326,8 @@ class CruiseHelper:
             self.cruise_control(controls, CS, 3)
         elif xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
+        elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
+          v_cruise_kph = v_ego_kph_set
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~

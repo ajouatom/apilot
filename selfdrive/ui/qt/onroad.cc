@@ -1291,11 +1291,13 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
 
   auto controls_state = sm["controlsState"].getControlsState();
   auto car_control = sm["carControl"].getCarControl();
-  //auto car_state = sm["carState"].getCarState();
+  auto car_state = sm["carState"].getCarState();
   const auto car_params = sm["carParams"].getCarParams();
 
   int sccBus = (int)car_params.getSccBus();
 
+  float gas = car_state.getGas();
+  float brake = car_state.getBrake();
   //float applyAccel = 0.;//controls_state.getApplyAccel();
 
   //float aReqValue = 0.;//controls_state.getAReqValue();
@@ -1365,7 +1367,7 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
 #endif
 
   y += height;
-  str.sprintf("Accel: %.3f\n", accel);
+  str.sprintf("Accel: %.3f\nGAS: %.1f%%, BRAKE: %.1f%%\n", accel, gas, brake);
   p.drawText(text_x, y, str);
 
   //y += height;
