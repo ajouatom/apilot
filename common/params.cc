@@ -240,6 +240,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalTuningKf", PERSISTENT },
     { "LongitudinalPlanFF", PERSISTENT },
     { "EnableRadarTracks", PERSISTENT },        
+    { "ApplyDynamicTFollow", PERSISTENT },
 };
 
 } // namespace
