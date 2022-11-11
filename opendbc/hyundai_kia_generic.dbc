@@ -1478,7 +1478,17 @@ BO_ 905 SCC14: 8 SCC
  SG_ SCC14_Signal_2 : 42|1@1+ (1,0) [0|1] "" XXX
  SG_ ObjGap2 : 43|1@1+ (1,0) [0|1] "" XXX
  SG_ SCC14_Signal_4 : 44|1@1+ (1,0) [0|1] "" XXX
- SG_ SCC14_Signal_5 : 45|11@1+ (1,0) [0|2047] "" XXX
+ SG_ SCC14_Signal_5 : 45|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_46 : 46|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_47 : 47|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_48 : 48|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_49 : 49|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_50 : 50|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_51 : 51|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_52 : 52|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_53 : 53|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_54 : 54|1@1+ (1,0) [0|1] "" XXX
+ SG_ SCC14_Signal_55 : 55|1@1+ (1,0) [0|1] "" XXX
  SG_ ObjGap : 56|8@1+ (1,0) [0|255] "" CLU,HUD,ESC
 
 BO_ 1157 LFAHDA_MFC: 4 XXX

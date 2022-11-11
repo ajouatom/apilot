@@ -408,7 +408,7 @@ class LongitudinalMpc:
     
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.ApplyDynamicTFollow, 1.0, self.ApplyDynamicTFollow])
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.applyDynamicTFollow, 1.0, self.applyDynamicTFollow])
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 

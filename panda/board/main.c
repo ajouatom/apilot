@@ -84,14 +84,16 @@ void set_safety_mode(uint16_t mode, uint16_t param) {
 
   switch (mode_copy) {
     case SAFETY_SILENT:
-      set_intercept_relay(DEFAULT_RELAY);
+      set_intercept_relay(false);
+      puts("*** intercept silent...\n");
       if (current_board->has_obd) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
       can_silent = ALL_CAN_SILENT;
       break;
     case SAFETY_NOOUTPUT:
-      set_intercept_relay(DEFAULT_RELAY);
+      set_intercept_relay(false);
+      puts("*** intercept nooutput...\n");
       if (current_board->has_obd) {
         current_board->set_can_mode(CAN_MODE_NORMAL);
       }
@@ -99,6 +101,7 @@ void set_safety_mode(uint16_t mode, uint16_t param) {
       break;
     case SAFETY_ELM327:
       set_intercept_relay(DEFAULT_RELAY);
+      puts("*** intercept elm327...\n");
       heartbeat_counter = 0U;
       heartbeat_lost = false;
       if (current_board->has_obd) {

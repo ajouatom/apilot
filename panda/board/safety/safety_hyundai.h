@@ -201,6 +201,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
+#if 0
   int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
   if (is_scc_msg && bus != busSCC) {
     busSCC = bus;
@@ -218,6 +219,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     if(bus==1) puts("LKAS11 Bus = 1\n");
     if(bus==2) puts("LKAS11 Bus = 2\n");
   }
+#endif
 
   if (valid && (addr == 1057) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
@@ -469,6 +471,23 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
       if (!block_msg) {
           bus_fwd = 0;
       }
+  }
+
+  if (is_scc_msg && bus_num != busSCC && bus_num != 1) {
+    busSCC = bus_num;
+    if (bus_num == 0) puts("SCC Bus = 0\n");
+    if (bus_num == 1) { puts("SCC Bus = 1"); puth(addr); puts("\n"); } // 1290: SCC13이 버스 1에서 들어와?
+    if(bus_num ==2) {
+      hyundai_scc_bus2 = true;
+      puts("SCC Bus = 2\n");
+    }
+  }
+  //int is_lkas11_msg = (addr == 832);
+  if (is_lkas11_msg && bus_num != busLKAS11) {
+    busLKAS11 = bus_num;
+    if(bus_num ==0) puts("LKAS11 Bus = 0\n");
+    if(bus_num ==1) puts("LKAS11 Bus = 1\n");
+    if(bus_num ==2) puts("LKAS11 Bus = 2\n");
   }
 
   return bus_fwd;
