@@ -41,17 +41,6 @@ const CanMsg HYUNDAI_LONG_TX_MSGS[] = {
   {1155, 0, 8}, // FCA12 Bus 0
   {2000, 0, 8}, // radar UDS TX addr Bus 0 (for radar disable)
 };
-const CanMsg HYUNDAI_CAMERA_SCC_LONG_TX_MSGS[] = {
-  {832, 0, 8},  // LKAS11 Bus 0
-  {1265, 2, 4}, // CLU11 Bus 2
-  {1157, 0, 4}, // LFAHDA_MFC Bus 0
-  {1056, 0, 8}, // SCC11 Bus 0
-  {1057, 0, 8}, // SCC12 Bus 0
-  {1290, 0, 8}, // SCC13 Bus 0
-  {905, 0, 8},  // SCC14 Bus 0
-  {909, 0, 8},  // FCA11 Bus 0
-  {1155, 0, 8}, // FCA12 Bus 0
-};
 
 const CanMsg HYUNDAI_CAMERA_SCC_TX_MSGS[] = {
   {832, 0, 8},  // LKAS11 Bus 0
@@ -104,17 +93,13 @@ AddrCheckStruct hyundai_legacy_long_addr_checks[] = {
   {.msg = {{1265, 0, 4, .check_checksum = false, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
 };
 #define HYUNDAI_LEGACY_LONG_ADDR_CHECK_LEN (sizeof(hyundai_legacy_long_addr_checks) / sizeof(hyundai_legacy_long_addr_checks[0]))
-const int HYUNDAI_PARAM_CAMERA_SCC = 8;
 
 bool hyundai_legacy = false;
-bool hyundai_camera_scc = false;
-bool hyundai_scc_bus2 = false;
 
 int     busSCC = -1;
 int     busLKAS11 = -1;
 bool    brakePressed = false;
 int     cruiseEngaged = 0;
-uint8_t data1056[8] = { 0, }, data1057[8] = { 0, }, data1069[9] = { 0, }, data1191[8] = { 0, };
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
 
@@ -201,26 +186,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
-#if 0
-  int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
-  if (is_scc_msg && bus != busSCC) {
-    busSCC = bus;
-    if(bus==0) puts("SCC Bus = 0\n");
-    if(bus==1) puts("SCC Bus = 1\n");
-    if(bus==2) {
-      hyundai_scc_bus2 = true;
-      puts("SCC Bus = 2\n");
-    }
-  }
-  int is_lkas11_msg = (addr == 832);
-  if (is_lkas11_msg && bus != busLKAS11) {
-    busLKAS11 = bus;
-    if(bus==0) puts("LKAS11 Bus = 0\n");
-    if(bus==1) puts("LKAS11 Bus = 1\n");
-    if(bus==2) puts("LKAS11 Bus = 2\n");
-  }
-#endif
-
+  // SCC12 is on bus 2 for camera-based SCC cars, bus 0 on all others
   if (valid && (addr == 1057) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3U;
@@ -242,73 +208,6 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
       hyundai_common_cruise_state_check(cruise_engaged);
   }
 
-#if 0
-  if ((addr == 1069 || addr == 1191 || addr==1056 || addr==1057)) {
-      volatile uint8_t data1, diff = 0;
-      if (addr == 1056) {
-          diff = 0;
-          for (int i = 7; i >= 0; i--) {
-              data1 = GET_BYTE(to_push, i);
-              if (i == 0) data1 &= 0x0f;
-              if (data1 != data1056[i]) diff=1;
-              data1056[i] = data1;
-          }
-          if (diff>0) {
-              puts("1056: ");
-              for (int i = 7; i >= 0; i--) {
-                  puth2(data1056[i]); puts(" ");
-              }
-              puts("\n");
-          }
-      }
-      if (addr == 1057) {
-          diff = 0;
-          for (int i = 7; i >= 0; i--) {
-              data1 = GET_BYTE(to_push, i);
-              if (i == 7) data1 = 0;
-              if (data1 != data1057[i]) diff=1;
-              data1057[i] = data1;
-          }
-          if (diff>0) {
-              puts("1057: ");
-              for (int i = 7; i >= 0; i--) {
-                  puth2(data1057[i]); puts(" ");
-              }
-              puts("\n");
-          }
-      }
-      if (addr == 1069) {
-          diff = 0;
-          for (int i = 7; i >= 0; i--) {
-              data1 = GET_BYTE(to_push, i);
-              if (data1 != data1069[i]) diff=1;
-              data1069[i] = data1;
-          }
-          if (diff>0) {
-              puts("1069: ");
-              for (int i = 7; i >= 0; i--) {
-                  puth2(data1069[i]); puts(" ");
-              }
-              puts("\n");
-          }
-      }
-      if (addr == 1191) {
-          diff = 0;
-          for (int i = 7; i >= 0; i--) {
-              data1 = GET_BYTE(to_push, i);
-              if (data1 != data1191[i]) diff=1;
-              data1191[i] = data1;
-          }
-          if (diff>0) {
-              puts("1191: ");
-              for (int i = 7; i >= 0; i--) {
-                  puth2(data1191[i]); puts(" ");
-              }
-              puts("\n");
-          }
-      }
-  }
-#endif
   if (valid && (bus == 0)) {
     if (addr == 593) {
       int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
@@ -361,20 +260,16 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
-  if (hyundai_longitudinal && hyundai_camera_scc) {
-      tx = msg_allowed(to_send, HYUNDAI_CAMERA_SCC_LONG_TX_MSGS, sizeof(HYUNDAI_CAMERA_SCC_LONG_TX_MSGS) / sizeof(HYUNDAI_CAMERA_SCC_LONG_TX_MSGS[0]));
-  }
-  else if (hyundai_longitudinal) {
-      tx = msg_allowed(to_send, HYUNDAI_LONG_TX_MSGS, sizeof(HYUNDAI_LONG_TX_MSGS)/sizeof(HYUNDAI_LONG_TX_MSGS[0]));
-  } else if (!hyundai_longitudinal && hyundai_camera_scc) {
+  if (hyundai_longitudinal) {
+    tx = msg_allowed(to_send, HYUNDAI_LONG_TX_MSGS, sizeof(HYUNDAI_LONG_TX_MSGS)/sizeof(HYUNDAI_LONG_TX_MSGS[0]));
+  } else if (hyundai_camera_scc) {
     tx = msg_allowed(to_send, HYUNDAI_CAMERA_SCC_TX_MSGS, sizeof(HYUNDAI_CAMERA_SCC_TX_MSGS)/sizeof(HYUNDAI_CAMERA_SCC_TX_MSGS[0]));
   } else {
     tx = msg_allowed(to_send, HYUNDAI_TX_MSGS, sizeof(HYUNDAI_TX_MSGS)/sizeof(HYUNDAI_TX_MSGS[0]));
   }
 
   // FCA11: Block any potential actuation
-  if (addr == 909 && !hyundai_scc_bus2) {
-  //if (addr == 909) {
+  if (addr == 909) {
     int CR_VSM_DecCmd = GET_BYTE(to_send, 1);
     int FCA_CmdAct = GET_BIT(to_send, 20U);
     int CF_VSM_DecCmdAct = GET_BIT(to_send, 31U);
@@ -421,7 +316,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   }
 
   // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
-  if ((addr == 2000) && !hyundai_camera_scc && !hyundai_scc_bus2) {  // ajouatom
+  if ((addr == 2000) && !hyundai_scc_bus2) {  // ajouatom
     if ((GET_BYTES_04(to_send) != 0x00803E02U) || (GET_BYTES_48(to_send) != 0x0U)) {
       tx = 0;
     }
@@ -441,6 +336,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
   return tx;
 }
+
 static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
   int bus_fwd = -1;
@@ -449,7 +345,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   int is_lkas11_msg = (addr == 832);
   int is_lfahda_mfc_msg = (addr == 1157);
   int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
-  int is_fca_msg = (addr == 909) || (addr == 1155);
+  //int is_fca_msg = (addr == 909) || (addr == 1155);
 
   //int is_clu11_msg = (addr == 1265);
   //int is_mdps12_msg = (addr = 593);
@@ -458,36 +354,13 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   if (bus_num == 0) {
     bus_fwd = 2;
   }
-  //if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-  //    if ((addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905));
-  //    else bus_fwd = 0;
-  //}
   if (bus_num == 2) {
 
-      int block_msg = 0;
-      if (hyundai_longitudinal && hyundai_camera_scc) block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg || is_fca_msg;
-      else block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
+      int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
 
       if (!block_msg) {
           bus_fwd = 0;
       }
-  }
-
-  if (is_scc_msg && bus_num != busSCC && bus_num != 1) {
-    busSCC = bus_num;
-    if (bus_num == 0) puts("SCC Bus = 0\n");
-    if (bus_num == 1) { puts("SCC Bus = 1"); puth(addr); puts("\n"); } // 1290: SCC13이 버스 1에서 들어와?
-    if(bus_num ==2) {
-      hyundai_scc_bus2 = true;
-      puts("SCC Bus = 2\n");
-    }
-  }
-  //int is_lkas11_msg = (addr == 832);
-  if (is_lkas11_msg && bus_num != busLKAS11) {
-    busLKAS11 = bus_num;
-    if(bus_num ==0) puts("LKAS11 Bus = 0\n");
-    if(bus_num ==1) puts("LKAS11 Bus = 1\n");
-    if(bus_num ==2) puts("LKAS11 Bus = 2\n");
   }
 
   return bus_fwd;
@@ -496,12 +369,10 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 static const addr_checks* hyundai_init(uint16_t param) {
   hyundai_common_init(param);
   hyundai_legacy = false;
-  hyundai_camera_scc = GET_FLAG(param, HYUNDAI_PARAM_CAMERA_SCC);
-  hyundai_scc_bus2 = false;
 
-  //if (hyundai_camera_scc) {
-  //  hyundai_longitudinal = false;
-  //}
+  if (hyundai_camera_scc) {
+    hyundai_longitudinal = false;
+  }
 
   if (hyundai_longitudinal) {
     hyundai_rx_checks = (addr_checks){hyundai_long_addr_checks, HYUNDAI_LONG_ADDR_CHECK_LEN};
@@ -516,8 +387,8 @@ static const addr_checks* hyundai_init(uint16_t param) {
 static const addr_checks* hyundai_legacy_init(uint16_t param) {
   hyundai_common_init(param);
   hyundai_legacy = true;
+  //hyundai_longitudinal = false;
   hyundai_camera_scc = false;
-  hyundai_scc_bus2 = false;
   if (hyundai_longitudinal) {
       hyundai_rx_checks = (addr_checks){ hyundai_legacy_long_addr_checks, HYUNDAI_LEGACY_LONG_ADDR_CHECK_LEN };
   }

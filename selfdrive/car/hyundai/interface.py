@@ -252,27 +252,26 @@ class CarInterface(CarInterfaceBase):
       #ret.longitudinalTuning.kiV = [0.1, 0.05]
 
       print("fingerprint:", fingerprint)
+
+      # 판다코드가 수정되어 자동인식 안됨~
       ret.enableBsm = 0x58b in fingerprint[0]
-      ret.mdpsBus = 1 if 593 in fingerprint[1] and 1296 not in fingerprint[1] else 0
-      ret.sasBus = 1 if 688 in fingerprint[1] and 1296 not in fingerprint[1] else 0
       ret.sccBus = 2 if 1056 in fingerprint[2] else 0 if 1056 in fingerprint[0] else -1
 
+      ret.sccBus = 0
+      if Params().get_bool("SccConnectedBus2"):
+        ret.sccBus = 2
+      
       print("***************************************************************************")
       print("sccBus = ", ret.sccBus)
-      print("mdpsBus= ", ret.mdpsBus)
-      print("sasBus=  ", ret.sasBus)
       #if ret.sccBus == 2:  필요없는 코드네~~
       #  ret.openpilotLongitudinalControl = True
-      if ret.sccBus >= 0:
-        ret.hasScc13 = 1290 in fingerprint[ret.sccBus]
-        ret.hasScc14 = 905 in fingerprint[ret.sccBus]
 
-      ret.hasEms = 608 in fingerprint[0] and 809 in fingerprint[0]
       ret.hasLfaHda = 1157 in fingerprint[0] or 1157 in fingerprint[2]
 
       # SCC버스가 2이면 무조건 롱컨~
       if ret.sccBus == 2 and not candidate in CAMERA_SCC_CAR:
         experimental_long = True
+      # SCC버스가 0인데 롱컨이면, EnableRadarTracks무조건 켜기...
       elif ret.sccBus == 0 and Params().get_bool("EnableRadarTracks"):
         experimental_long = True
       else:
@@ -305,6 +304,8 @@ class CarInterface(CarInterfaceBase):
         ret.safetyConfigs[1].safetyParam |= Panda.FLAG_HYUNDAI_CANFD_HDA2
       if ret.flags & HyundaiFlags.CANFD_ALT_BUTTONS:
         ret.safetyConfigs[1].safetyParam |= Panda.FLAG_HYUNDAI_CANFD_ALT_BUTTONS
+      if ret.flags & HyundaiFlags.CANFD_CAMERA_SCC:
+        ret.safetyConfigs[1].safetyParam |= Panda.FLAG_HYUNDAI_CAMERA_SCC
     else:
       if candidate in LEGACY_SAFETY_MODE_CAR:
         # these cars require a special panda safety mode due to missing counters and checksums in the messages
@@ -336,17 +337,15 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR and CP.sccBus == 0:
+    if CP.openpilotLongitudinalControl and CP.sccBus == 0:
       addr, bus = 0x7d0, 0
       if CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
       disable_ecu(logcan, sendcan, bus=bus, addr=addr, com_cont_req=b'\x28\x83\x01')
       enable_radar_tracks(CP, logcan, sendcan)
       Params().put_bool("EnableRadarTracks", True)
-    elif CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR and CP.sccBus == 2 and Params().get_bool("EnableRadarTracks"):
+    elif Params().get_bool("EnableRadarTracks"): #롱컨관계없이 EnableRadarTracks는 사용할 수 있을듯..
       enable_radar_tracks(CP, logcan, sendcan)      
-    elif not CP.openpilotLongitudinalControl:
-      Params().put_bool("EnableRadarTracks", False)
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)

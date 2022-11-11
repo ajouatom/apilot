@@ -170,6 +170,7 @@ struct CarState {
   # brake pedal, 0.0-1.0
   brake @5 :Float32;      # this is user pedal only
   brakePressed @6 :Bool;  # this is user pedal only
+  regenBraking @45 :Bool; # this is user pedal only
   parkingBrake @39 :Bool;
   brakeHoldActive @38 :Bool;
 
@@ -217,7 +218,7 @@ struct CarState {
   charging @43 :Bool;
 
 
-  cruiseGap @45 : Int32;
+  cruiseGap @48 : Int32;
   tpms @46 : Tpms;
   # neokii
   vCluRatio @47 :Float32;
@@ -504,12 +505,7 @@ struct CarParams {
   wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
 
   sccBus @72 : Int8;
-  hasScc13 @73 : Bool;
-  hasScc14 @74 : Bool;
-  hasEms @75 : Bool;
-  hasLfaHda @76 : Bool;
-  mdpsBus @77 : Int8;
-  sasBus @78 : Int8;
+  hasLfaHda @73 : Bool;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

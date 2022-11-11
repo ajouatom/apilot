@@ -385,6 +385,12 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   painter.setBrush(redColor(fillAlpha));
   painter.drawPolygon(chevron, std::size(chevron));
 
+  QString str;
+  str.sprintf("%.1fm", d_rel);
+  QColor textColor = QColor(255, 255, 255, 200);
+  configFont(painter, "Inter", 80, "Bold");
+  drawTextWithColor(painter, x, y + sz/1.5f, str, textColor);
+
   painter.restore();
 }
 

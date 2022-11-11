@@ -376,8 +376,10 @@ class LongitudinalMpc:
     return lead_xv
 
   def set_accel_limits(self, min_a, max_a):
+    # TODO this sets a max accel limit, but the minimum limit is only for cruise decel
+    # needs refactor
     self.cruise_min_a = min_a
-    self.cruise_max_a = max_a
+    self.max_a = max_a
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
@@ -405,7 +407,7 @@ class LongitudinalMpc:
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
-    
+    v_ego_kph = v_ego * CV.MS_TO_KPH
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.applyDynamicTFollow, 1.0, self.applyDynamicTFollow])
@@ -419,11 +421,11 @@ class LongitudinalMpc:
     # and then treat that as a stopped car/obstacle at this new distance.
     lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
     lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
+    self.params[:,0] = MIN_ACCEL
+    self.params[:,1] = self.max_a
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
-      self.params[:,0] = MIN_ACCEL
-      self.params[:,1] = self.cruise_max_a
       self.params[:,5] = LEAD_DANGER_FACTOR
 
       model_x = x[N] 
@@ -431,14 +433,14 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
-      if v_ego*CV.MS_TO_KPH > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego*CV.MS_TO_KPH > 30.0 and (model_x > 100.0 and abs(y[-1])<15.0)):
+      if v_ego_kph > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (model_x > 40.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
       if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
         startSign = v[-1] > 5.0
         #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         #stopSign = v_ego*CV.MS_TO_KPH<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.60)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        stopSign = v_ego*CV.MS_TO_KPH<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.30)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        stopSign = v_ego_kph<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.30)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
@@ -477,7 +479,7 @@ class LongitudinalMpc:
             self.xState = "E2E_STOP"
           else:
             self.xState = "E2E_CRUISE"
-            if carstate.brakePressed and v_ego*CV.MS_TO_KPH < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. SOFT_HOLD
+            if carstate.brakePressed and v_ego_kph < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. SOFT_HOLD
               self.xState = "SOFT_HOLD"
       else:
         self.xState = "CRUISE"
@@ -487,7 +489,7 @@ class LongitudinalMpc:
       elif self.xState == "E2E_CRUISE":
         if carstate.gasPressed:
           self.e2ePaused = True
-        if model_x > 150.0 or self.e2ePaused or v_ego*CV.MS_TO_KPH > self.e2eDecelSpeed:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
+        if model_x > 150.0 or self.e2ePaused or v_ego_kph > self.e2eDecelSpeed:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
           model_x = 1000.0
         #elif self.trafficStopModelSpeed:
         #  v_cruise = v[0]
@@ -507,7 +509,7 @@ class LongitudinalMpc:
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
       # when the leads are no factor.
       v_lower = v_ego + (T_IDXS * self.cruise_min_a * 1.05)
-      v_upper = v_ego + (T_IDXS * self.cruise_max_a * 1.05)
+      v_upper = v_ego + (T_IDXS * self.max_a * 1.05)
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
@@ -524,9 +526,6 @@ class LongitudinalMpc:
       x[:], v[:], a[:], j[:] = 0.0, 0.0, 0.0, 0.0
 
     elif self.mode == 'blended':
-      self.params[:,0] = MIN_ACCEL
-      self.params[:,1] = MAX_ACCEL
-
       self.params[:,5] = 1.0
 
       x_obstacles = np.column_stack([lead_0_obstacle,

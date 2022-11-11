@@ -1475,8 +1475,7 @@ BO_ 905 SCC14: 8 SCC
  SG_ SCC14_Signal_30 : 30|2@1+ (1,0) [0|3] "" XXX
  SG_ ACCMode : 32|3@1+ (1,0) [0|7] "" CLU,HUD,LDWS_LKAS,ESC
  SG_ SCC14_Signal_1 : 35|7@1+ (1,0) [0|127] "" XXX
- SG_ SCC14_Signal_2 : 42|1@1+ (1,0) [0|1] "" XXX
- SG_ ObjGap2 : 43|1@1+ (1,0) [0|1] "" XXX
+ SG_ ObjGap2 : 42|2@1+ (1,0) [0|3] "" XXX
  SG_ SCC14_Signal_4 : 44|1@1+ (1,0) [0|1] "" XXX
  SG_ SCC14_Signal_5 : 45|1@1+ (1,0) [0|1] "" XXX
  SG_ SCC14_Signal_46 : 46|1@1+ (1,0) [0|1] "" XXX

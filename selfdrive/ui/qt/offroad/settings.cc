@@ -577,6 +577,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   toggleLayout->addWidget(horizontal_line());
   
+  toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
   //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayUpperBound", "ActuatorDelayUpperBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
   //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayLowerBound", "ActuatorDelayLowerBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
@@ -604,7 +605,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다. 크루즈갭:3일 때 만 적용됨 ", "../assets/offroad/icon_road.png", 50, 200, 10));
   toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
   toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(100%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 5));
+  toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(105%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 5));
   
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));

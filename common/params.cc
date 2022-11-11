@@ -241,6 +241,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalPlanFF", PERSISTENT },
     { "EnableRadarTracks", PERSISTENT },        
     { "ApplyDynamicTFollow", PERSISTENT },
+    { "SccConnectedBus2", PERSISTENT },
 };
 
 } // namespace

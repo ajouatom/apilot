@@ -5,7 +5,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
-from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, CAMERA_SCC_CAR
+from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR
 import random
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -56,23 +56,6 @@ class CarController:
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
 
-  def get_params_adjust_set_speed(self):
-    return [8, 10], [12, 14, 16, 18]
-
-  def get_alive_count(self):
-    count = self.alive_count_list[self.alive_index]
-    self.alive_index += 1
-    if self.alive_index >= len(self.alive_count_list):
-      self.alive_index = 0
-    return count
-
-  def get_wait_count(self):
-    count = self.wait_count_list[self.wait_index]
-    self.wait_index += 1
-    if self.wait_index >= len(self.wait_count_list):
-      self.wait_index = 0
-    return count
-
   def update(self, CC, CS):
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -104,7 +87,7 @@ class CarController:
     # *** common hyundai stuff ***
 
     # tester present - w/ no response (keeps relevant ECU disabled)
-    if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.carFingerprint not in CAMERA_SCC_CAR and self.CP.sccBus == 0:
+    if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.sccBus == 0:
       addr, bus = 0x7d0, 0
       if self.CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
@@ -192,7 +175,7 @@ class CarController:
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
-          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.1:
+          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12:
             self.last_button_frame = self.frame
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
@@ -210,13 +193,13 @@ class CarController:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
-      CC.debugTextCC = "221110 SCC13:{},SCC14:{}".format(self.CP.hasScc13, self.CP.hasScc14)
+      CC.debugTextCC = "221112a"
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
         jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
         if self.CP.sccBus == 0:
-          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2), CS.fca11, self.CP.carFingerprint,
+          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2), self.CP.carFingerprint,
                                                         hud_control.leadVisible, set_speed_in_units, stopping, CC.cruiseControl.override))
         else:
           can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
@@ -231,7 +214,7 @@ class CarController:
 
       # 5 Hz ACC options
       if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl: #  and self.CP.sccBus == 0:
-        can_sends.extend(hyundaican.create_acc_opt(self.CP, CS, self.packer, CS.fca12, self.CP.carFingerprint))
+        can_sends.extend(hyundaican.create_acc_opt(self.CP, CS, self.packer))
 
       # 2 Hz front radar options
       if self.frame % 50 == 0 and self.CP.openpilotLongitudinalControl  and self.CP.sccBus == 0:

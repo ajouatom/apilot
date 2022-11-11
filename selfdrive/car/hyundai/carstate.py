@@ -52,10 +52,6 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in CANFD_CAR:
       return self.update_canfd(cp, cp_cam)
 
-    #cp_mdps = cp2 if self.CP.mdpsBus else cp
-    #cp_sas = cp2 if self.CP.sasBus else cp
-    #cp_scc = cp2 if self.CP.sccBus == 1 else cp_cam if self.CP.sccBus == 2 else cp
-
     ret = car.CarState.new_message()
     cp_cruise = cp_cam if self.CP.sccBus == 2 or self.CP.carFingerprint in CAMERA_SCC_CAR else cp
     self.is_metric = cp.vl["CLU11"]["CF_Clu_SPEED_UNIT"] == 0
@@ -196,13 +192,6 @@ class CarState(CarStateBase):
     # save the entire LKAS11 and CLU11
     self.lkas11 = copy.copy(cp_cruise.vl["LKAS11"])
     self.clu11 = copy.copy(cp.vl["CLU11"])
-    if self.CP.carFingerprint in FEATURES["use_fca"]:
-      self.fca11 = copy.copy(cp_cruise.vl["FCA11"])
-      #self.fca12 = copy.copy(cp_cruise.vl["FCA12"])
-      self.fca12 = []
-    else:
-      self.fca11 = []
-      self.fca12 = []
     self.steer_state = cp.vl["MDPS12"]["CF_Mdps_ToiActive"]  # 0 NOT ACTIVE, 1 ACTIVE
     self.brake_error = cp.vl["TCS13"]["ACCEnable"] != 0  # 0 ACC CONTROL ENABLED, 1-3 ACC CONTROL DISABLED
     #if self.brake_error:
@@ -218,14 +207,8 @@ class CarState(CarStateBase):
 
     self.scc11 = cp_cruise.vl["SCC11"]
     self.scc12 = cp_cruise.vl["SCC12"]
-    if self.CP.hasScc13:
-      self.scc13 = cp_cruise.vl["SCC13"]
-    else:
-      self.scc13 = []
-    if self.CP.hasScc14:
-      self.scc14 = cp_cruise.vl["SCC14"]
-    else:
-      self.scc14 = []
+    self.scc13 = cp_cruise.vl["SCC13"]
+    self.scc14 = cp_cruise.vl["SCC14"]
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
     decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
     if 0. < decimal < 0.5:

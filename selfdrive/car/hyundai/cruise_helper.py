@@ -58,7 +58,8 @@ class CruiseHelper:
     self.autoSpeedAdjustWithLeadCar = 0
     self.autoResumeFromGasSpeedMode = 0
     self.radarAlarmCount = 0
-    self.radarDistance = 0
+    self.dRel = 0
+    self.vRel = 0
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -262,9 +263,10 @@ class CruiseHelper:
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
 
-    if dRel==0 and 5 < self.radarDistance < 20.0: ## 레이더가 갑자기 사라지면...
+    if dRel==0 and 5 < self.dRel < 20.0: ## 레이더가 갑자기 사라지면...
       self.radarAlarmCount = 500
-    self.radarDistance = dRel
+    self.dRel = dRel
+    self.vRel = vRel
     self.radarAlarmCount = self.radarAlarmCount - 1 if self.radarAlarmCount > 0 else 0
 
     if controls.enabled:
@@ -397,7 +399,10 @@ def enable_radar_tracks(CP, logcan, sendcan):
         break
     if rdr_fw :
       print(f"Found fwdRadar: {rdr_fw.fwVersion}")
-      if rdr_fw.fwVersion in [b'\xf1\x8799110S1500\xf1\x00TM__ SCC FHCUP      1.00 1.00 99110-S1500         ', b'TM__ SCC FHCUP      1.00 1.00 99110-S1500 \x04!\x15\x07    ', b'TMhe SCC FHCUP      1.00 1.00 99110-CL500 \x04$\x164    ', b'\xf1\x00TMhe SCC FHCUP      1.00 1.00 99110-CL500         ']:
+      if rdr_fw.fwVersion in [b'\xf1\x8799110S1500\xf1\x00TM__ SCC FHCUP      1.00 1.00 99110-S1500         ', 
+                              b'TM__ SCC FHCUP      1.00 1.00 99110-S1500 \x04!\x15\x07    ', 
+                              b'TMhe SCC FHCUP      1.00 1.00 99110-CL500 \x04$\x164    ', 
+                              b'\xf1\x00TMhe SCC FHCUP      1.00 1.00 99110-CL500         ']:
         for i in range(10):
           print("O yes")
         try:
