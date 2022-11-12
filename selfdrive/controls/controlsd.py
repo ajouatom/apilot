@@ -627,12 +627,8 @@ class Controls:
 
     if not self.joystick_mode:
       # accel PID loop
-      pid_accel_limits1 = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS, CS.cruiseGap <= 2, self.cruise_helper.accelLimitEcoSpeed) # cruiseGap이 1,2는 연비운전모드
-
-      if abs(self.cruise_helper.position_y) > 20.0 or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel):
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] * self.cruise_helper.accelLimitTurn
-      else:
-        pid_accel_limits = pid_accel_limits1[0], pid_accel_limits1[1] 
+      ecoSpeed = self.cruise_helper.accelLimitEcoSpeed or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel)
+      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS, CS.cruiseGap <= 2, ecoSpeed) # cruiseGap이 1,2는 연비운전모드
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
@@ -721,19 +717,17 @@ class Controls:
       CC.cruiseControl.resume = self.enabled and CS.cruiseState.standstill and speeds[-1] > 0.1
     else:
       self.pcmLongSpeed = 255.
-    if self.sm['longitudinalPlan'].xState == "E2E_STOP":
-      if self.CP.openpilotLongitudinalControl:
-        self.pcmLongSpeed = self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH
-      else:
-        self.pcmLongSpeed = max(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
+
+    if self.CP.openpilotLongitudinalControl:
+      self.pcmLongSpeed = self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH
     else:
-      self.pcmLongSpeed = 255# speeds[0] * CV.MS_TO_KPH + 3.0
+      self.pcmLongSpeed = max(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
 
     hudControl = CC.hudControl
 
     hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
     hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
-    hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 0 else False
+    hudControl.radarAlarm = False #True if self.cruise_helper.radarAlarmCount > 0 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
@@ -744,7 +738,7 @@ class Controls:
     hudControl.cruiseGap = CS.cruiseGap
     d = abs(self.cruise_helper.dRel)
     hudControl.objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
-    if self.cruise_helper.vRel < 0:
+    if self.cruise_helper.vRel < -0.1:
       hudControl.objGap *= -1
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown

@@ -114,10 +114,10 @@ class CarState(CarStateBase):
         if not self.preMainMode_ACC and mainMode_ACC: #사용자가 CruiseSet를 눌렀거나, +-를 눌러 Enable됨.
           if cp_cruise.vl["SCC12"]["ACCMode"] != 0:
             ret.cruiseState.pcmMode = True
-            print("Cruise:pcmMode")
+            #print("Cruise:pcmMode")
           else:
             ret.cruiseState.pcmMode = False
-            print("Cruise:buttonMode")
+            #print("Cruise:buttonMode")
         elif not mainMode_ACC:
           ret.cruiseState.pcmMode = False
         self.preMainMode_ACC = mainMode_ACC
@@ -205,10 +205,10 @@ class CarState(CarStateBase):
     ret.tpms.rl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RL"]
     ret.tpms.rr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RR"]
 
-    self.scc11 = cp_cruise.vl["SCC11"]
-    self.scc12 = cp_cruise.vl["SCC12"]
-    self.scc13 = cp_cruise.vl["SCC13"]
-    self.scc14 = cp_cruise.vl["SCC14"]
+    self.scc11 = copy.copy(cp_cruise.vl["SCC11"])
+    self.scc12 = copy.copy(cp_cruise.vl["SCC12"])
+    self.scc13 = copy.copy(cp_cruise.vl["SCC13"]) if "SCC13" in cp_cruise.vl else None
+    self.scc14 = copy.copy(cp_cruise.vl["SCC14"])
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
     decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
     if 0. < decimal < 0.5:

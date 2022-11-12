@@ -196,7 +196,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
       "JerkLowerLimit": 5.0, # stock usually is 0.5 but sometimes uses higher values
       "ACCMode": 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4, # stock will always be 4 instead of 0 after first disengage
       "ObjGap": abs(hud_control.objGap), # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
-      "ObjGap2" : 2 if hud_control.objGap > 0 else 1 if hud_control.objGap < 0 else 0
+      "ObjGap2" : 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
   else:
@@ -207,7 +207,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["JerkLowerLimit"] = 5.0
     values["ACCMode"] = 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4
     values["ObjGap"] = abs(hud_control.objGap) #2 if lead_visible else 0
-    values["ObjGap2"] = 2 if hud_control.objGap > 0 else 1 if hud_control.objGap < 0 else 0
+    values["ObjGap2"] = 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   return commands
@@ -267,7 +267,7 @@ def create_acc_commands(packer, enabled, accel, upper_jerk, idx, car_fingerprint
 
 def create_acc_opt(CP, CS, packer):
   commands = []
-  if CP.sccBus == 2:
+  if CP.sccBus == 2 or CS.scc13 is not None:
     values = CS.scc13
     commands.append(packer.make_can_msg("SCC13", 0, values))
   else:
@@ -278,6 +278,7 @@ def create_acc_opt(CP, CS, packer):
     }
     commands.append(packer.make_can_msg("SCC13", 0, scc13_values))
 
+  if CP.sccBus == 0:
     fca12_values = {
       "FCA_DrvSetState": 2,
       "FCA_USM": 1, # AEB disabled

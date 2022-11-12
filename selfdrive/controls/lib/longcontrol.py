@@ -67,7 +67,6 @@ class LongControl:
     self.longitudinalActuatorDelayUpperBoundCost = 1.0
     self.longitudinalActuatorDelayLowerBoundCost = 1.0
     self.longitudinalTuningKf = 1.0
-    self.longitudinalPlanFF = 0.0
     self.accelBoost = 1.0
 
   def reset(self, v_pid):
@@ -82,12 +81,8 @@ class LongControl:
       self.longitudinalActuatorDelayUpperBoundCost = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) / 100.
       self.longitudinalActuatorDelayLowerBoundCost = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) / 100.
       self.longitudinalTuningKf = float(int(Params().get("LongitudinalTuningKf", encoding="utf8"))) / 100.
-      self.longitudinalPlanFF = float(int(Params().get("LongitudinalPlanFF", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
-
       
-    t_since_plan += self.longitudinalPlanFF
-
     longitudinalActuatorDelayLowerBound = self.CP.longitudinalActuatorDelayLowerBound * 1.0 #self.longitudinalActuatorDelayLowerBoundCost
     longitudinalActuatorDelayUpperBound = self.CP.longitudinalActuatorDelayUpperBound * 1.0 #self.longitudinalActuatorDelayUpperBoundCost
     """Update longitudinal control. This updates the state machine and runs a PID loop"""

@@ -53,7 +53,6 @@ class CruiseHelper:
     self.cruiseButtons = 0
     self.userCruisePaused = True
     self.accelLimitEcoSpeed = 0
-    self.accelLimitTurn = 0.2
     self.autoSpeedUptoRoadSpeedLimit = 1.0
     self.autoSpeedAdjustWithLeadCar = 0
     self.autoResumeFromGasSpeedMode = 0
@@ -86,7 +85,6 @@ class CruiseHelper:
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
       self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
       self.accelLimitEcoSpeed = float(int(Params().get("AccelLimitEcoSpeed", encoding="utf8")))
-      self.accelLimitTurn = float(int(Params().get("AccelLimitTurn", encoding="utf8"))) / 100.
       self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
       self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
       self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
@@ -380,8 +378,8 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
-      if self.autoCurveSpeedCtrl:
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+      #if self.autoCurveSpeedCtrl:
+      #  self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
 
     self.preBrakePressed = CS.brakePressed
     self.preGasPressed = CS.gasPressed

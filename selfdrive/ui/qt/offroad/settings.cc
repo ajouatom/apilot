@@ -425,13 +425,15 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {tr("Network"), new Networking(this)},
     {tr("Toggles"), new TogglesPanel(this)},
     {tr("Software"), new SoftwarePanel(this)},
-    {tr("Community"), new CommunityPanel(this)},
+    {"크루즈", new CruisePanel(this)},
+    {"튜닝", new TuningPanel(this)},
+    {"기타", new CommunityPanel(this)},
   };
 
 #ifdef ENABLE_MAPS
-  auto map_panel = new MapPanel(this);
-  panels.push_back({tr("Navigation"), map_panel});
-  QObject::connect(map_panel, &MapPanel::closeSettings, this, &SettingsWindow::closeSettings);
+  //auto map_panel = new MapPanel(this);
+  //panels.push_back({tr("Navigation"), map_panel});
+  //QObject::connect(map_panel, &MapPanel::closeSettings, this, &SettingsWindow::closeSettings);
 #endif
 
   const int padding = panels.size() > 3 ? 25 : 35;
@@ -575,68 +577,97 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(updateBtn);
   toggleLayout->addWidget(new CPrebuiltToggle());
 
+  // 기타 (Community)
   toggleLayout->addWidget(horizontal_line());
-  
   toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
-  //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayUpperBound", "ActuatorDelayUpperBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
-  //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayLowerBound", "ActuatorDelayLowerBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
-  toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "LongitudinalTuningKf(100%)", "(시험용) ACCEL을 좀 더 강력하게 적용합니다.", "../assets/offroad/icon_road.png", 50, 200, 1));
-  toggleLayout->addWidget(new CValueControl("LongitudinalPlanFF", "LongitudinalPlanFF(0)", "(시험용) 기본값, 바꾸지 말것!", "../assets/offroad/icon_road.png", 0, 100, 1));  
-  toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_OBSTACLE_COST(7)", "증가할수록 정지선정지가 정확해지나, 급감속이 강해집니다.", "../assets/offroad/icon_road.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(150)", "적으면 선행차에 대한 반응이 강해집니다. ", "../assets/offroad/icon_road.png", 0, 400, 10));
-  toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
-  toggleLayout->addWidget(horizontal_line());
+  toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", false, this));
 
-#if 1
-  
-  toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("InitCruiseGap", "크루즈갭 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:E2E OFF모드", "../assets/offroad/icon_road.png", 1, 4, 1));
-  toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:관성주행모드(-)버튼이용.", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "신호정지 감속율 (70%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
-  toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("E2eDecelSpeed", "모델의 자동속도조절의 적용속도(Km/h)", "지정속도 이하에서는 모델이 제공하는 속도를 적용합니다. 0: 적용안함.", "../assets/offroad/icon_road.png", 0, 120, 10));
-  toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "신호정지 위치 조정(450cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
-  toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차속도에 크루즈속도맞추기(+40km/h)", "선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
-  toggleLayout->addWidget(new CValueControl("AccelLimitEcoSpeed", "초기가속제한 속도(20km/h)", "지정속도까지 가속도를 제한합니다. 출발시 충격 방지!!", "../assets/offroad/icon_road.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("AccelLimitTurn", "조향가속비율(100%)", "조향시 가속율을 줄여 급가속을 피해줍니다.", "../assets/offroad/icon_road.png", 10, 100, 10));
-  toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다. 크루즈갭:3일 때 만 적용됨 ", "../assets/offroad/icon_road.png", 50, 200, 10));
-  toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
-  toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(105%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 5));
-  
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "엑셀크루즈ON:속도", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 40, 5));
-  toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "엑셀크루즈ON:속도설정방법", "0:현재속도, 1:이전속도, 2: 선행차량이 있을때만 이전속도", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "브레이크해제 크루즈ON 사용", "브레이크를 떼면 크르즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "브레이크해제 크루즈ON:선행차거리", "브레이크를 떼고, 선행차가 거리이상이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 0, 80, 5));
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "브레이크해제 크루즈ON:정지상태,선행차10M이내", "정지상태에서 선행차량이 10M이내이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "모델커브속도조절", "곡선도로를 만나면 속도를 줄여줍니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(95%)", "적으면 속도를 많이 줄입니다.", "../assets/offroad/icon_road.png", 50, 150, 1));
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA 지원", "별도의 단말기에 NDA Manager를 설치하고 같은 네트웍에 물리고 Tmap을 실행하세요", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA: 속도제한(0:None,1:Limit,2:Apply)", "Limit: 속도를 제한합니다. Apply: 제한속도로 실시간 적용합니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapbox", "", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "Show Debug UI", "", "../assets/offroad/icon_shell.png", false, this));
+}
 
-#else
-  toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "CruiseON:Gas_Speed", "Enable Cruise control from Gas, Speed", "../assets/offroad/icon_road.png", 20, 40, 5));
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "CruiseON:BrakeRelease", "While Driving\nCruise On when radar detected over a certain distance ", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "CruiseON:BrakeReleaseDist", "While Driving\nMinimum Cruise On Distance\nDuring long control, it may operate abnormally due to surrounding obstacles.", "../assets/offroad/icon_road.png", 0, 80, 5));
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "CruiseON:BrakeReleaseStop", "While Stopping\nCruise On when radar dected within 10M", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "CruiseON:Gas", "Enable Cruise control from Gas", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "SpeedControl: Vision Curve", "", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "SpeedControl: VisionCurve(50~150%)", "", "../assets/offroad/icon_road.png", 50, 150, 5));
-  toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA Manager: NAVI speed", "", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA:RoadLimit(1:Limit,2:Apply)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Long Sound 0:OFF,1:Half ON, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
-#endif
+TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
+
+    main_layout = new QStackedLayout(this);
+
+    homeScreen = new QWidget(this);
+    QVBoxLayout* vlayout = new QVBoxLayout(homeScreen);
+    vlayout->setContentsMargins(0, 20, 0, 20);
+
+    homeWidget = new QWidget(this);
+    QVBoxLayout* toggleLayout = new QVBoxLayout(homeWidget);
+    homeWidget->setObjectName("homeWidget");
+
+    ScrollView* scroller = new ScrollView(homeWidget, this);
+    scroller->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    main_layout->addWidget(homeScreen);
+
+    vlayout->addWidget(scroller, 1);
+
+    // 튜닝
+    toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
+    toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "신호정지 위치 조정(450cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
+    toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(horizontal_line());
+    //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayUpperBound", "ActuatorDelayUpperBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
+    //toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayLowerBound", "ActuatorDelayLowerBound(0.5*100%)", "", "../assets/offroad/icon_road.png", 10, 200, 1));
+    toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "LongitudinalTuningKf(100%)", "(시험용) ACCEL을 좀 더 강력하게 적용합니다.", "../assets/offroad/icon_road.png", 50, 200, 1));
+    toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_OBSTACLE_COST(7)", "증가할수록 정지선정지가 정확해지나, 급감속이 강해집니다.", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(150)", "적으면 선행차에 대한 반응이 강해집니다. ", "../assets/offroad/icon_road.png", 0, 400, 10));
+    toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
+    toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(105%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 1));
+    toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "신호정지 감속율 (70%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
+    toggleLayout->addWidget(new CValueControl("E2eDecelSpeed", "모델의 자동속도조절의 적용속도(Km/h)", "지정속도 이하에서는 모델이 제공하는 속도를 적용합니다. 0: 적용안함.", "../assets/offroad/icon_road.png", 0, 120, 10));
+    toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(new CValueControl("AccelLimitEcoSpeed", "초기가속제한 속도(20km/h)", "지정속도까지 가속도를 제한합니다. 출발시 충격 방지!!", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다. 크루즈갭:3일 때 만 적용됨 ", "../assets/offroad/icon_road.png", 50, 200, 10));
+    toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "모델커브속도조절", "곡선도로를 만나면 속도를 줄여줍니다.", "../assets/offroad/icon_road.png", false, this));
+    //toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(95%)", "적으면 속도를 많이 줄입니다.", "../assets/offroad/icon_road.png", 50, 150, 1));
+
+}
+CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
+
+    main_layout = new QStackedLayout(this);
+
+    homeScreen = new QWidget(this);
+    QVBoxLayout* vlayout = new QVBoxLayout(homeScreen);
+    vlayout->setContentsMargins(0, 20, 0, 20);
+
+    homeWidget = new QWidget(this);
+    QVBoxLayout* toggleLayout = new QVBoxLayout(homeWidget);
+    homeWidget->setObjectName("homeWidget");
+
+    ScrollView* scroller = new ScrollView(homeWidget, this);
+    scroller->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+    main_layout->addWidget(homeScreen);
+
+    vlayout->addWidget(scroller, 1);
+
+    // 크루즈
+    toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
+    toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차속도에 크루즈속도맞추기(+40km/h)", "선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
+    toggleLayout->addWidget(new CValueControl("InitCruiseGap", "크루즈갭 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:E2E OFF모드", "../assets/offroad/icon_road.png", 1, 4, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:관성주행모드(-)버튼이용.", "../assets/offroad/icon_road.png", 0, 2, 1));
+    toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "엑셀크루즈ON:속도", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 40, 5));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "엑셀크루즈ON:속도설정방법", "0:현재속도, 1:이전속도, 2: 선행차량이 있을때만 이전속도", "../assets/offroad/icon_road.png", 0, 2, 1));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "브레이크해제 크루즈ON 사용", "브레이크를 떼면 크르즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "브레이크해제 크루즈ON:선행차거리", "브레이크를 떼고, 선행차가 거리이상이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 0, 80, 5));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "브레이크해제 크루즈ON:정지상태,선행차10M이내", "정지상태에서 선행차량이 10M이내이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+
 }
 
 // ajouatom

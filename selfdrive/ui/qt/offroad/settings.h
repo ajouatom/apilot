@@ -104,17 +104,41 @@ signals:
 };
 
 class CommunityPanel : public QWidget {
-  Q_OBJECT
+    Q_OBJECT
 
 private:
-  QStackedLayout* main_layout = nullptr;
-  QWidget* homeScreen = nullptr;
-  SelectCar* selectCar = nullptr;
+    QStackedLayout* main_layout = nullptr;
+    QWidget* homeScreen = nullptr;
+    SelectCar* selectCar = nullptr;
 
-  QWidget* homeWidget;
+    QWidget* homeWidget;
 
 public:
-  explicit CommunityPanel(QWidget *parent = nullptr);
+    explicit CommunityPanel(QWidget* parent = nullptr);
+};
+class TuningPanel : public QWidget {
+    Q_OBJECT
+
+private:
+    QStackedLayout* main_layout = nullptr;
+    QWidget* homeScreen = nullptr;
+
+    QWidget* homeWidget;
+
+public:
+    explicit TuningPanel(QWidget* parent = nullptr);
+};
+class CruisePanel : public QWidget {
+    Q_OBJECT
+
+private:
+    QStackedLayout* main_layout = nullptr;
+    QWidget* homeScreen = nullptr;
+
+    QWidget* homeWidget;
+
+public:
+    explicit CruisePanel(QWidget* parent = nullptr);
 };
 
 // ajouatom:

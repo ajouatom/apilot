@@ -388,7 +388,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   QString str;
   str.sprintf("%.1fm", d_rel);
   QColor textColor = QColor(255, 255, 255, 200);
-  configFont(painter, "Inter", 80, "Bold");
+  configFont(painter, "Inter", 50, "Bold");
   drawTextWithColor(painter, x, y + sz/1.5f, str, textColor);
 
   painter.restore();
