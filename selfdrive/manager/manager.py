@@ -69,7 +69,7 @@ def manager_init() -> None:
     ("AccelLimitConfusedModel", "1"),   
     ("AutoSpeedAdjustWithLeadCar", "0"),   
     ("TrafficStopAccel", "80"),     
-    ("TrafficStopModelSpeed", "1"),         
+    ("TrafficStopModelSpeed", "0"),         
     ("CruiseButtonMode", "0"),      
     ("InitCruiseGap", "3"),      
     ("AutoSyncCruiseSpeed", "1"),       

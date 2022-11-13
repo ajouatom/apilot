@@ -6,12 +6,12 @@ from cereal import car
 from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from selfdrive.car.hyundai.values import HyundaiFlags, DBC, FEATURES, CAMERA_SCC_CAR, CANFD_CAR, EV_CAR, HYBRID_CAR, Buttons, CarControllerParams
+from selfdrive.car.hyundai.values import HyundaiFlags, DBC, FEATURES, CAMERA_SCC_CAR, CANFD_CAR, EV_CAR, HYBRID_CAR, Buttons, CarControllerParams, CAR
 from selfdrive.car.interfaces import CarStateBase
 
 PREV_BUTTON_SAMPLES = 8
 CLUSTER_SAMPLE_RATE = 20  # frames
-
+GearShifter = car.CarState.GearShifter
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -47,6 +47,7 @@ class CarState(CarStateBase):
     self.preMainMode_ACC = False
     self.prePcmCruiseMode = True
     self.params = CarControllerParams(CP)
+    self.gear_shifter = GearShifter.drive # Gear_init for Nexo ?? unknown 21.02.23.LSW
 
   def update(self, cp, cp_cam):
     if self.CP.carFingerprint in CANFD_CAR:
@@ -146,6 +147,7 @@ class CarState(CarStateBase):
     ret.brakeHoldActive = cp.vl["TCS15"]["AVH_LAMP"] == 2 # 0 OFF, 1 ERROR, 2 ACTIVE, 3 READY
     ret.parkingBrake = cp.vl["TCS13"]["PBRAKE_ACT"] == 1
     ret.brakeLights = bool(cp.vl["TCS13"]["BrakeLight"] or ret.brakePressed)
+    ret.driverOverride = cp.vl["TCS13"]["DriverOverride"]
 
     if self.CP.carFingerprint in (HYBRID_CAR | EV_CAR):
       if self.CP.carFingerprint in HYBRID_CAR:
@@ -165,10 +167,29 @@ class CarState(CarStateBase):
       gear = cp.vl["TCU12"]["CUR_GR"]
     elif self.CP.carFingerprint in FEATURES["use_elect_gears"]:
       gear = cp.vl["ELECT_GEAR"]["Elect_Gear_Shifter"]
+      if self.CP.carFingerprint in (CAR.NEXO):
+        gear_disp = cp.vl["ELECT_GEAR"]
+  
+        gear_shifter = GearShifter.unknown
+  
+        if gear == 1546:  # Thank you for Neokii  # fix PolorBear 22.06.05
+          gear_shifter = GearShifter.drive
+        elif gear == 2314:
+          gear_shifter = GearShifter.neutral
+        elif gear == 2569:
+          gear_shifter = GearShifter.park
+        elif gear == 2566:
+          gear_shifter = GearShifter.reverse
+  
+        if gear_shifter != GearShifter.unknown and self.gear_shifter != gear_shifter:
+          self.gear_shifter = gear_shifter
+  
+        ret.gearShifter = self.gear_shifter
     else:
       gear = cp.vl["LVR12"]["CF_Lvr_Gear"]
 
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(gear))
+    if not self.CP.carFingerprint in (CAR.NEXO):
+      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(gear))
 
     if not self.CP.openpilotLongitudinalControl:
       aeb_src = "FCA11" if self.CP.carFingerprint in FEATURES["use_fca"] else "SCC12"

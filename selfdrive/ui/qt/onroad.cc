@@ -386,10 +386,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   painter.drawPolygon(chevron, std::size(chevron));
 
   QString str;
-  str.sprintf("%.1fm", d_rel);
+  str.sprintf("%.1f", d_rel);
   QColor textColor = QColor(255, 255, 255, 200);
   configFont(painter, "Inter", 50, "Bold");
-  drawTextWithColor(painter, x, y + sz/1.5f, str, textColor);
+  drawTextWithColor(painter, x, y + sz/1.5f + 80.0, str, textColor);
 
   painter.restore();
 }
@@ -612,6 +612,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
   //auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
+  UIState* s = uiState();
 
   // tire pressure
   {
@@ -664,7 +665,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   if(gap <= 0) {
     str = "N/A";
   }
-  else if(1) { //longControl && gap == autoTrGap) {
+  else if (s->scene.longitudinal_control) {
     switch (gap) {
       case 1: str = "연비"; break;
       case 2: str = "관성"; break;
@@ -698,7 +699,6 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   QString xState = lp.getXState().cStr();
   int brake_hold = car_state.getBrakeHoldActive();
   int autohold = (xState == "SOFT_HOLD") ? 1 : 0;
-  UIState* s = uiState();
   if(s->scene.longitudinal_control) autohold = (xState == "SOFT_HOLD") ? 1 : 0;
   else autohold = (brake_hold > 0) ? 1 : 0;
   if(true) {
@@ -793,7 +793,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
 
   bool is_metric = s->scene.is_metric;
-  bool long_control = 0;// scc_smoother.getLongControl();
+  bool long_control = 1;// scc_smoother.getLongControl();
 
   // kph
   float applyMaxSpeed = cs.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
@@ -905,7 +905,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     p.setPen(QColor(255, 255, 255, 180));
 
     configFont(p, "Inter", 50, "Bold");
-    if (enabled && applyMaxSpeed > 0) {
+    if (enabled && longActiveUser > 0) {
     //if(is_cruise_set && applyMaxSpeed > 0) {
       if(is_metric)
         str.sprintf( "%d", (int)(applyMaxSpeed + 0.5));

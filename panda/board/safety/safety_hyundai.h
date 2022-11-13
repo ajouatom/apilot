@@ -290,12 +290,17 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     bool violation = 0;
 
     if (!longitudinal_allowed) {
-      if ((desired_accel_raw != 0) || (desired_accel_val != 0)) {
-        violation = 1;
+      // Kona_ev시험... val(areqValue)가 -10.23
+      //if ((desired_accel_raw != 0) || (desired_accel_val != 0)) {
+      if (desired_accel_raw != 0) {
+          violation = 1;
       }
     }
-    violation |= max_limit_check(desired_accel_raw, HYUNDAI_MAX_ACCEL, HYUNDAI_MIN_ACCEL);
-    violation |= max_limit_check(desired_accel_val, HYUNDAI_MAX_ACCEL, HYUNDAI_MIN_ACCEL);
+    // 코나 EV는 MINACCEL값이 -10.23 최소값으로 나가고 있음..
+    violation |= max_limit_check(desired_accel_raw, HYUNDAI_MAX_ACCEL, HYUNDAI_MIN_ACCEL);  
+    //violation |= max_limit_check(desired_accel_val, HYUNDAI_MAX_ACCEL, HYUNDAI_MIN_ACCEL);
+    if (desired_accel_val > HYUNDAI_MAX_ACCEL) violation |= 1;
+    //puts("accel_val = "); puth(desired_accel_val); puts(",violation="); puth(violation); puts("\n");
 
     violation |= (aeb_decel_cmd != 0);
     violation |= (aeb_req != 0);

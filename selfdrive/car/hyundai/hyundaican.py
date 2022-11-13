@@ -22,7 +22,7 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
                          CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_SELTOS, CAR.ELANTRA_2021, CAR.GENESIS_G70_2020,
                          CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022,
-                         CAR.SANTA_FE_2022, CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
+                         CAR.SANTA_FE_2022, CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022, CAR.NEXO):
     values["CF_Lkas_LdwsActivemode"] = int(left_lane) + (int(right_lane) << 1)
     values["CF_Lkas_LdwsOpt_USM"] = 2
 
@@ -119,11 +119,49 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   softHold = hud_control.softHold
   long_override = CC.cruiseControl.override
   brakePressed = enabled and CS.out.brakePressed
-  if False: #CS.out.cruiseState.pcmMode:
-    longEnabled = enabled and CS.out.cruiseState.enabled and CC.longActive
-  else:
-    longEnabled = enabled and CC.longActive
+  longEnabled = enabled and CC.longActive
   radarAlarm = hud_control.radarAlarm
+
+  driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
+  if enabled:
+    if longEnabled:
+      scc12_accMode = 1
+      scc14_accMode = 1
+    else:
+      scc12_accMode = 0 if brakePressed else 2  #Brake, Accel, LongActiveUser < 0
+      scc14_accMode = 4 if brakePressed else 2 
+
+    if False: #CP.carFingerprint in (CAR.KONA_EV):
+      aReqValue = -10.23
+      comfortBandUpper = 0.85 + (accel*0.2) #kona_ev값 보고 계산함.
+      comfortBandLower = 0.8 + (accel*0.2) #Kona_ev값 보고 계산함.
+      jerkUpperLimit = upper_jerk
+      jerkLowerLimit = 0.1 - (accel * 0.2)
+      jerkLowerLimit = 0 if jerkLowerLimit < 0 else jerkLowerLimit
+    else:
+      aReqValue = accel
+      # from neokii
+      if stopping:
+        jerkUpperLimit = 0.5
+        jerkLowerLimit = 10.
+        comfortBandUpper = 0.
+        comfortBandLower = 0.
+        if CS.out.vEgo > 0.27:
+          comfortBandUpper = 2.
+          comfortBandLower = 0.
+      else:
+        jerkUpperLimit = 50.
+        jerkLowerLimit = 50.
+        comfortBandUpper = 50.
+        comfortBandLower = 50.
+  else:
+    aReqValue = 0.
+    scc12_accMode = 0
+    scc14_accMode = 0
+    comfortBandUpper = 0.0
+    comfortBandLower = 0.0
+    jerkUpperLimit = upper_jerk
+    jerkLowerLimit = 5.0
 
   # True: sccBus가 0 (순정배선) 인경우, KONA_EV는 기존 메시지 사용하면 문제생김..
   #makeNewCommands = True if CP.carFingerprint in (CAR.KONA_EV) or CP.sccBus == 0 else False
@@ -131,7 +169,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   commands = []
   if makeNewCommands:
     scc11_values = {
-    "MainMode_ACC": 1 if CS.out.cruiseState.pcmMode or enabled else 0 ,
+    "MainMode_ACC": 1 if enabled else 0 ,
     "TauGapSet": cruiseGap,
     "VSetDis": set_speed if enabled else 0,
     "AliveCounterACC": idx % 0x10,
@@ -145,22 +183,26 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
   else:
     values = CS.scc11
-    values["MainMode_ACC"] = 1 if CS.out.cruiseState.pcmMode or enabled else 0 
+    values["MainMode_ACC"] = 1 if enabled else 0 
     values["TauGapSet"] = cruiseGap
     values["VSetDis"] = set_speed if enabled else 0
     values["AliveCounterACC"] = idx % 0x10
     #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
     values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
     values["ObjValid"] = 1
+    values["ACC_ObjStatus"] = 1
+    values["ACC_ObjLatPos"] = 0
+    values["ACC_ObjRelSpd"] = 0
+    values["ACC_ObjDist"] = 1
     commands.append(packer.make_can_msg("SCC11", 0, values))
 
   # SCC12.ACCMode: Init: 0, Brake: 0, Accel:2, Cruise: 1   KONA_EV에서 측정함.
   if makeNewCommands:
     scc12_values = {
-      "ACCMode": 0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0,
+      "ACCMode": scc12_accMode, #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0,
       "StopReq": 1 if stopping else 0,
       "aReqRaw": accel,
-      "aReqValue": -10.23 if CP.carFingerprint in (CAR.KONA_EV) else accel,  # stock ramps up and down respecting jerk limit until it reaches aReqRaw
+      "aReqValue": aReqValue, # stock ramps up and down respecting jerk limit until it reaches aReqRaw
       "CR_VSM_Alive": idx % 0xF,
     }
     scc12_dat = packer.make_can_msg("SCC12", 0, scc12_values)[2]
@@ -169,18 +211,12 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     commands.append(packer.make_can_msg("SCC12", 0, scc12_values))
   else:
     values = CS.scc12
-    if CP.carFingerprint in (CAR.KONA_EV):
-      values["ACCMode"] = 0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
-      values["StopReq"] = 1 if stopping else 0
-      values["aReqRaw"] = accel
-      #values["aReqValue"] = -10.23 #코나 EV 에서 측정값. 항상 이값임..
-    else:
-      values["ACCMode"] = 0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
-      values["StopReq"] = 1 if stopping else 0
-      values["aReqRaw"] = accel
-      values["aReqValue"] = accel
-      #values["ACCFailInfo"] = 0
+    values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
+    values["StopReq"] = 1 if stopping else 0
+    values["aReqRaw"] = accel
+    values["aReqValue"] = aReqValue
 
+    values["CR_VSM_ChkSum"] = 0
     values["CR_VSM_Alive"] = idx % 0xF
     scc12_dat = packer.make_can_msg("SCC12", 0, values)[2]
     values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
@@ -190,22 +226,22 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   # SCC14.ACCMode: Init: 0, Brake: 4, Accel:2, Cruise: 1   KONA_EV에서 측정함.
   if makeNewCommands:
     scc14_values = {
-      "ComfortBandUpper": 0.0, # stock usually is 0 but sometimes uses higher values
-      "ComfortBandLower": 0.0, # stock usually is 0 but sometimes uses higher values
-      "JerkUpperLimit": upper_jerk, # stock usually is 1.0 but sometimes uses higher values
-      "JerkLowerLimit": 5.0, # stock usually is 0.5 but sometimes uses higher values
-      "ACCMode": 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4, # stock will always be 4 instead of 0 after first disengage
+      "ComfortBandUpper": comfortBandUpper, # stock usually is 0 but sometimes uses higher values
+      "ComfortBandLower": comfortBandLower, # stock usually is 0 but sometimes uses higher values
+      "JerkUpperLimit": jerkUpperLimit, # stock usually is 1.0 but sometimes uses higher values
+      "JerkLowerLimit": jerkLowerLimit, # stock usually is 0.5 but sometimes uses higher values
+      "ACCMode": scc14_accMode, #0 if not enabled else 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4, # stock will always be 4 instead of 0 after first disengage
       "ObjGap": abs(hud_control.objGap), # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
       "ObjGap2" : 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
   else:
     values = CS.scc14
-    values["ComfortBandUpper"] = 0.0
-    values["ComfortBandLower"] = 0.0
-    values["JerkUpperLimit"] = upper_jerk
-    values["JerkLowerLimit"] = 5.0
-    values["ACCMode"] = 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4
+    values["ComfortBandUpper"] = comfortBandUpper
+    values["ComfortBandLower"] = comfortBandLower
+    values["JerkUpperLimit"] = jerkUpperLimit
+    values["JerkLowerLimit"] = jerkLowerLimit
+    values["ACCMode"] = scc14_accMode #0 if not enabled else 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4 # stock will always be 4 instead of 0 after first disengage
     values["ObjGap"] = abs(hud_control.objGap) #2 if lead_visible else 0
     values["ObjGap2"] = 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
@@ -267,7 +303,7 @@ def create_acc_commands(packer, enabled, accel, upper_jerk, idx, car_fingerprint
 
 def create_acc_opt(CP, CS, packer):
   commands = []
-  if CP.sccBus == 2 or CS.scc13 is not None:
+  if False: #CP.sccBus == 2 or CS.scc13 is not None:
     values = CS.scc13
     commands.append(packer.make_can_msg("SCC13", 0, values))
   else:

@@ -193,7 +193,7 @@ class CarController:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
-      CC.debugTextCC = "221112a"
+      CC.debugTextCC = "221114a"
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed

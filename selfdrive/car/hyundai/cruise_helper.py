@@ -47,6 +47,7 @@ class CruiseHelper:
     self.longActiveUser = 0
     self.preBrakePressed = False
     self.preGasPressed = False
+    self.preGasPressedMax = 0.0
     self.curvature = 0
     self.position_x = 1000.0
     self.position_y = 300.0
@@ -252,7 +253,8 @@ class CruiseHelper:
     self.update_params(controls.sm.frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
-    curveSpeed = self.update_speed_curve(CS, controls)
+    
+    curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
 
     v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 3.0 #실제속도가 v_cruise_kph보다 조금 빨라 3을 더함.
     v_ego_kph_set = clip(v_ego_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
@@ -278,8 +280,9 @@ class CruiseHelper:
           if self.longActiveUser <= 0:
             self.cruise_control(controls, CS, 1)
           else:
-            self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
-            if self.cruiseButtonMode in [1,2]:
+            if self.longActiveUser != 1 and xState == "SOFT_HOLD":
+              self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
+            elif self.cruiseButtonMode in [1,2]:
               temp = 30 if roadSpeed < 0 else roadSpeed
               if v_cruise_kph < temp:
                 v_cruise_kph = roadSpeed
@@ -295,7 +298,8 @@ class CruiseHelper:
             v_cruise_kph = v_ego_kph_set  ## 현재속도도 크루즈세트
             self.cruise_control(controls, CS, 1)
           else:
-            self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
+            if self.longActiveUser != 1 and xState == "SOFT_HOLD":
+              self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
             if CS.gasPressed and v_cruise_kph < v_ego_kph_set:
               v_cruise_kph = v_ego_kph_set
             elif v_cruise_kph > v_ego_kph_set:
@@ -312,22 +316,30 @@ class CruiseHelper:
       elif CS.gasPressed:
         if v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
           v_cruise_kph = v_ego_kph_set
-        if self.longActiveUser <= 0:
-          if (resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed) or (self.autoResumeFromGas and CS.gas >= 0.6):
-            if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
-              v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
-            elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
-              pass
-            elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
-              if dRel > 0:
-                pass
-              else:
-                v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
-            self.cruise_control(controls, CS, 3)
-        elif xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
+        if xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
         elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
           v_cruise_kph = v_ego_kph_set
+      elif not CS.gasPressed and self.preGasPressed:
+        if CS.cruiseGap == 2:
+          self.cruise_control(controls, CS, -3)
+          self.userCruisePaused = True
+        else:
+          if self.longActiveUser <= 0:
+            if (resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed) or (self.autoResumeFromGas and CS.gas >= 0.6):
+              if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
+                if self.preGasPressedMax > 0.4:
+                  pass
+                else:
+                  v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
+              elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
+                pass
+              elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
+                if dRel > 0:
+                  pass
+                else:
+                  v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
+              self.cruise_control(controls, CS, 3)
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
@@ -351,9 +363,6 @@ class CruiseHelper:
           v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, 3)
         pass
-      elif CS.cruiseGap == 2 and self.preGasPressed == True and not CS.gasPressed:
-        self.cruise_control(controls, CS, -3)
-        self.userCruisePaused = True
 
       ###### 크루즈 속도제어~~~
       self.v_cruise_kph_apply = v_cruise_kph
@@ -383,50 +392,51 @@ class CruiseHelper:
 
     self.preBrakePressed = CS.brakePressed
     self.preGasPressed = CS.gasPressed
+    if CS.gasPressed:
+      if CS.gas > self.preGasPressedMax:
+        self.preGasPressedMax = CS.gas
+    else:
+      self.preGasPressedMax = 0.0
     return v_cruise_kph
 
 def enable_radar_tracks(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
-  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022]:
+  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     for fw in CP.carFw:
       if fw.ecu == "fwdRadar":
         rdr_fw = fw
         break
-    if rdr_fw :
-      print(f"Found fwdRadar: {rdr_fw.fwVersion}")
-      if rdr_fw.fwVersion in [b'\xf1\x8799110S1500\xf1\x00TM__ SCC FHCUP      1.00 1.00 99110-S1500         ', 
-                              b'TM__ SCC FHCUP      1.00 1.00 99110-S1500 \x04!\x15\x07    ', 
-                              b'TMhe SCC FHCUP      1.00 1.00 99110-CL500 \x04$\x164    ', 
-                              b'\xf1\x00TMhe SCC FHCUP      1.00 1.00 99110-CL500         ']:
-        for i in range(10):
-          print("O yes")
-        try:
-          for i in range(40):
-            try:
-              query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw.address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
-              for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
-                print("ecu write data by id ...")
-                new_config = b"\x00\x00\x00\x01\x00\x01"
-                #new_config = b"\x00\x00\x00\x00\x00\x01"
-                dataId = b'\x01\x42'
-                WRITE_DAT_REQUEST = b'\x2e'
-                WRITE_DAT_RESPONSE = b'\x68'
-                query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw.address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
-                query.get_data(0)
-                print(f"Try {i+1}")
-                break
+    print(f"Found fwdRadar: {rdr_fw.fwVersion}")
+    if rdr_fw.fwVersion in [b'\xf1\x8799110S1500\xf1\x00TM__ SCC FHCUP      1.00 1.00 99110-S1500         ',
+      b'TM__ SCC FHCUP      1.00 1.00 99110-S1500 \x04!\x15\x07    ',
+      b'TMhe SCC FHCUP      1.00 1.00 99110-CL500 \x04$\x164    ', 
+      b'\xf1\x00TMhe SCC FHCUP      1.00 1.00 99110-CL500         ', # SANTAFE_HEV
+      b'\xf1\x00FE__ SCC FHCUP      1.00 1.03 99110-M5000         ' #NEXO
+      ]:
+      for i in range(10):
+        print("O yes")
+      try:
+        for i in range(40):
+          try:
+            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw.address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
+            for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
+              print("ecu write data by id ...")
+              new_config = b"\x00\x00\x00\x01\x00\x01"
+              #new_config = b"\x00\x00\x00\x00\x00\x01"
+              dataId = b'\x01\x42'
+              WRITE_DAT_REQUEST = b'\x2e'
+              WRITE_DAT_RESPONSE = b'\x68'
+              query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw.address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
+              query.get_data(0)
+              print(f"Try {i+1}")
               break
-            except Exception as e:
-              print(f"Failed {i}: {e}") 
-        except Exception as e:
-          print("Failed to enable tracks" + str(e))
-      else:
-        print("EnableRadarTracks Not supported fw..")
-    else:
-      print("END Try to enable radar tracks: fw not found")
-  else:
-    print("END Try to enable radar tracks Skipped!")
+            break
+          except Exception as e:
+            print(f"Failed {i}: {e}") 
+      except Exception as e:
+        print("Failed to enable tracks" + str(e))
+  print("END Try to enable radar tracks")
   # END try to enable radar tracks
