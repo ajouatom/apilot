@@ -58,6 +58,20 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       true,
     },
     {
+      "SccConnectedBus2",
+      "SCC Module connected BUS2",
+      "",
+      "../assets/offroad/icon_warning.png",
+      false,
+    },
+    {
+      "EnableRadarTracks",
+      "EnableRadarTracks",
+      "Using RadarTracks instead of SCC data. SANTAFE2022HEV",
+      "../assets/offroad/icon_warning.png",
+      false,
+    },
+    {
       "IsLdwEnabled",
       tr("Enable Lane Departure Warnings"),
       tr("Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."),
@@ -578,15 +592,15 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CPrebuiltToggle());
 
   // 기타 (Community)
-  toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", false, this));
+  //toggleLayout->addWidget(horizontal_line());
+  //toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", false, this));
+  //toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", false, this));
 
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA 지원", "별도의 단말기에 NDA Manager를 설치하고 같은 네트웍에 물리고 Tmap을 실행하세요", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA: 속도제한(0:None,1:Limit,2:Apply)", "Limit: 속도를 제한합니다. Apply: 제한속도로 실시간 적용합니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapbox", "", "../assets/offroad/icon_road.png", false, this));
+  toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", false, this));
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "Show Debug UI", "", "../assets/offroad/icon_shell.png", false, this));
 }
 
@@ -623,6 +637,8 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
     toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", false, this));
     toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(105%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 1));
+    toggleLayout->addWidget(new CValueControl("TFollowRatio", "위험:차량간격비율(100%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 80, 120, 1));
+    
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "신호정지 감속율 (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
     toggleLayout->addWidget(new CValueControl("E2eDecelSpeed", "모델의 자동속도조절의 적용속도(0Km/h)", "지정속도 이하에서는 모델이 제공하는 속도를 적용합니다. 0: 적용안함.", "../assets/offroad/icon_road.png", 0, 120, 10));

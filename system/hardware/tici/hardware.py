@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import re
 import subprocess
 import time
 from enum import IntEnum
@@ -541,6 +542,14 @@ class Tici(HardwareBase):
     time.sleep(2)
     gpio_set(GPIO.STM_RST_N, 0)
     gpio_set(GPIO.STM_BOOT0, 0)
+	
+  def get_ip_address(self):
+    try:
+      wlan = subprocess.check_output(["ifconfig", "wlan0"], encoding='utf8').strip()
+      pattern = re.compile(r'inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
+      return pattern.search(wlan).group(1)
+    except Exception:
+      return "--"
 
 
 if __name__ == "__main__":

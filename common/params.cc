@@ -240,6 +240,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "EnableRadarTracks", PERSISTENT },        
     { "ApplyDynamicTFollow", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
+    { "TFollowRatio", PERSISTENT },
 };
 
 } // namespace

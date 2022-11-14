@@ -232,6 +232,7 @@ class LongitudinalMpc:
     self.trafficStopModelSpeed = True
     self.e2eDecelSpeed = 0
     self.applyDynamicTFollow = 1.0
+    self.tFollowRatio = 1.0
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.lo_timer = 0 
@@ -397,6 +398,7 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
       self.e2eDecelSpeed = float(int(Params().get("E2eDecelSpeed", encoding="utf8")))
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
+      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.
       
 
     self.trafficState = 0
@@ -409,6 +411,7 @@ class LongitudinalMpc:
 
     v_ego_kph = v_ego * CV.MS_TO_KPH
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
+    self.t_follow *= self.tFollowRatio
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.applyDynamicTFollow, 1.0, self.applyDynamicTFollow])
     self.comfort_brake = COMFORT_BRAKE

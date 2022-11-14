@@ -96,12 +96,14 @@ def get_run_onnx(onnx_model):
       elif n.op_type == "Transpose": ret = inp[0].permute(order=opt['perm'])
       elif n.op_type == "Squeeze": ret = inp[0].reshape([s for i,s in enumerate(inp[0].shape) if i not in opt['axes']])
       elif n.op_type == "Unsqueeze": ret = inp[0].reshape(np.insert(inp[0].shape, opt['axes'][0], 1).tolist())
+      elif n.op_type == "Pow": ret = inp[0].pow(inp[1])
       elif n.op_type == "ReduceL2": ret = inp[0].pow(2).sum(axis=opt['axes'], keepdim=opt['keepdims']).sqrt()
       elif n.op_type == "ReduceSum": ret = inp[0].sum(axis=opt['axes'], keepdim=opt['keepdims'])
       elif n.op_type == "GlobalAveragePool": ret = inp[0].mean(axis=tuple(range(2, len(inp[0].shape))), keepdim=True)
       elif n.op_type == "Shape": ret = inp[0].shape
       elif n.op_type == "Expand": ret = inp[0].reshape([1]*(max(len(inp[0].shape), len(inp[1]))-len(inp[0].shape)) + list(inp[0].shape)) # just broadcast
       elif n.op_type == "Div": ret = inp[0].div(inp[1])
+      elif n.op_type == "Neg": ret = -1*inp[0]
       elif n.op_type == "Constant": ret = opt['value']
       elif n.op_type == "Reshape": ret = inp[0].reshape([int(x) for x in safe_numpy(inp[1])])
       elif n.op_type == "Gather":

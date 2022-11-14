@@ -160,7 +160,7 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
-      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
+      #controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
     return curve_speed_ms
 
@@ -403,12 +403,46 @@ class CruiseHelper:
       self.gasPressedCount += 1
       if CS.gas > self.preGasPressedMax:
         self.preGasPressedMax = CS.gas
+      controls.debugText1 = 'GAS: {:3.1f}/{:3.1f}={:3.1f}'.format(CS.gas*100., self.preGasPressedMax*100., self.gasPressedCount * DT_CTRL)
     else:
       self.preGasPressedMax = 0.0
       self.gasPressedCount = 0
     return v_cruise_kph
 
 def enable_radar_tracks(CP, logcan, sendcan):
+  # START: Try to enable radar tracks
+  print("Try to enable radar tracks")  
+  # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
+  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
+    rdr_fw = None
+    rdr_fw_address = 0x7d0 #일부차량은 다름..
+    if True:
+      for i in range(10):
+        print("O yes")
+      try:
+        for i in range(40):
+          try:
+            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
+            for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
+              print("ecu write data by id ...")
+              new_config = b"\x00\x00\x00\x01\x00\x01"
+              #new_config = b"\x00\x00\x00\x00\x00\x01"
+              dataId = b'\x01\x42'
+              WRITE_DAT_REQUEST = b'\x2e'
+              WRITE_DAT_RESPONSE = b'\x68'
+              query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
+              query.get_data(0)
+              print(f"Try {i+1}")
+              break
+            break
+          except Exception as e:
+            print(f"Failed {i}: {e}") 
+      except Exception as e:
+        print("Failed to enable tracks" + str(e))
+  print("END Try to enable radar tracks")
+  # END try to enable radar tracks
+
+def enable_radar_tracks___bakup(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:

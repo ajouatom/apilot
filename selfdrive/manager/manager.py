@@ -81,7 +81,8 @@ def manager_init() -> None:
     ("LongitudinalTuningKf", "100"),     
     ("EnableRadarTracks", "0"),      
     ("ApplyDynamicTFollow", "105"), 
-    ("SccConnectedBus2", "0"),    
+    ("SccConnectedBus2", "0"),   
+    ("TFollowRatio", "100"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
