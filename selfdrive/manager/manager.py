@@ -78,9 +78,9 @@ def manager_init() -> None:
     ("StopDistance", "600"), 
     ("CustomMapbox", "0"),    
     ("E2eDecelSpeed", "90"),        
-    ("LongitudinalTuningKf", "108"),     
+    ("LongitudinalTuningKf", "100"),     
     ("EnableRadarTracks", "0"),      
-    ("ApplyDynamicTFollow", "110"), 
+    ("ApplyDynamicTFollow", "105"), 
     ("SccConnectedBus2", "0"),    
   ]
   if not PC:
