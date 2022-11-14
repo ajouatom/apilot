@@ -118,7 +118,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
   long_override = CC.cruiseControl.override
-  brakePressed = enabled and CS.out.brakePressed
+  brakePressed = CS.out.brakePressed
   longEnabled = enabled and CC.longActive
   radarAlarm = hud_control.radarAlarm
 
@@ -128,34 +128,24 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
       scc12_accMode = 1
       scc14_accMode = 1
     else:
-      scc12_accMode = 0 if brakePressed else 2  #Brake, Accel, LongActiveUser < 0
-      scc14_accMode = 4 if brakePressed else 2 
+      scc12_accMode = 0 if brakePressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
+      scc14_accMode = 4 if brakePressed else 2 if long_override else 0 
 
-    if False: #CP.carFingerprint in (CAR.KONA_EV):
-      aReqValue = -10.23
-      comfortBandUpper = 0.85 + (accel*0.2) #kona_ev값 보고 계산함.
-      comfortBandLower = 0.8 + (accel*0.2) #Kona_ev값 보고 계산함.
-      jerkUpperLimit = upper_jerk
-      jerkLowerLimit = 0.1 - (accel * 0.2)
-      jerkLowerLimit = 0 if jerkLowerLimit < 0 else jerkLowerLimit
-    else:
-      aReqValue = accel
-      # from neokii
-      if stopping:
-        jerkUpperLimit = 0.5
-        jerkLowerLimit = 10.
-        comfortBandUpper = 0.
+    # from neokii
+    if stopping:
+      jerkUpperLimit = 0.5
+      jerkLowerLimit = 10.
+      comfortBandUpper = 0.
+      comfortBandLower = 0.
+      if CS.out.vEgo > 0.27:
+        comfortBandUpper = 2.
         comfortBandLower = 0.
-        if CS.out.vEgo > 0.27:
-          comfortBandUpper = 2.
-          comfortBandLower = 0.
-      else:
-        jerkUpperLimit = 50.
-        jerkLowerLimit = 50.
-        comfortBandUpper = 50.
-        comfortBandLower = 50.
+    else:
+      jerkUpperLimit = 50.
+      jerkLowerLimit = 50.
+      comfortBandUpper = 50.
+      comfortBandLower = 50.
   else:
-    aReqValue = 0.
     scc12_accMode = 0
     scc14_accMode = 0
     comfortBandUpper = 0.0
@@ -163,8 +153,6 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     jerkUpperLimit = upper_jerk
     jerkLowerLimit = 5.0
 
-  # True: sccBus가 0 (순정배선) 인경우, KONA_EV는 기존 메시지 사용하면 문제생김..
-  #makeNewCommands = True if CP.carFingerprint in (CAR.KONA_EV) or CP.sccBus == 0 else False
   makeNewCommands = True if CP.sccBus == 0 else False
   commands = []
   if makeNewCommands:
@@ -202,7 +190,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
       "ACCMode": scc12_accMode, #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0,
       "StopReq": 1 if stopping else 0,
       "aReqRaw": accel,
-      "aReqValue": aReqValue, # stock ramps up and down respecting jerk limit until it reaches aReqRaw
+      "aReqValue": accel, # stock ramps up and down respecting jerk limit until it reaches aReqRaw
       "CR_VSM_Alive": idx % 0xF,
     }
     scc12_dat = packer.make_can_msg("SCC12", 0, scc12_values)[2]
@@ -214,7 +202,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
     values["StopReq"] = 1 if stopping else 0
     values["aReqRaw"] = accel
-    values["aReqValue"] = aReqValue
+    values["aReqValue"] = accel
 
     values["CR_VSM_ChkSum"] = 0
     values["CR_VSM_Alive"] = idx % 0xF
