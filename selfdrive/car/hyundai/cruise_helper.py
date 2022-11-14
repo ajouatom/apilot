@@ -324,7 +324,7 @@ class CruiseHelper:
           self.cruise_control(controls, CS, -2)
         elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
           v_cruise_kph = v_ego_kph_set
-      elif not CS.gasPressed and self.gasPressedCount > 0:
+      elif not CS.gasPressed and self.gasPressedCount > 2:
         if CS.cruiseGap == 2:
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
@@ -332,7 +332,7 @@ class CruiseHelper:
           if self.longActiveUser <= 0:
             if (resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed) or (self.autoResumeFromGas and CS.gas >= 0.6):
               if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
-                if self.preGasPressedMax > 0.4:
+                if self.preGasPressedMax > 0.3:
                   pass
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
