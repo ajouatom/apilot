@@ -48,7 +48,7 @@ def manager_init() -> None:
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "1"),    
-    ("OpkrPrebuiltOn", "0"),
+    ("OpkrPrebuiltOn", "1"),
     ("AutoCurveSpeedCtrl", "1"),
     ("AutoCurveSpeedFactor", "95"),
     ("AutoNaviSpeedCtrl", "1"),
@@ -61,7 +61,7 @@ def manager_init() -> None:
     ("AChangeCost", "150"),
     ("DangerZoneCost", "100"),
     ("LongControlActiveSound", "1"),
-    ("AccelLimitEcoSpeed", "20"),
+    ("AccelLimitEcoSpeed", "3"),
     ("AccelBoost", "100"),
     ("TrafficStopDistanceAdjust", "400"),
     ("AutoSpeedUptoRoadSpeedLimit", "100"),
@@ -80,7 +80,7 @@ def manager_init() -> None:
     ("E2eDecelSpeed", "90"),        
     ("LongitudinalTuningKf", "108"),     
     ("EnableRadarTracks", "0"),      
-    ("ApplyDynamicTFollow", "105"), 
+    ("ApplyDynamicTFollow", "110"), 
     ("SccConnectedBus2", "0"),    
   ]
   if not PC:

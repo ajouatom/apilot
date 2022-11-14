@@ -46,8 +46,8 @@ class CruiseHelper:
     self.curve_speed_last = 255
     self.longActiveUser = 0
     self.preBrakePressed = False
-    self.preGasPressed = False
     self.preGasPressedMax = 0.0
+    self.gasPressedCount = 0
     self.curvature = 0
     self.position_x = 1000.0
     self.position_y = 300.0
@@ -249,6 +249,17 @@ class CruiseHelper:
     self.curve_speed_last = curve_speed
     return curve_speed * CV.MS_TO_KPH
 
+  def v_cruise_speed_up(self, v_cruise_kph, roadSpeed):
+    temp = 30 if roadSpeed < 0 else roadSpeed
+    if v_cruise_kph < temp:
+      v_cruise_kph = roadSpeed
+    else:
+      for speed in range (40, 150, 10):
+        if v_cruise_kph < speed:
+          v_cruise_kph = speed
+          break
+    return v_cruise_kph
+
   def update_v_cruise_apilot(self, v_cruise_kph, buttonEvents, enabled, metric, controls, CS):
     self.update_params(controls.sm.frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
@@ -283,14 +294,7 @@ class CruiseHelper:
             if self.longActiveUser != 1 and xState == "SOFT_HOLD":
               self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
             elif self.cruiseButtonMode in [1,2]:
-              temp = 30 if roadSpeed < 0 else roadSpeed
-              if v_cruise_kph < temp:
-                v_cruise_kph = roadSpeed
-              else:
-                for speed in range (40, 150, 10):
-                  if v_cruise_kph < speed:
-                    v_cruise_kph = speed
-                    break
+              v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
             else:
               v_cruise_kph = buttonSpeed
         elif button == ButtonType.decelCruise:
@@ -320,7 +324,7 @@ class CruiseHelper:
           self.cruise_control(controls, CS, -2)
         elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
           v_cruise_kph = v_ego_kph_set
-      elif not CS.gasPressed and self.preGasPressed:
+      elif not CS.gasPressed and self.gasPressedCount > 0:
         if CS.cruiseGap == 2:
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
@@ -340,6 +344,10 @@ class CruiseHelper:
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
+          else:
+            if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0:  #1초이내에 Gas페달을 잡았다가 놓으면...
+              v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
+
       elif not CS.brakePressed and self.preBrakePressed and self.autoResumeFromBrakeRelease:
         if resume_cond and v_ego_kph > 3.0 and self.autoResumeFromBrakeReleaseDist < dRel:
           v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
@@ -391,12 +399,13 @@ class CruiseHelper:
       #  self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
 
     self.preBrakePressed = CS.brakePressed
-    self.preGasPressed = CS.gasPressed
     if CS.gasPressed:
+      self.gasPressedCount += 1
       if CS.gas > self.preGasPressedMax:
         self.preGasPressedMax = CS.gas
     else:
       self.preGasPressedMax = 0.0
+      self.gasPressedCount = 0
     return v_cruise_kph
 
 def enable_radar_tracks(CP, logcan, sendcan):

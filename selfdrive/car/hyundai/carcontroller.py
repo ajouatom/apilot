@@ -198,12 +198,8 @@ class CarController:
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
         jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
-        if self.CP.sccBus == 0:
-          can_sends.extend(hyundaican.create_acc_commands(self.packer, CC.enabled and CC.longActive, accel, jerk, int(self.frame / 2), self.CP.carFingerprint,
-                                                        hud_control.leadVisible, set_speed_in_units, stopping, CC.cruiseControl.override))
-        else:
-          can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
-                                                        hud_control, set_speed_in_units, stopping, CC, CS))
+        can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
+                                                      hud_control, set_speed_in_units, stopping, CC, CS))
 
       # 20 Hz LFA MFA message
       if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,

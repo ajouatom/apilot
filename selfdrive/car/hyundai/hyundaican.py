@@ -124,12 +124,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
-    if longEnabled:
-      scc12_accMode = 1
-      scc14_accMode = 1
-    else:
-      scc12_accMode = 0 if brakePressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
-      scc14_accMode = 4 if brakePressed else 2 if long_override else 0 
+    scc12_accMode = 1 if longEnabled else 0 if brakePressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
+    scc14_accMode = 1 if longEnabled else 4 if brakePressed else 2 if long_override else 0 
 
     # from neokii
     if stopping:
@@ -233,6 +229,17 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["ObjGap"] = abs(hud_control.objGap) #2 if lead_visible else 0
     values["ObjGap2"] = 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
     commands.append(packer.make_can_msg("SCC14", 0, values))
+
+  if makeNewCommands:
+    fca11_values = {
+      "CR_FCA_Alive": idx % 0xF,
+      "PAINT1_Status": 1,
+      "FCA_DrvSetStatus": 1,
+      "FCA_Status": 1, # AEB disabled
+    }
+    fca11_dat = packer.make_can_msg("FCA11", 0, fca11_values)[2]
+    fca11_values["CR_FCA_ChkSum"] = hyundai_checksum(fca11_dat[:7])
+    commands.append(packer.make_can_msg("FCA11", 0, fca11_values))
 
   return commands
 
