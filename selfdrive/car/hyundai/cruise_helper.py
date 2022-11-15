@@ -446,7 +446,7 @@ def enable_radar_tracks___bakup(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
-  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
+  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO, CAR.HYUNDAI_GENESIS]:
     rdr_fw = None
     for fw in CP.carFw:
       if fw.ecu == "fwdRadar":

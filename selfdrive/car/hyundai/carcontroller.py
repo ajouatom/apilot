@@ -7,6 +7,7 @@ from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR
 import random
+from common.params import Params
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -55,6 +56,7 @@ class CarController:
     self.car_fingerprint = CP.carFingerprint
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
+    self.jerkUpperLowerLimit = 12.0       
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -85,6 +87,8 @@ class CarController:
     can_sends = []
 
     # *** common hyundai stuff ***
+    if self.frame % 100 == 0:
+      self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
 
     # tester present - w/ no response (keeps relevant ECU disabled)
     if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.sccBus == 0:
@@ -197,7 +201,7 @@ class CarController:
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
-        jerk = 3.0 if actuators.longControlState == LongCtrlState.pid else 1.0
+        jerk = self.jerkUpperLowerLimit if actuators.longControlState == LongCtrlState.pid else 1.0  #comma: jerk=3
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 

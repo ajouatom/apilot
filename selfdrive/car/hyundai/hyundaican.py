@@ -126,21 +126,26 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if enabled:
     scc12_accMode = 1 if longEnabled else 0 if brakePressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 1 if longEnabled else 4 if brakePressed else 2 if long_override else 0 
-
-    # from neokii
-    if stopping:
-      jerkUpperLimit = 0.5
-      jerkLowerLimit = 10.
-      comfortBandUpper = 0.
-      comfortBandLower = 0.
-      if CS.out.vEgo > 0.27:
-        comfortBandUpper = 2.
+    if False: #CP.carFingerprint in (CAR.KONA_EV):
+      # from neokii
+      if stopping:
+        jerkUpperLimit = 0.5
+        jerkLowerLimit = 10.
+        comfortBandUpper = 0.
         comfortBandLower = 0.
+        if CS.out.vEgo > 0.27:
+          comfortBandUpper = 2.
+          comfortBandLower = 0.
+      else:
+        jerkUpperLimit = 50.
+        jerkLowerLimit = 50.
+        comfortBandUpper = 50.
+        comfortBandLower = 50.
     else:
-      jerkUpperLimit = 50.
-      jerkLowerLimit = 50.
-      comfortBandUpper = 50.
-      comfortBandLower = 50.
+      comfortBandUpper = 0.0
+      comfortBandLower = 0.0
+      jerkUpperLimit = upper_jerk
+      jerkLowerLimit = 5.0
   else:
     scc12_accMode = 0
     scc14_accMode = 0

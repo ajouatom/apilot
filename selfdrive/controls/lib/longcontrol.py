@@ -67,6 +67,7 @@ class LongControl:
     self.longitudinalActuatorDelayUpperBoundCost = 1.0
     self.longitudinalActuatorDelayLowerBoundCost = 1.0
     self.longitudinalTuningKf = 1.0
+    self.longitudinalTuningKpV = 1.0
     self.accelBoost = 1.0
 
   def reset(self, v_pid):
@@ -81,7 +82,11 @@ class LongControl:
       self.longitudinalActuatorDelayUpperBoundCost = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) / 100.
       self.longitudinalActuatorDelayLowerBoundCost = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) / 100.
       self.longitudinalTuningKf = float(int(Params().get("LongitudinalTuningKf", encoding="utf8"))) / 100.
+      self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) / 100.
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
+
+      self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
+      self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
       
     longitudinalActuatorDelayLowerBound = self.CP.longitudinalActuatorDelayLowerBound * 1.0 #self.longitudinalActuatorDelayLowerBoundCost
     longitudinalActuatorDelayUpperBound = self.CP.longitudinalActuatorDelayUpperBound * 1.0 #self.longitudinalActuatorDelayUpperBoundCost

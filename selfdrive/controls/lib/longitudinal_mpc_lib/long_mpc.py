@@ -398,8 +398,7 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
       self.e2eDecelSpeed = float(int(Params().get("E2eDecelSpeed", encoding="utf8")))
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
-      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.
-      
+      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
 
     self.trafficState = 0
     self.debugLongText1 = ""
