@@ -423,7 +423,7 @@ def enable_radar_tracks(CP, logcan, sendcan):
       b'TM__ SCC FHCUP      1.00 1.00 99110-S1500 \x04!\x15\x07    ',
       b'TMhe SCC FHCUP      1.00 1.00 99110-CL500 \x04$\x164    ', 
       b'\xf1\x00TMhe SCC FHCUP      1.00 1.00 99110-CL500         ', # SANTAFE_HEV
-      b'\xf1\x00FE__ SCC FHCUP      1.00 1.03 99110-M5000         ' #NEXO
+      b'\xf1\x00FE__ SCC FHCUP      1.00 1.03 99110-M5000         ', #NEXO
       b'\xf1\x00FE__ SCC FHCUP      1.00 1.04 99110-M5000         ' #NEXO2
       ]:
       for i in range(10):
