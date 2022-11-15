@@ -7,6 +7,25 @@ APILOT
 * NDA지원
 * 조향시 20%의 가속유지
 * 롱컨 파라미터를 항상 ON하도록 함
+* 튜닝 설정값 (기본값)
+  * StopDistance: 600
+  * 신호정지 위치 조정: 300
+  * 신호정지 모델속도: OFF
+  * LongitudinalTuningKf: 100
+  * X_EGO_OBSTACLE_COST: 3
+  * J_EGO_COST: 5
+  * A_CHANGE_COST: 50
+  * DANGER_ZONE_COST: 100
+  * 차량간격유지 동적제어: OFF
+  * 차량간격 동적제어: 105~110
+  * 차량간격 비율: 100
+  * 신호감지 감속율: 80
+  * 모델의 자동속도조절의 적용속도: 0
+  * 초기가속제한속도: 3
+  * 모델혼잡시 조향가속비율적용: ON
+  * 가속도 제어: 100
+  * 모델커브속도조절: ON
+
 * 테스트된차량: SCC모듈(레이더) 배선개조 CAN BUS2로 연결된차량
   * Hyundai SANTAFE HYBRID Hybrid 2022 (배선개조 안된것도 가능,단,AEB off됨)
   * Kia STINGER
