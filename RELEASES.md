@@ -1,3 +1,11 @@
+221115 - APILOT
+========================
+* EnableRadarTracks: SANTAFE_HEV, NEXO 지원
+* EnableRadarTracks: 차량등록만하면 지원하도록 수정함.
+* WifiAddress표시
+* 위험: 선행차량 간격 조절 설정 (차량간격 동적제어기능과 같이 사용할것!)
+* Model: vq_driving
+
 221114 - APILOT
 ========================
 * 차량간격(t_follow)동적제어 기능
