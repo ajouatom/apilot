@@ -29,8 +29,8 @@ def get_radar_can_parser(CP):
       ]
       checks += [(msg, 50)]
     print("RadarInterface: RadarTracks..")
-    return CANParser(DBC[CP.carFingerprint]['radar'], signals, checks, 1)
-    #return CANParser('hyundai_kia_mando_front_radar_generated', signals, checks, 1)
+    #return CANParser(DBC[CP.carFingerprint]['radar'], signals, checks, 1)
+    return CANParser('hyundai_kia_mando_front_radar_generated', signals, checks, 1)
 
   else:
     signals = [
