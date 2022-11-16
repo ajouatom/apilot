@@ -61,6 +61,8 @@ class CarInterface(CarInterfaceBase):
         # ICE cars do not have 0x130; GEARS message on 0x40 instead
         if 0x130 not in fingerprint[4]:
           ret.flags |= HyundaiFlags.CANFD_ALT_GEARS.value
+        if candidate not in CANFD_RADAR_SCC_CAR:
+          ret.flags |= HyundaiFlags.CANFD_CAMERA_SCC.value
 
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerLimitTimer = 0.4
@@ -190,7 +192,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.5
       if candidate == CAR.KIA_OPTIMA_G4:
         ret.minSteerSpeed = 32 * CV.MPH_TO_MS
-    elif candidate == CAR.KIA_STINGER:
+    elif candidate in (CAR.KIA_STINGER, CAR.KIA_STINGER_2022):
       ret.mass = 1825. + STD_CARGO_KG
       ret.wheelbase = 2.78
       ret.steerRatio = 14.4 * 1.15   # 15% higher at the center seems reasonable
@@ -234,6 +236,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3673.0 * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.83
       ret.steerRatio = 12.9
+    elif candidate == CAR.GENESIS_GV70_1ST_GEN:
+      ret.mass = 1950. + STD_CARGO_KG
+      ret.wheelbase = 2.87
+      ret.steerRatio = 14.6
     elif candidate == CAR.GENESIS_G80:
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
@@ -247,7 +253,7 @@ class CarInterface(CarInterfaceBase):
     if candidate in CANFD_CAR:
       ret.longitudinalTuning.kpV = [0.1]
       ret.longitudinalTuning.kiV = [0.0]
-      ret.experimentalLongitudinalAvailable = bool(ret.flags & HyundaiFlags.CANFD_HDA2)
+      ret.experimentalLongitudinalAvailable = candidate in (HYBRID_CAR | EV_CAR) and candidate not in CANFD_RADAR_SCC_CAR
     else:
       ret.longitudinalTuning.kpV = [0.5]
       ret.longitudinalTuning.kiV = [0.0]
@@ -283,7 +289,8 @@ class CarInterface(CarInterfaceBase):
       else:
         experimental_long = False
 
-      ret.experimentalLongitudinalAvailable = True #candidate not in LEGACY_SAFETY_MODE_CAR or candidate in {CAR.KIA_STINGER, CAR.HYUNDAI_GENESIS, CAR.KONA_EV, CAR.GRANDEUR_IG}
+      ret.experimentalLongitudinalAvailable = candidate not in (LEGACY_SAFETY_MODE_CAR | CAMERA_SCC_CAR)
+      ret.experimentalLongitudinalAvailable = True
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
 
@@ -343,7 +350,7 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl and CP.sccBus == 0:
+    if CP.openpilotLongitudinalControl and not (CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value) and CP.sccBus == 0:
       addr, bus = 0x7d0, 0
       if CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5

@@ -255,6 +255,10 @@ void AnnotatedCameraWidget::initializeGL() {
 
   prev_draw_t = millis_since_boot();
   setBackgroundColor(bg_colors[STATUS_DISENGAGED]);
+  
+  engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
+  experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size - 5, img_size - 5});
+
 
   // neokii
   ic_brake = QPixmap("../assets/images/img_brake_disc.png").scaled(img_size, img_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
@@ -298,6 +302,8 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   painter.save();
 
   const UIScene &scene = s->scene;
+  SubMaster &sm = *(s->sm);
+
   // lanelines
   for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
     painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i], 0.0, 0.7)));
@@ -313,8 +319,8 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   // paint path
   QLinearGradient bg(0, height(), 0, height() / 4);
   float start_hue, end_hue;
-  if (scene.experimental_mode) {
-    const auto &acceleration = (*s->sm)["modelV2"].getModelV2().getAcceleration();
+  if (sm["controlsState"].getControlsState().getExperimentalMode()) {
+    const auto &acceleration = sm["modelV2"].getModelV2().getAcceleration();
     float acceleration_future = 0;
     if (acceleration.getZ().size() > 16) {
       acceleration_future = acceleration.getX()[16];  // 2.5 seconds
@@ -432,7 +438,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     } else if (v_ego > 15) {
       wide_cam_requested = false;
     }
-    wide_cam_requested = wide_cam_requested && s->scene.experimental_mode;
+    wide_cam_requested = wide_cam_requested && sm["controlsState"].getControlsState().getExperimentalMode();
     // TODO: also detect when ecam vision stream isn't available
     // for replay of old routes, never go to widecam
     wide_cam_requested = wide_cam_requested && s->scene.calibration_wide_valid;
@@ -507,7 +513,9 @@ void AnnotatedCameraWidget::drawIcon(QPainter &p, int x, int y, QPixmap &img, QB
   p.setBrush(bg);
   p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
   p.setOpacity(opacity);
-  p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
+  //p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
+  p.drawPixmap(x - img.size().width() / 2, y - img.size().height() / 2, img);
+
 }
 
 void AnnotatedCameraWidget::drawText2(QPainter &p, int x, int y, int flags, const QString &text, const QColor& color) {
@@ -548,7 +556,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   drawSteer(p);
   drawDeviceState(p);
   //drawTurnSignals(p);
-  drawGpsStatus(p);
+  if(width() > 1200) drawGpsStatus(p);
 
   if(s->show_debug && width() > 1200)
     drawDebugText(p);
@@ -588,6 +596,16 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   p.restore();
 
   drawBottomIcons(p);
+
+  const auto cs = sm["controlsState"].getControlsState();
+  bool engageable = cs.getEngageable() || cs.getEnabled();
+  // engage-ability icon
+  if (engageable) {
+    //SubMaster &sm = *(uiState()->sm);
+    drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
+             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : engage_img, blackColor(166), 1.0);
+  }
+  
 }
 
 static const QColor get_tpms_color(float tpms) {
@@ -769,9 +787,9 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
       configFont(p, "Open Sans", 120, "Bold");
       //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
-      p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
+      p.drawText(QRect(280, 50, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
       configFont(p, "Open Sans", 60, "Bold");
-      p.drawText(QRect(270, 50 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
+      p.drawText(QRect(280, 50 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
   }
 
   p.restore();
@@ -1023,7 +1041,7 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
   p.save();
 
   int x = 30;
-  int y = 480;// 540;
+  int y = 500;// 540;
 
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
@@ -1044,7 +1062,7 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
   p.drawText(rect, Qt::AlignCenter, str);
 
   str.sprintf("%.1f°", desire_angle);
-  rect.setRect(x, y + 80, width, width);
+  rect.setRect(x, y + 60, width, width);
 
   p.setPen(QColor(155, 255, 155, 200));
   p.drawText(rect, Qt::AlignCenter, str);
@@ -1263,7 +1281,7 @@ void AnnotatedCameraWidget::drawGpsStatus(QPainter &p) {
 
   int w = 120;
   int h = 100;
-  int x = width() - w - 30;
+  int x = width() - w - 30 - 250;
   int y = 30;
 
   p.save();

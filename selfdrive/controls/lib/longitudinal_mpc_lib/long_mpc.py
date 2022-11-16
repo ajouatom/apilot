@@ -409,7 +409,7 @@ class LongitudinalMpc:
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
     v_ego_kph = v_ego * CV.MS_TO_KPH
-    self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) if self.mode == 'acc' else T_FOLLOW
+    self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) #if self.mode == 'acc' else T_FOLLOW
     self.t_follow *= self.tFollowRatio
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.applyDynamicTFollow, 1.0, self.applyDynamicTFollow])

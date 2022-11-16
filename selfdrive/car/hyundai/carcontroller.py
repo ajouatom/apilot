@@ -91,7 +91,7 @@ class CarController:
       self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
 
     # tester present - w/ no response (keeps relevant ECU disabled)
-    if self.frame % 100 == 0 and self.CP.openpilotLongitudinalControl and self.CP.sccBus == 0:
+    if self.frame % 100 == 0 and not (self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value) and self.CP.openpilotLongitudinalControl:
       addr, bus = 0x7d0, 0
       if self.CP.flags & HyundaiFlags.CANFD_HDA2.value:
         addr, bus = 0x730, 5
@@ -128,7 +128,8 @@ class CarController:
         can_sends.append(hyundaicanfd.create_lfahda_cluster(self.packer, self.CP, CC.enabled))
 
       if self.CP.openpilotLongitudinalControl:
-        can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.frame))
+        if hda2:
+          can_sends.extend(hyundaicanfd.create_adrv_messages(self.packer, self.frame))
         if self.frame % 2 == 0:
           can_sends.append(hyundaicanfd.create_acc_control(self.packer, self.CP, CC.enabled, self.accel_last, accel, stopping, CC.cruiseControl.override,
                                                            set_speed_in_units))
@@ -201,7 +202,7 @@ class CarController:
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
-        jerk = self.jerkUpperLowerLimit if actuators.longControlState == LongCtrlState.pid else 1.0  #comma: jerk=3
+        jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid, LongCtrlState.starting] else 1.0  #comma: jerk=3
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 

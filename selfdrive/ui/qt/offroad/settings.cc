@@ -34,70 +34,62 @@
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon, confirm
-  std::vector<std::tuple<QString, QString, QString, QString, bool>> toggle_defs{
+  std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs{
     {
       "OpenpilotEnabledToggle",
       tr("Enable openpilot"),
       tr("Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off."),
       "../assets/offroad/icon_openpilot.png",
-      false,
     },
     {
       "ExperimentalMode",
-      tr("Experimental mode"),
+      tr("Experimental Mode"),
       "",
-      "../assets/offroad/icon_road.png",
-      false,
+      "../assets/img_experimental_white.svg",
     },
     {
       "ExperimentalLongitudinalEnabled",
-      tr("Experimental openpilot longitudinal control"),
-      tr("<b>WARNING: openpilot longitudinal control is experimental for this car and will disable AEB.</b><br>\
-          openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control on this car. Enable this to switch to openpilot longitudinal control."),
+      tr("Experimental openpilot Longitudinal Control"),
+      QString("<b>%1</b><br>%2")
+      .arg(tr("WARNING: openpilot longitudinal control is experimental for this car and will disable Automatic Emergency Braking (AEB)."))
+      .arg(tr("On this car, openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control. Enabling Experimental mode is recommended when using experimental openpilot longitudinal control.")),
       "../assets/offroad/icon_speed_limit.png",
-      true,
     },
     {
       "SccConnectedBus2",
       "SCC Module connected BUS2",
       "",
       "../assets/offroad/icon_warning.png",
-      false,
     },
     {
       "EnableRadarTracks",
       "EnableRadarTracks",
       "Using RadarTracks instead of SCC data. SANTAFE2022HEV",
       "../assets/offroad/icon_warning.png",
-      false,
     },
     {
       "IsLdwEnabled",
       tr("Enable Lane Departure Warnings"),
       tr("Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."),
       "../assets/offroad/icon_warning.png",
-      false,
     },
     {
       "IsMetric",
       tr("Use Metric System"),
       tr("Display speed in km/h instead of mph."),
       "../assets/offroad/icon_metric.png",
-      false,
     },
     {
       "RecordFront",
       tr("Record and Upload Driver Camera"),
       tr("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
       "../assets/offroad/icon_monitoring.png",
-      false,
     },
     {
       "DisengageOnAccelerator",
-      tr("Disengage On Accelerator Pedal"),
+      tr("Disengage on Accelerator Pedal"),
       tr("When enabled, pressing the accelerator pedal will disengage openpilot."),
       "../assets/offroad/icon_disengage_on_accelerator.svg",
-      false,
     },
 #ifdef ENABLE_MAPS
     {
@@ -105,20 +97,18 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Show ETA in 24h Format"),
       tr("Use 24h format instead of am/pm"),
       "../assets/offroad/icon_metric.png",
-      false,
     },
     {
       "NavSettingLeftSide",
       tr("Show Map on Left Side of UI"),
       tr("Show map on left side when in split screen view."),
       "../assets/offroad/icon_road.png",
-      false,
     },
 #endif
   };
 
-  for (auto &[param, title, desc, icon, confirm] : toggle_defs) {
-    auto toggle = new ParamControl(param, title, desc, icon, confirm, this);
+  for (auto &[param, title, desc, icon] : toggle_defs) {
+    auto toggle = new ParamControl(param, title, desc, icon, this);
 
     bool locked = false;// params.getBool((param + "Lock").toStdString());
     toggle->setEnabled(!locked);
@@ -127,9 +117,18 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     toggles[param.toStdString()] = toggle;
   }
 
+  // Toggles with confirmation dialogs
+  toggles["ExperimentalMode"]->setActiveIcon("../assets/img_experimental.svg");
+  toggles["ExperimentalMode"]->setConfirmation(true, true);
+  toggles["ExperimentalLongitudinalEnabled"]->setConfirmation(true, false);
+
   connect(toggles["ExperimentalLongitudinalEnabled"], &ToggleControl::toggleFlipped, [=]() {
     updateToggles();
   });
+}
+
+void TogglesPanel::expandToggleDescription(const QString &param) {
+  toggles[param.toStdString()]->showDescription();
 }
 
 void TogglesPanel::showEvent(QShowEvent *event) {
@@ -142,10 +141,15 @@ void TogglesPanel::updateToggles() {
   const QString e2e_description = tr("\
     openpilot defaults to driving in <b>chill mode</b>.\
     Experimental mode enables <b>alpha-level features</b> that aren't ready for chill mode. \
-    Experimental features are listed below:\
+    Experimental features are listed below: \
     <br> \
     <h4>🌮 End-to-End Longitudinal Control 🌮</h4> \
-    Let the driving model control the gas and brakes. openpilot will drive as it thinks a human would, including stopping for red lights and stop signs.");
+    Let the driving model control the gas and brakes. openpilot will drive as it thinks a human would, including stopping for red lights and stop signs. \
+    Since the driving model decides the speed to drive, the set speed will only act as an upper bound. This is an alpha quality feature; mistakes should be expected. \
+    <br> \
+    <h4>New Driving Visualization</h4> \
+    The driving visualization will transition to the road-facing wide-angle camera at low speeds to better show some turns. The Experimental mode logo will also be shown in the top right corner.\
+    ");
 
   auto cp_bytes = params.get("CarParamsPersistent");
   if (!cp_bytes.empty()) {
@@ -169,8 +173,8 @@ void TogglesPanel::updateToggles() {
       e2e_toggle->setEnabled(false);
       params.remove("ExperimentalMode");
 
-      const QString no_long = tr("openpilot longitudinal control is not currently available for this car.");
-      const QString exp_long = tr("Enable experimental longitudinal control to enable this.");
+      const QString no_long = tr("Experimental mode is currently unavailable on this car, since the car's stock ACC is used for longitudinal control.");
+      const QString exp_long = tr("Enable experimental longitudinal control to allow experimental mode.");
       e2e_toggle->setDescription("<b>" + (CP.getExperimentalLongitudinalAvailable() ? exp_long : no_long) + "</b><br><br>" + e2e_description);
     }
 
@@ -389,8 +393,15 @@ static QStringList get_list(const char* path)
 }
 
 void SettingsWindow::showEvent(QShowEvent *event) {
-  panel_widget->setCurrentIndex(0);
-  nav_btns->buttons()[0]->setChecked(true);
+  setCurrentPanel(0);
+}
+
+void SettingsWindow::setCurrentPanel(int index, const QString &param) {
+  panel_widget->setCurrentIndex(index);
+  nav_btns->buttons()[index]->setChecked(true);
+  if (!param.isEmpty()) {
+    emit expandToggleDescription(param);
+  }
 }
 
 SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
@@ -433,11 +444,13 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
   QObject::connect(device, &DevicePanel::closeSettings, this, &SettingsWindow::closeSettings);
+  TogglesPanel *toggles = new TogglesPanel(this);
+  QObject::connect(this, &SettingsWindow::expandToggleDescription, toggles, &TogglesPanel::expandToggleDescription);
 
   QList<QPair<QString, QWidget *>> panels = {
     {tr("Device"), device},
     {tr("Network"), new Networking(this)},
-    {tr("Toggles"), new TogglesPanel(this)},
+    {tr("Toggles"), toggles},
     {tr("Software"), new SoftwarePanel(this)},
     {"크루즈", new CruisePanel(this)},
     {"튜닝", new TuningPanel(this)},
@@ -593,15 +606,15 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   // 기타 (Community)
   //toggleLayout->addWidget(horizontal_line());
-  //toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", false, this));
-  //toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", false, this));
+  //toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", this));
+  //toggleLayout->addWidget(new ParamControl("EnableRadarTracks", "EnableRadarTracks", "SCC데이터를 사용하지않고 RadarTracks정보를 사용합니다. 지원차량: SANTAFE2022HEV", "../assets/offroad/icon_road.png", this));
 
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA 지원", "별도의 단말기에 NDA Manager를 설치하고 같은 네트웍에 물리고 Tmap을 실행하세요", "../assets/offroad/icon_road.png", false, this));
+  toggleLayout->addWidget(new ParamControl("AutoNaviSpeedCtrl", "NDA 지원", "별도의 단말기에 NDA Manager를 설치하고 같은 네트웍에 물리고 Tmap을 실행하세요", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("AutoRoadLimitCtrl", "NDA: 속도제한(0:None,1:Limit,2:Apply)", "Limit: 속도를 제한합니다. Apply: 제한속도로 실시간 적용합니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
-  toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", false, this));
-  toggleLayout->addWidget(new ParamControl("ShowDebugUI", "Show Debug UI", "", "../assets/offroad/icon_shell.png", false, this));
+  toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
+  toggleLayout->addWidget(new ParamControl("ShowDebugUI", "Show Debug UI", "", "../assets/offroad/icon_shell.png", this));
 }
 
 TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
@@ -638,20 +651,20 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 4, 10, 1));
     toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(100)", "적으면 선행차에 대한 반응이 강해집니다. ", "../assets/offroad/icon_road.png", 20, 400, 10));
     toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
-    toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어(OFF)", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 동적제어(OFF)", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격동적제어(105%)", "선행차와의 상대속도에 의해 차량간격을 동적으로 제어합니다. 점점가까와지면 점점 멀리~", "../assets/offroad/icon_road.png", 100, 150, 1));
-    toggleLayout->addWidget(new CValueControl("TFollowRatio", "위험:차량간격비율(100%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 80, 120, 1));
+    toggleLayout->addWidget(new CValueControl("TFollowRatio", "위험:차량간격비율(100%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 70, 120, 1));
     
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "신호정지 감속율 (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
-    toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도(OFF)", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도(OFF)", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("E2eDecelSpeed", "모델의 자동속도조절의 적용속도(90Km/h)", "지정속도 이하에서는 모델이 제공하는 속도를 적용합니다. 0: 적용안함.", "../assets/offroad/icon_road.png", 0, 120, 10));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("AccelLimitEcoSpeed", "초기가속제한 속도(3km/h)", "지정속도까지 가속도를 제한합니다. 출발시 충격 방지!!", "../assets/offroad/icon_road.png", 0, 100, 1));
-    toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용(ON)", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용(ON)", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다. 크루즈갭:3일 때 만 적용됨 ", "../assets/offroad/icon_road.png", 50, 200, 10));
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "모델커브속도조절(ON)", "곡선도로를 만나면 속도를 줄여줍니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "모델커브속도조절(ON)", "곡선도로를 만나면 속도를 줄여줍니다.", "../assets/offroad/icon_road.png", this));
     //toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(95%)", "적으면 속도를 많이 줄입니다.", "../assets/offroad/icon_road.png", 50, 150, 1));
 
 }
@@ -675,18 +688,18 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     vlayout->addWidget(scroller, 1);
 
     // 크루즈
-    toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차속도에 크루즈속도맞추기(+40km/h)", "선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
     toggleLayout->addWidget(new CValueControl("InitCruiseGap", "크루즈갭 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:E2E OFF모드", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:관성주행모드(-)버튼이용.", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "엑셀크루즈ON:속도", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 40, 5));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "엑셀크루즈ON:속도설정방법", "0:현재속도, 1:이전속도, 2: 선행차량이 있을때만 이전속도", "../assets/offroad/icon_road.png", 0, 2, 1));
-    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "브레이크해제 크루즈ON 사용", "브레이크를 떼면 크르즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "브레이크해제 크루즈ON 사용", "브레이크를 떼면 크르즈를 켭니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "브레이크해제 크루즈ON:선행차거리", "브레이크를 떼고, 선행차가 거리이상이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 0, 80, 5));
-    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "브레이크해제 크루즈ON:정지상태,선행차10M이내", "정지상태에서 선행차량이 10M이내이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", false, this));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "브레이크해제 크루즈ON:정지상태,선행차10M이내", "정지상태에서 선행차량이 10M이내이면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", this));
 
 }
 

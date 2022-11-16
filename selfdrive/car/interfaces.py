@@ -88,7 +88,7 @@ class CarInterfaceBase(ABC):
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
     return ACCEL_MIN, ACCEL_MAX
 
   @staticmethod
@@ -254,8 +254,8 @@ class CarInterfaceBase(ABC):
       # Enable OP long on falling edge of enable buttons (defaults to accelCruise and decelCruise, overridable per-port)
       if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed) and not cs_out.cruiseState.pcmMode:
         events.add(EventName.buttonEnable)
-      # Disable on rising edge of cancel for both stock and OP long
-      if b.type == ButtonType.cancel and b.pressed:
+      # Disable on rising and falling edge of cancel for both stock and OP long
+      if b.type == ButtonType.cancel:
         events.add(EventName.buttonCancel)
 
     # Handle permanent and temporary steering faults

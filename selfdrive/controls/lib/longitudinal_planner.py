@@ -92,10 +92,9 @@ class LongitudinalPlanner:
       y = np.zeros(len(T_IDXS_MPC))
     return x, v, a, j, y
 
-  def update(self, sm):
-    if self.param_read_counter % 50 == 0:
-      #self.read_param()
-      pass
+  def update(self, sm, read=True):
+    if self.param_read_counter % 50 == 0 and read:
+      self.read_param()
     self.param_read_counter += 1
 
     v_ego = sm['carState'].vEgo
@@ -154,7 +153,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error)
 
-    self.mpc.mode = 'acc'
+    #self.mpc.mode = 'acc'
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise_sol, x, v, a, j, y, prev_accel_constraint)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)

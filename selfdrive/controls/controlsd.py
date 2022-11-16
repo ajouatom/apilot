@@ -718,10 +718,11 @@ class Controls:
     else:
       self.pcmLongSpeed = 255.
 
+    xCruiseTarget = int(self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 0.5)
     if self.CP.openpilotLongitudinalControl:
-      self.pcmLongSpeed = self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH
+      self.pcmLongSpeed = xCruiseTarget
     else:
-      self.pcmLongSpeed = max(30, self.sm['longitudinalPlan'].xCruiseTarget * CV.MS_TO_KPH + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
+      self.pcmLongSpeed = max(30, xCruiseTarget + 3.0)# speeds[0] * CV.MS_TO_KPH + 3.0
 
     hudControl = CC.hudControl
 
@@ -834,6 +835,7 @@ class Controls:
     controlsState.startMonoTime = int(start_time * 1e9)
     controlsState.forceDecel = bool(force_decel)
     controlsState.canErrorCounter = self.can_rcv_timeout_counter
+    controlsState.experimentalMode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
 
     lat_tuning = self.CP.lateralTuning.which()
     if self.joystick_mode:
