@@ -508,13 +508,20 @@ void AnnotatedCameraWidget::drawTextWithColor(QPainter &p, int x, int y, const Q
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
-void AnnotatedCameraWidget::drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity) {
+void AnnotatedCameraWidget::drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity, float rotate/*=0.0*/) {
   p.setPen(Qt::NoPen);
   p.setBrush(bg);
   p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
   p.setOpacity(opacity);
   //p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
-  p.drawPixmap(x - img.size().width() / 2, y - img.size().height() / 2, img);
+  if (rotate < 0.0 || rotate >0.0) {
+      QMatrix rm;
+      rm.rotate(rotate);
+      QPixmap img2 = img;
+      img2 = img2.transformed(rm);
+      p.drawPixmap(x - img2.size().width() / 2, y - img2.size().height() / 2, img2);
+  }
+  else p.drawPixmap(x - img.size().width() / 2, y - img.size().height() / 2, img);
 
 }
 
@@ -553,10 +560,10 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   }
   drawMaxSpeed(p);
   drawSpeed(p);
-  drawSteer(p);
+  //drawSteer(p);
   drawDeviceState(p);
   //drawTurnSignals(p);
-  if(width() > 1200) drawGpsStatus(p);
+  //if(width() > 1200) drawGpsStatus(p);
 
   if(s->show_debug && width() > 1200)
     drawDebugText(p);
@@ -593,17 +600,31 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   p.setPen(QColor(0xff, 0xff, 0xff, 200));
   p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
   p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
+
+  auto car_state = sm["carState"].getCarState();
+  float steer_angle =  car_state.getSteeringAngleDeg();
+  auto gps = sm["gpsLocationExternal"].getGpsLocationExternal();
+  float accuracy = gps.getAccuracy();
+  QString str;
+  if (accuracy < 0.01f || accuracy > 20.f);
+  else {
+      str.sprintf("GPS: %4.1fm", accuracy);
+      p.drawText(rect().right() - 230, 40, str);
+  }
+  str.sprintf("%.1f°", steer_angle);
+  p.drawText(QRect(rect().right() - 230, 240, 170, 50), Qt::AlignHCenter | Qt::AlignTop, str);
   p.restore();
 
   drawBottomIcons(p);
 
+
   const auto cs = sm["controlsState"].getControlsState();
   bool engageable = cs.getEngageable() || cs.getEnabled();
   // engage-ability icon
-  if (engageable) {
+  if (1 || engageable) {
     //SubMaster &sm = *(uiState()->sm);
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
-             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : engage_img, blackColor(166), 1.0);
+             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : engage_img, blackColor(166), 1.0, -steer_angle);
   }
   
 }
@@ -785,11 +806,11 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   if (width() > 1200) {
       // ajouatom: 현재시간표시
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
-      configFont(p, "Open Sans", 120, "Bold");
+      configFont(p, "Open Sans", 110, "Bold");
       //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
-      p.drawText(QRect(280, 50, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
+      p.drawText(QRect(280, 15, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
       configFont(p, "Open Sans", 60, "Bold");
-      p.drawText(QRect(280, 50 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
+      p.drawText(QRect(280, 15 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
   }
 
   p.restore();
@@ -1276,13 +1297,13 @@ void AnnotatedCameraWidget::drawGpsStatus(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto gps = sm["gpsLocationExternal"].getGpsLocationExternal();
   float accuracy = gps.getAccuracy();
-  if(accuracy < 0.01f || accuracy > 20.f)
-    return;
+  if (accuracy < 0.01f || accuracy > 20.f)
+      return;
 
   int w = 120;
   int h = 100;
   int x = width() - w - 30 - 250;
-  int y = 30;
+  int y = 30+50;
 
   p.save();
 

@@ -22,7 +22,7 @@ class CarControllerParams:
   ACC_CONTROL_STEP = 2                    # ACC_06/ACC_07/ACC_System frequency 50Hz
 
   ACCEL_MAX = 2.0                         # 2.0 m/s max acceleration
-  ACCEL_MIN = -3.5                        # 3.5 m/s max deceleration
+  ACCEL_MIN = -4.0 #-3.5                        # 3.5 m/s max deceleration
 
   def __init__(self, CP):
     # Documented lateral limits: 3.00 Nm max, rate of change 5.00 Nm/sec.

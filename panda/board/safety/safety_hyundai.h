@@ -19,7 +19,7 @@ const SteeringLimits HYUNDAI_STEERING_LIMITS = {
 };
 
 const int HYUNDAI_MAX_ACCEL = 200;  // 1/100 m/s2
-const int HYUNDAI_MIN_ACCEL = -350; // 1/100 m/s2
+const int HYUNDAI_MIN_ACCEL = -400; // -350; // 1/100 m/s2
 
 const CanMsg HYUNDAI_TX_MSGS[] = {
   {832, 0, 8},  // LKAS11 Bus 0
