@@ -449,6 +449,15 @@ class LongitudinalMpc:
         else:
           self.startSignCount = 0
 
+        # SOFT_HOLD: 기능
+        if carstate.brakePressed and v_ego < 0.1:  
+          self.softHoldTimer += 1
+          if self.softHoldTimer*DT_MDL >= 1.0: 
+            self.xState = "SOFT_HOLD"
+            self.e2ePaused = False
+        else:
+          self.softHoldTimer = 0
+
         #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
           if v_ego < 0.5: # 정지상태이면...
@@ -458,13 +467,6 @@ class LongitudinalMpc:
             self.xState = "LEAD"
           elif self.startSignCount*DT_MDL >= 0.3: # 0.3초 이상 신호바뀜..
             self.xState = "E2E_CRUISE"
-          if carstate.brakePressed and v_ego < 0.1:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. E2E_STOP2
-            self.softHoldTimer += 1
-            if self.softHoldTimer*DT_MDL >= 1.0: 
-              self.xState = "SOFT_HOLD"
-              self.e2ePaused = False
-          else:
-            self.softHoldTimer = 0
           if carstate.gasPressed or (self.longActiveUser> 0 and longActiveUserChanged==1):       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True

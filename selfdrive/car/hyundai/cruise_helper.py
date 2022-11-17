@@ -43,6 +43,7 @@ class CruiseHelper:
   def __init__(self):
     self.mapValid = 0
     self.v_cruise_kph_apply = 20
+    self.v_cruise_kph_backup = 20
     self.curve_speed_last = 255
     self.longActiveUser = 0
     self.preBrakePressed = False
@@ -242,7 +243,7 @@ class CruiseHelper:
     #controls.debugText1 = str1
     self.roadLimitSpeed = controls.sm['roadLimitSpeed'].roadLimitSpeed
 
-    return clip(apply_limit_speed, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
+    return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, 30, MAX_SET_SPEED_KPH)
 
   def update_speed_curve(self, CS, controls):
     curve_speed = self.cal_curve_speed(controls, CS.vEgo, controls.sm.frame, self.curve_speed_last)
@@ -284,11 +285,13 @@ class CruiseHelper:
       if buttonLong:
         if button in [ButtonType.accelCruise, ButtonType.decelCruise]:
           v_cruise_kph = buttonSpeed
+          self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
       else:
         self.cruiseButtons = button
         if button == ButtonType.accelCruise:          
           if self.longActiveUser <= 0:
             self.cruise_control(controls, CS, 1)
+            v_cruise_kph = self.v_cruise_kph_backup #브레이크를 밟기전 속도로 복원..
           else:
             if self.longActiveUser != 1 and xState == "SOFT_HOLD":
               self.cruise_control(controls, CS, 1) # SOFT_HOLD인경우 버튼으로 출발할수 있도록.
@@ -313,12 +316,16 @@ class CruiseHelper:
                 self.cruise_control(controls, CS, -1)
               else:
                 v_cruise_kph = buttonSpeed
+        self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
       ###### gas, brake관련 처리...
       if CS.brakePressed:
         self.cruise_control(controls, CS, -2)
+        if not self.preBrakePressed:
+          self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
         if v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
           v_cruise_kph = v_ego_kph_set
+          self.v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
         if xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
         elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
@@ -332,14 +339,14 @@ class CruiseHelper:
             if (resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed) or (self.autoResumeFromGas and CS.gas >= 0.6):
               if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
                 if self.preGasPressedMax > 0.3:
-                  pass
+                  v_cruise_kph = self.v_cruise_kph_backup # 30%이상 GAS를 밟으면..
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
-                pass
+                 v_cruise_kph = self.v_cruise_kph_backup 
               elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
                 if dRel > 0:
-                  pass
+                  v_cruise_kph = self.v_cruise_kph_backup 
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
@@ -389,13 +396,15 @@ class CruiseHelper:
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl and naviSpeed > 0:
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, naviSpeed)
-      if roadSpeed > 0:
+      if roadSpeed > 30:
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
       #if self.autoCurveSpeedCtrl:
       #  self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+    else: #not enabled
+      self.v_cruise_kph_backup = v_cruise_kph #not enabled
 
     self.preBrakePressed = CS.brakePressed
     if CS.gasPressed:
