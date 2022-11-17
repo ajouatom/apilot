@@ -10,6 +10,7 @@ from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
 from common.conversions import Conversions as CV
 from common.params import Params
 from common.realtime import DT_MDL
+from common.filter_simple import FirstOrderFilter
 
 if __name__ == '__main__':  # generating code
   from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
@@ -237,6 +238,10 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
+    self.filter_x = FirstOrderFilter(0., 0.1, DT_MDL)
+    self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
+    self.vRel_prev = 1000
+    self.vEgo_prev = 0
 
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
@@ -411,8 +416,20 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) #if self.mode == 'acc' else T_FOLLOW
     self.t_follow *= self.tFollowRatio
+
+    aRel = 0.
+    aMyCar = (v_ego - self.vEgo_prev) / DT_MDL
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [10., 0, -10.], [2. - self.applyDynamicTFollow, 1.0, self.applyDynamicTFollow])
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-20., 0, 20.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
+      self.t_follow *= interp(aMyCar, [-2, 0], [self.applyDynamicTFollow, 1.0])
+      if self.vRel_prev < 1000:
+        aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
+        #self.t_follow *= interp(aRel, [-1., 0, 4.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
+      self.vRel_prev = radarstate.leadOne.vRel
+    else:
+      self.vRel_prev = 1000
+      self.filter_aRel.update(0)
+
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
@@ -430,7 +447,8 @@ class LongitudinalMpc:
     if self.mode == 'acc':
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      model_x = x[N] 
+      self.filter_x.update(x[-1] - v_ego*DT_MDL)
+      model_x = self.filter_x.x #x[N] 
       longActiveUserChanged = 0
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
@@ -439,10 +457,12 @@ class LongitudinalMpc:
         self.e2ePaused = False
 
       if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
-        startSign = v[-1] > 5.0
+
+        #1단계: 모델값을 이용한 신호감지
+        startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
         #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         #stopSign = v_ego*CV.MS_TO_KPH<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.60)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        stopSign = v_ego_kph<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.30)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        stopSign = v_ego_kph<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
@@ -458,7 +478,7 @@ class LongitudinalMpc:
         else:
           self.softHoldTimer = 0
 
-        #E2E_STOP: 감속정지상태, 정지선 밖(2M이상)에 차량이 있어도 무시, 상태유지: 정지상태에서는 전방에 리드가 감지되어도 정지해야함. 
+        #2단계: 신호감지조건과 주행조건과의 관계로 상태 결정.
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
           if v_ego < 0.5: # 정지상태이면...
             model_x = 0.0
@@ -488,6 +508,7 @@ class LongitudinalMpc:
       else:
         self.xState = "CRUISE"
 
+      #3단계: 조건에 따른. 감속및 주행.
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
         model_x = 1000.0
       elif self.xState == "E2E_CRUISE":
@@ -504,7 +525,7 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
-        if self.trafficStopModelSpeed:
+        if False: #self.trafficStopModelSpeed:
           v_cruise = v[0]
 
       self.longActiveUser = controls.longActiveUser
@@ -521,8 +542,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      self.debugLongText1 = 'Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
-        y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      self.debugLongText1 = 'A{:.2f},{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
+        aRel, aMyCar, y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
@@ -578,6 +599,7 @@ class LongitudinalMpc:
         self.source = 'lead1'
 
     self.v_cruise = v_cruise
+    self.vEgo_prev = v_ego
 
   def run(self):
     # t0 = sec_since_boot()
@@ -609,7 +631,7 @@ class LongitudinalMpc:
     self.j_solution = self.u_sol[:,0]
 
     self.prev_a = np.interp(T_IDXS + 0.05, T_IDXS, self.a_solution)
-
+    
     t = sec_since_boot()
     if self.solution_status != 0:
       if t > self.last_cloudlog_t + 5.0:

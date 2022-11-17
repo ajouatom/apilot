@@ -574,7 +574,7 @@ class Controls:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
           self.v_cruise_helper.initialize_v_cruise(CS)
-          self.cruise_helper.longActiveUser = 1 
+          self.cruise_helper.longActiveUser = 0 
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
@@ -611,6 +611,10 @@ class Controls:
     longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) #and self.CP.openpilotLongitudinalControl
     longActiveUser = self.cruise_helper.longActiveUser
     CC.longActive = longActive1 and longActiveUser > 0
+
+    hudControl = CC.hudControl
+    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
+
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
@@ -727,8 +731,8 @@ class Controls:
     hudControl = CC.hudControl
 
     hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
-    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
-    hudControl.radarAlarm = False #True if self.cruise_helper.radarAlarmCount > 0 else False
+    #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
+    hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 0 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead

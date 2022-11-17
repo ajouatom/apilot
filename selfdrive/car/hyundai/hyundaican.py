@@ -124,8 +124,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
-    scc12_accMode = 1 if longEnabled else 0 if brakePressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
-    scc14_accMode = 1 if longEnabled else 4 if brakePressed else 2 if long_override else 0 
+    scc12_accMode = 1 if longEnabled else 0 if brakePressed or CS.out.gasPressed else 2 if long_override else 0 #Brake, Accel, LongActiveUser < 0
+    scc14_accMode = 1 if longEnabled else 4 if brakePressed or CS.out.gasPressed else 2 if long_override else 0 
     if False: #CP.carFingerprint in (CAR.KONA_EV):
       # from neokii
       if stopping:

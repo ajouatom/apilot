@@ -98,7 +98,7 @@ protected:
   void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model);
 
   int m_fps = 0;
-
+  float m_cur_speed = 0;
 };
 
 // container for all onroad widgets

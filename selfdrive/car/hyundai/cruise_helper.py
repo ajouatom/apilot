@@ -61,6 +61,7 @@ class CruiseHelper:
     self.radarAlarmCount = 0
     self.dRel = 0
     self.vRel = 0
+    self.trafficState = 0
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -275,7 +276,12 @@ class CruiseHelper:
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
 
     if dRel==0 and 5 < self.dRel < 20.0: ## 레이더가 갑자기 사라지면...
-      self.radarAlarmCount = 500
+      #self.radarAlarmCount = 500
+      pass
+    if xState == "SOFT_HOLD" and self.longActiveUser>0:
+      if self.trafficState == 1 and controls.sm['longitudinalPlan'].trafficState == 2:
+        self.radarAlarmCount = 500
+    self.trafficState = controls.sm['longitudinalPlan'].trafficState
     self.dRel = dRel
     self.vRel = vRel
     self.radarAlarmCount = self.radarAlarmCount - 1 if self.radarAlarmCount > 0 else 0

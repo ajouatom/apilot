@@ -87,7 +87,7 @@ const LogCameraInfo cameras_logged[] = {
     .bitrate = MAIN_BITRATE,
     .is_h265 = true,
     .has_qcamera = false,
-    .record = true,
+    .record = false,
     .frame_width = 1928,
     .frame_height = 1208,
   },

@@ -657,7 +657,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "신호정지 감속율 (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
-    toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도(OFF)", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", this));
+    //toggleLayout->addWidget(new ParamControl("TrafficStopModelSpeed", "신호정지 모델속도(OFF)", "신호정지시 모델에서 제공하는 속도를 따름니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("E2eDecelSpeed", "모델의 자동속도조절의 적용속도(90Km/h)", "지정속도 이하에서는 모델이 제공하는 속도를 적용합니다. 0: 적용안함.", "../assets/offroad/icon_road.png", 0, 120, 10));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("AccelLimitEcoSpeed", "초기가속제한 속도(3km/h)", "지정속도까지 가속도를 제한합니다. 출발시 충격 방지!!", "../assets/offroad/icon_road.png", 0, 100, 1));
