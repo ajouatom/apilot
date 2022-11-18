@@ -625,9 +625,11 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   float steer_angle =  car_state.getSteeringAngleDeg();
   auto gps = sm["gpsLocationExternal"].getGpsLocationExternal();
   float accuracy = gps.getAccuracy();
+  bool gpsOn = false;
   QString str;
   if (accuracy < 0.01f || accuracy > 20.f);
   else {
+      gpsOn = true;
       str.sprintf("GPS: %4.1fm", accuracy);
       p.drawText(rect().right() - 230, 40, str);
   }
@@ -644,7 +646,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   if (1 || engageable) {
     //SubMaster &sm = *(uiState()->sm);
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
-             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : engage_img, blackColor(166), 1.0, -steer_angle);
+             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : gpsOn? ic_satellite :engage_img, blackColor(166), 1.0, -steer_angle);
   }
   
 }

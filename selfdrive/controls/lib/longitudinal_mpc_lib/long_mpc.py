@@ -238,7 +238,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.filter_x = FirstOrderFilter(0., 0.1, DT_MDL)
+    self.filter_x = FirstOrderFilter(0., 0.5, DT_MDL)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
@@ -453,6 +453,8 @@ class LongitudinalMpc:
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
+        if longActiveUserChanged in [-1, 1]: #버튼으로 +-움직이면 신호정지 재계
+          self.e2ePaused = False
       if v_ego_kph > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (model_x > 40.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
@@ -462,7 +464,7 @@ class LongitudinalMpc:
         startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
         #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
         #stopSign = v_ego*CV.MS_TO_KPH<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.60)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        stopSign = v_ego_kph<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
