@@ -221,6 +221,8 @@ class CruiseHelper:
         elif ButtonPrev == ButtonType.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - -v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.decelCruise
+        elif ButtonPrev == ButtonType.gapAdjustCruise:
+          button_type = ButtonType.gapAdjustCruise
         ButtonCnt %= 70
     v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
@@ -280,7 +282,7 @@ class CruiseHelper:
       pass
     if xState == "SOFT_HOLD" and self.longActiveUser>0:
       if self.trafficState == 1 and controls.sm['longitudinalPlan'].trafficState == 2:
-        self.radarAlarmCount = 500
+        self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
     self.trafficState = controls.sm['longitudinalPlan'].trafficState
     self.dRel = dRel
     self.vRel = vRel
@@ -292,6 +294,10 @@ class CruiseHelper:
         if button in [ButtonType.accelCruise, ButtonType.decelCruise]:
           v_cruise_kph = buttonSpeed
           self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
+        elif button == ButtonType.gapAdjustCruise:  ##안먹네.... 나중에 보자~
+          myDrivingMode = int(Params().get("MyDrivingMode"))
+          myDrivingMode = myDrivingMode + 1 if myDrivingMode < 4 else 1
+          Params().put("MyDrivingMode", str(myDrivingMode))
       else:
         self.cruiseButtons = button
         if button == ButtonType.accelCruise:          
@@ -338,7 +344,7 @@ class CruiseHelper:
           #v_cruise_kph = v_ego_kph_set
           pass
       elif not CS.gasPressed and self.gasPressedCount > 2:
-        if CS.cruiseGap == 2:
+        if CS.myDrivingMode == 2:
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
         else:

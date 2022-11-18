@@ -202,7 +202,10 @@ class CarController:
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
-        jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid, LongCtrlState.starting] else 1.0  #comma: jerk=3
+        startingJerk = 1
+        if self.CP.carFingerprint in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):
+          startingJerk = 5
+        jerk = self.jerkUpperLowerLimit if actuators.longControlState == LongCtrlState.pid else startingJerk  #comma: jerk=3
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 

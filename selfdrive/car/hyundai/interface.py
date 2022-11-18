@@ -301,7 +301,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.stoppingControl = True
     ret.startingState = True
-    ret.vEgoStarting = 0.1
+    ret.vEgoStarting = 0.2
     ret.startAccel = 1.0 #2.0 comma
     ret.longitudinalActuatorDelayLowerBound = 0.5
     ret.longitudinalActuatorDelayUpperBound = 0.5
@@ -382,6 +382,7 @@ class CarInterface(CarInterfaceBase):
         if self.CS.cruise_buttons[-1] == Buttons.GAP_DIST:
           self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1
           print("cruiseGap=", self.cruiseGap )
+          Params().put("PrevCruiseGap", str(self.cruiseGap))
 
     if not self.CS.CP.openpilotLongitudinalControl:
       self.cruiseGap = ret.cruiseGap

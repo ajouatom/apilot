@@ -691,7 +691,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new ParamControl("AutoSyncCruiseSpeed", "가속시 크루즈속도를 맞춤", "가속시 주행속도가 크루즈 속도보다 높아지면 맞춰줍니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차속도에 크루즈속도맞추기(+40km/h)", "선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
-    toggleLayout->addWidget(new CValueControl("InitCruiseGap", "크루즈갭 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:E2E OFF모드", "../assets/offroad/icon_road.png", 1, 4, 1));
+    toggleLayout->addWidget(new CValueControl("InitMyDrivingMode", "드라이브모드 초기값(3)", "1:연비모드,2:관성제어모드,3:일반주행모드,4:고속모드(신호무시)", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:사용자속도제어1, 2:사용자속도제어2", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀크루즈ON", "엑셀을 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", this));

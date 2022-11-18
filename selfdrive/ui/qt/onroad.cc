@@ -137,7 +137,18 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
     return;
   }
 
-  if (map != nullptr) {
+  QRect gapRect(302-10, 773-10, 192+20, 192+20);
+  if (gapRect.contains(e->x(), e->y())) {
+      const SubMaster& sm = *(uiState()->sm);
+      auto car_state = sm["carState"].getCarState();
+      int myDrivingMode = car_state.getMyDrivingMode();
+      myDrivingMode++;
+      if (myDrivingMode > 4) myDrivingMode = 1;
+      QString values = QString::number(myDrivingMode);
+      Params().put("MyDrivingMode", values.toStdString());
+      return;
+  }
+  else if (map != nullptr) {
     bool sidebarVisible = geometry().x() > 0;
     map->setVisible(!sidebarVisible && !map->isVisible());
   }
@@ -410,7 +421,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
 
   if (radar_detected) {
       float radar_rel_speed = lead_radar.getVRel();
-      str.sprintf("%.1fkm/h", m_cur_speed + radar_rel_speed * 3.6);
+      str.sprintf("%.0fkm/h", m_cur_speed + radar_rel_speed * 3.6);
       if (radar_rel_speed < -0.1) textColor = QColor(255, 0, 255, 200);
       else if (radar_rel_speed > 0.1) textColor = QColor(0, 255, 0, 200);
       else textColor = QColor(255, 255, 255, 200);
@@ -712,14 +723,20 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
 
   // cruise gap
   int gap = car_state.getCruiseGap();
+  int myDrivingMode = car_state.getMyDrivingMode();
   //bool longControl = 0;// scc_smoother.getLongControl();
   //int autoTrGap = 0;// scc_smoother.getAutoTrGap();
 
   p.setPen(Qt::NoPen);
   p.setBrush(QBrush(QColor(0, 0, 0, 255 * .1f)));
   p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
+  //int x1 = x - radius / 2;
+  //int y1 = y - radius / 2;
+  //QRect rectGap(x1, y1, radius, radius);
+  //printf("%d %d %d\n", x1, y1, radius); // 302, 773, 192
+  //p.drawRect(rectGap);
 
-  QString str;
+  QString str, strDrivingMode;
   float textSize = 50.f;
   QColor textColor = QColor(255, 255, 255, 200);
 
@@ -727,12 +744,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     str = "N/A";
   }
   else if (s->scene.longitudinal_control) {
-    switch (gap) {
-      case 1: str = "연비"; break;
-      case 2: str = "관성"; break;
-      case 3: str = "일반"; break;
-      case 4: str = "고속"; break;
-    }
+    str.sprintf("%d", (int)gap);
     //str = "AUTO";
     textColor = QColor(120, 255, 120, 200);
   }
@@ -742,8 +754,16 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     textSize = 70.f;
   }
 
+  switch (myDrivingMode)
+  {
+  case 0: strDrivingMode = "GAP"; break;
+  case 1: strDrivingMode = "연비"; break;
+  case 2: strDrivingMode = "관성"; break;
+  case 3: strDrivingMode = "일반"; break;
+  case 4: strDrivingMode = "고속"; break;
+  }
   configFont(p, "Inter", 35, "Bold");
-  drawText(p, x, y-20, "GAP", 200);
+  drawText(p, x, y-20, strDrivingMode, 200);
 
   configFont(p, "Inter", textSize, "Bold");
   drawTextWithColor(p, x, y+50, str, textColor);
@@ -757,10 +777,12 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
 
   // auto hold
   const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+  const auto cs = sm["controlsState"].getControlsState();
   QString xState = lp.getXState().cStr();
+  int enabled = cs.getEnabled();
   int brake_hold = car_state.getBrakeHoldActive();
   int autohold = (xState == "SOFT_HOLD") ? 1 : 0;
-  if(s->scene.longitudinal_control) autohold = (xState == "SOFT_HOLD") ? 1 : 0;
+  if(s->scene.longitudinal_control) autohold = (enabled && xState == "SOFT_HOLD") ? 1 : 0;
   else autohold = (brake_hold > 0) ? 1 : 0;
   if(true) {
 

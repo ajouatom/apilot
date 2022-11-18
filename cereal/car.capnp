@@ -223,6 +223,7 @@ struct CarState {
   # neokii
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
+  myDrivingMode @50 : Int32; #0: Eco, Eco2, Normal, Speed
 
   struct Tpms {
     fl @0 :Float32;

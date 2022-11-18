@@ -238,8 +238,9 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.filter_x = FirstOrderFilter(0., 0.5, DT_MDL)
+    self.filter_x = FirstOrderFilter(0., 1.0, DT_MDL)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
+    self.filter_aMyCar = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
 
@@ -416,11 +417,13 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
     self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) #if self.mode == 'acc' else T_FOLLOW
     self.t_follow *= self.tFollowRatio
+    cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [0.8, 0.9, 1.0, 1.1])
+    self.t_follow *= cruiseGapRatio
 
     aRel = 0.
-    aMyCar = (v_ego - self.vEgo_prev) / DT_MDL
+    aMyCar = self.filter_aMyCar.update((v_ego - self.vEgo_prev) / DT_MDL)
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-20., 0, 20.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-20., 0, 40.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
       self.t_follow *= interp(aMyCar, [-2, 0], [self.applyDynamicTFollow, 1.0])
       if self.vRel_prev < 1000:
         aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
@@ -447,24 +450,29 @@ class LongitudinalMpc:
     if self.mode == 'acc':
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      self.filter_x.update(x[-1] - v_ego*DT_MDL)
-      model_x = self.filter_x.x #x[N] 
       longActiveUserChanged = 0
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
       if controls.longActiveUser != self.longActiveUser:
         longActiveUserChanged = controls.longActiveUser
         if longActiveUserChanged in [-1, 1]: #버튼으로 +-움직이면 신호정지 재계
           self.e2ePaused = False
-      if v_ego_kph > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (model_x > 40.0 and abs(y[-1])<15.0)):
+      if v_ego_kph > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (x[-1] > 40.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
-      if carstate.cruiseGap <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
+      if carstate.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
 
         #1단계: 모델값을 이용한 신호감지
         startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
-        #stopSign = model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.95)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        #stopSign = v_ego*CV.MS_TO_KPH<80.0 and model_x < 120.0 and ((v[-1] < 3.0) or (v[-1] < v_ego*0.60)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~
-        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        stopSign = v_ego_kph<80.0 and x[-1] < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        if stopSign and self.trafficState != 1:
+          self.filter_x.x = x[-1]
+        elif startSign and self.trafficState != 2:
+          self.filter_x.x = x[-1]
+        elif abs(self.filter_x.x - x[-1]) > 20.0:
+          self.filter_x.x = x[-1]
+        else:
+          self.filter_x.update(x[-1] - v_ego*DT_MDL)
+        model_x = self.filter_x.x #x[N] 
         self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
@@ -509,6 +517,7 @@ class LongitudinalMpc:
               self.xState = "SOFT_HOLD"
       else:
         self.xState = "CRUISE"
+        self.trafficState = 0
 
       #3단계: 조건에 따른. 감속및 주행.
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:

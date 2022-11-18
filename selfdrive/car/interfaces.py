@@ -71,7 +71,9 @@ class CarInterfaceBase(ABC):
     self.CS = None
     self.can_parsers = []
 
-    self.cruiseGap = int(Params().get("InitCruiseGap"))
+    self.cruiseGap = int(Params().get("PrevCruiseGap"))
+    self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
+    Params().put("MyDrivingMode", str(self.myDrivingMode))
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -204,6 +206,9 @@ class CarInterfaceBase(ABC):
     if ret.cruiseState.speedCluster == 0:
       ret.cruiseState.speedCluster = ret.cruiseState.speed
 
+    if self.frame % 10 == 0:
+      self.myDrivingMode = int(Params().get("MyDrivingMode"))
+    ret.myDrivingMode = self.myDrivingMode
     # copy back for next iteration
     reader = ret.as_reader()
     if self.CS is not None:

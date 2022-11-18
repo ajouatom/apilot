@@ -226,10 +226,14 @@ class CarState(CarStateBase):
     ret.tpms.rl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RL"]
     ret.tpms.rr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_RR"]
 
-    self.scc11 = copy.copy(cp_cruise.vl["SCC11"])
-    self.scc12 = copy.copy(cp_cruise.vl["SCC12"])
-    self.scc13 = copy.copy(cp_cruise.vl["SCC13"]) if "SCC13" in cp_cruise.vl else None
-    self.scc14 = copy.copy(cp_cruise.vl["SCC14"])
+    #self.scc11 = copy.copy(cp_cruise.vl["SCC11"])
+    #self.scc12 = copy.copy(cp_cruise.vl["SCC12"])
+    #self.scc13 = copy.copy(cp_cruise.vl["SCC13"]) if "SCC13" in cp_cruise.vl else None
+    #self.scc14 = copy.copy(cp_cruise.vl["SCC14"])
+    self.scc11 = cp_cruise.vl["SCC11"]
+    self.scc12 = cp_cruise.vl["SCC12"]
+    self.scc13 = cp_cruise.vl["SCC13"] if "SCC13" in cp_cruise.vl else None
+    self.scc14 = cp_cruise.vl["SCC14"]
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
     decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
     if 0. < decimal < 0.5:
@@ -537,6 +541,8 @@ class CarState(CarStateBase):
         ("SCCMode2", "SCC14"),
         ("ComfortBandUpper", "SCC14"),
         ("ComfortBandLower", "SCC14"),
+
+        ("SCC14_Signal_29", "SCC14"),
       ]
       checks += [
         ("SCC11", 50),

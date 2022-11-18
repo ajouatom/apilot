@@ -162,7 +162,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     "TauGapSet": cruiseGap,
     "VSetDis": set_speed if enabled else 0,
     "AliveCounterACC": idx % 0x10,
-    "SCCInfoDisplay" : 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 2 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
+    "SCCInfoDisplay" : 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 0 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비 <= 주의 2를 선택하면... 선행차아이콘이 안나옴.
     "ObjValid": 1, # close lead makes controls tighter
     "ACC_ObjStatus": 1, # close lead makes controls tighter
     "ACC_ObjLatPos": 0,
@@ -177,7 +177,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["VSetDis"] = set_speed if enabled else 0
     values["AliveCounterACC"] = idx % 0x10
     #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
-    values["SCCInfoDisplay"] = 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 2 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
+    values["SCCInfoDisplay"] = 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
     values["ObjValid"] = 1
     values["ACC_ObjStatus"] = 1
     values["ACC_ObjLatPos"] = 0
