@@ -248,6 +248,11 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2200
       ret.wheelbase = 3.15
       ret.steerRatio = 12.069
+    elif candidate in [CAR.K7, CAR.K7_HEV]:
+      ret.mass = 1850. + STD_CARGO_KG
+      ret.wheelbase = 2.855
+      ret.steerRatio = 15.5
+      tire_stiffness_factor = 0.7
 
     # *** longitudinal control ***
     if candidate in CANFD_CAR:
