@@ -666,7 +666,8 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoCurveSpeedCtrl", "모델커브속도조절(ON)", "곡선도로를 만나면 속도를 줄여줍니다.", "../assets/offroad/icon_road.png", this));
     //toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(95%)", "적으면 속도를 많이 줄입니다.", "../assets/offroad/icon_road.png", 50, 150, 1));
-
+    toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "SteerActuatorDelay(100msec)", "값이 크면 모델이 제공하는 조향이 빨라집니다.", "../assets/offroad/icon_road.png", -100, 300, 10));
+    
 }
 CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
 

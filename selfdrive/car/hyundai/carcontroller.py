@@ -184,18 +184,18 @@ class CarController:
             self.last_button_frame = self.frame
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                can_sends.extend([hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint)]*8)
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
               elif CC.longActive:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                can_sends.extend([hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint)]*8)
                 #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
             elif target < current:
               if current >= 31:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+                can_sends.extend([hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint)]*8)
                 #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
             elif target > current:
               if current < 160:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+                can_sends.extend([hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint)]*8)
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
       CC.debugTextCC = "221114a"
