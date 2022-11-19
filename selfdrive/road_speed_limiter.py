@@ -347,12 +347,12 @@ class RoadSpeedLimiter:
         #cam_limit_speed_ms = cam_limit_speed * (CV.KPH_TO_MS if is_metric else CV.MPH_TO_MS)
 
         #starting_dist = v_ego * 30.
-        starting_dist = v_ego * 20.
+        starting_dist = v_ego * 22.
 
         if cam_type == 22:
           safe_dist = v_ego * 3.
         else:
-          safe_dist = v_ego * 4 #6.
+          safe_dist = v_ego * 5 #6.
 
         if MIN_LIMIT <= cam_limit_speed <= MAX_LIMIT and (self.slowing_down or cam_limit_speed_left_dist < starting_dist):
           if not self.slowing_down:

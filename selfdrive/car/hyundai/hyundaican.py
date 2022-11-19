@@ -121,6 +121,9 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   brakePressed = CS.out.brakePressed
   longEnabled = enabled and CC.longActive
   radarAlarm = hud_control.radarAlarm
+  d = hud_control.objDist
+  objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
+  objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
@@ -163,11 +166,11 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     "VSetDis": set_speed if enabled else 0,
     "AliveCounterACC": idx % 0x10,
     "SCCInfoDisplay" : 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 0 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비 <= 주의 2를 선택하면... 선행차아이콘이 안나옴.
-    "ObjValid": 1, # close lead makes controls tighter
-    "ACC_ObjStatus": 1, # close lead makes controls tighter
-    "ACC_ObjLatPos": 0,
-    "ACC_ObjRelSpd": 0,
-    "ACC_ObjDist": 1, # close lead makes controls tighter
+    "ObjValid": 1 if lead_visible else 0, # close lead makes controls tighter
+    "ACC_ObjStatus": 1 if lead_visible else 0, # close lead makes controls tighter
+    #"ACC_ObjLatPos": 0,
+    "ACC_ObjRelSpd": hud_control.objRelSpd,
+    "ACC_ObjDist": hud_control.objDist, # close lead makes controls tighter
     }
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
   else:
@@ -178,11 +181,11 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["AliveCounterACC"] = idx % 0x10
     #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
     values["SCCInfoDisplay"] = 3 if longEnabled and radarAlarm else 4 if longEnabled and softHold else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
-    values["ObjValid"] = 1
-    values["ACC_ObjStatus"] = 1
-    values["ACC_ObjLatPos"] = 0
-    values["ACC_ObjRelSpd"] = 0
-    values["ACC_ObjDist"] = 1
+    values["ObjValid"] = 1 if lead_visible else 0
+    values["ACC_ObjStatus"] = 1 if lead_visible else 0
+    #values["ACC_ObjLatPos"] = 0
+    values["ACC_ObjRelSpd"] = hud_control.objRelSpd
+    values["ACC_ObjDist"] = hud_control.objDist
     commands.append(packer.make_can_msg("SCC11", 0, values))
 
   # SCC12.ACCMode: Init: 0, Brake: 0, Accel:2, Cruise: 1   KONA_EV에서 측정함.
@@ -220,8 +223,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
       "JerkUpperLimit": jerkUpperLimit, # stock usually is 1.0 but sometimes uses higher values
       "JerkLowerLimit": jerkLowerLimit, # stock usually is 0.5 but sometimes uses higher values
       "ACCMode": scc14_accMode, #0 if not enabled else 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4, # stock will always be 4 instead of 0 after first disengage
-      "ObjGap": abs(hud_control.objGap), # 2 if lead_visible else 0, # 5: >30, m, 4: 25-30 m, 3: 20-25 m, 2: < 20 m, 0: no lead
-      "ObjGap2" : 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
+      "ObjGap": objGap,
+      "ObjGap2" : objGap2,
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
   else:
@@ -231,8 +234,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["JerkUpperLimit"] = jerkUpperLimit
     values["JerkLowerLimit"] = jerkLowerLimit
     values["ACCMode"] = scc14_accMode #0 if not enabled else 4 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 4 # stock will always be 4 instead of 0 after first disengage
-    values["ObjGap"] = abs(hud_control.objGap) #2 if lead_visible else 0
-    values["ObjGap2"] = 1 if hud_control.objGap > 0 else 2 if hud_control.objGap < 0 else 0
+    values["ObjGap"] = objGap
+    values["ObjGap2"] = objGap2
     commands.append(packer.make_can_msg("SCC14", 0, values))
 
   if makeNewCommands:

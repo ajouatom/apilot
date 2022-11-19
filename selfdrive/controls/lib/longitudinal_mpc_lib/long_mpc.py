@@ -468,16 +468,17 @@ class LongitudinalMpc:
           self.filter_x.x = x[-1]
         elif startSign and self.trafficState != 2:
           self.filter_x.x = x[-1]
-        elif abs(self.filter_x.x - x[-1]) > 20.0:
-          self.filter_x.x = x[-1]
+        #elif abs(self.filter_x.x - x[-1]) > 20.0:
+        #  self.filter_x.x = x[-1]
         else:
           self.filter_x.update(x[-1] - v_ego*DT_MDL)
         model_x = self.filter_x.x #x[N] 
-        self.trafficState = 1 if stopSign else 2 if startSign else 0 
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
         else:
           self.startSignCount = 0
+
+        self.trafficState = 1 if stopSign else 2 if self.startSignCount*DT_MDL > 0.3 else self.trafficState #0 
 
         # SOFT_HOLD: 기능
         if carstate.brakePressed and v_ego < 0.1:  

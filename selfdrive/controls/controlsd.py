@@ -741,10 +741,8 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     hudControl.cruiseGap = CS.cruiseGap
-    d = abs(self.cruise_helper.dRel)
-    hudControl.objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
-    if self.cruise_helper.vRel < -0.1:
-      hudControl.objGap *= -1
+    hudControl.objDist = int(self.cruise_helper.dRel)
+    hudControl.objRelSpd = self.cruise_helper.vRel
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \

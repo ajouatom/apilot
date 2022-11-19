@@ -388,9 +388,10 @@ struct CarControl {
     rightLaneDepart @8: Bool;
     leftLaneDepart @9: Bool;
     cruiseGap @10: Int32;
-    objGap @11: Int32;
-    softHold @12: Bool;
-    radarAlarm @13: Bool;
+    objDist @11: Int32;
+    objRelSpd @12: Float32;
+    softHold @13: Bool;
+    radarAlarm @14: Bool;
 
     enum VisualAlert {
       # these are the choices from the Honda
