@@ -62,7 +62,6 @@ class CruiseHelper:
     self.dRel = 0
     self.vRel = 0
     self.trafficState = 0
-    self.steerActuatorDelay = 0.1
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -84,7 +83,6 @@ class CruiseHelper:
       self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
       self.autoResumeFromBrakeRelease = Params().get_bool("AutoResumeFromBrakeRelease")
       self.autoSyncCruiseSpeed = Params().get_bool("AutoSyncCruiseSpeed")
-      self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.      
     if all or (frame + 200) % 300 == 0:
       self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
       self.autoResumeFromBrakeReleaseLeadCar = Params().get_bool("AutoResumeFromBrakeReleaseLeadCar")
