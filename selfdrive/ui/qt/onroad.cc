@@ -138,14 +138,25 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
   }
 
   QRect gapRect(302-10, 773-10, 192+20, 192+20);
+  QRect opRect(rect().right() - 300, 0, 300, 300);
+  const SubMaster& sm = *(uiState()->sm);
   if (gapRect.contains(e->x(), e->y())) {
-      const SubMaster& sm = *(uiState()->sm);
+      
       auto car_state = sm["carState"].getCarState();
       int myDrivingMode = car_state.getMyDrivingMode();
       myDrivingMode++;
       if (myDrivingMode > 4) myDrivingMode = 1;
       QString values = QString::number(myDrivingMode);
       Params().put("MyDrivingMode", values.toStdString());
+      return;
+  }
+  else if (opRect.contains(e->x(), e->y())) {
+      const auto cs = sm["controlsState"].getControlsState();
+      int longActiveUser = cs.getLongActiveUser();
+      if (longActiveUser <= 0) {
+          if (Params().getBool("ExperimentalMode")) Params().put("ExperimentalMode", "0");
+          else Params().put("ExperimentalMode", "1");
+      }
       return;
   }
   else if (map != nullptr) {
@@ -656,8 +667,9 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   // engage-ability icon
   if (1 || engageable) {
     //SubMaster &sm = *(uiState()->sm);
+      bool experimentalMode = Params().getBool("ExperimentalMode");
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
-             sm["controlsState"].getControlsState().getExperimentalMode() ? experimental_img : gpsOn? ic_satellite :engage_img, blackColor(166), 1.0, -steer_angle);
+        experimentalMode ? experimental_img : gpsOn? ic_satellite :engage_img, blackColor(166), 1.0, -steer_angle);
   }
   
 }
@@ -735,6 +747,9 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   //QRect rectGap(x1, y1, radius, radius);
   //printf("%d %d %d\n", x1, y1, radius); // 302, 773, 192
   //p.drawRect(rectGap);
+  //QRect opRect(rect().right() - radius, 0, radius, radius);
+  //p.drawRect(opRect);
+
 
   QString str, strDrivingMode;
   float textSize = 50.f;

@@ -56,9 +56,8 @@ def match_vision_to_cluster(v_ego, lead, clusters):
 
   # if no 'sane' match is found return -1
   # stationary radar points can be false positives
-  dist_error_ref = interp(cluster.dRel, [10, 20, 50], [5, 8, 20])
-  dist_sane = abs(cluster.dRel - offset_vision_dist) < max([(offset_vision_dist)*.25, dist_error_ref])
   #dist_sane = abs(cluster.dRel - offset_vision_dist) < max([(offset_vision_dist)*.25, 5.0])
+  dist_sane = abs(cluster.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])
   vel_sane = (abs(cluster.vRel + v_ego - lead.v[0]) < 10) or (v_ego + cluster.vRel > 3)
   if dist_sane and vel_sane:
     return cluster

@@ -414,8 +414,8 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
-      #if self.autoCurveSpeedCtrl:
-      #  self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+      if self.autoCurveSpeedCtrl:
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 

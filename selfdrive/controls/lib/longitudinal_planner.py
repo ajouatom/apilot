@@ -6,7 +6,6 @@ from common.numpy_fast import clip, interp
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from common.filter_simple import FirstOrderFilter
-from common.params import Params
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longcontrol import LongCtrlState
@@ -49,12 +48,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
-    self.params = Params()
-    self.param_read_counter = 0
-
     self.mpc = LongitudinalMpc()
-    self.read_param()
-
     self.fcw = False
 
     self.a_desired = init_a
@@ -70,10 +64,6 @@ class LongitudinalPlanner:
     self.vision_turn_controller = VisionTurnController(CP)
     self.vCluRatio = 1.0
     
-  def read_param(self):
-    e2e = self.params.get_bool('ExperimentalMode') and self.CP.openpilotLongitudinalControl
-    self.mpc.mode = 'blended' if e2e else 'acc'
-
   @staticmethod
   def parse_model(model_msg, model_error):
     if (len(model_msg.position.x) == 33 and
@@ -92,10 +82,8 @@ class LongitudinalPlanner:
       y = np.zeros(len(T_IDXS_MPC))
     return x, v, a, j, y
 
-  def update(self, sm, read=True):
-    if self.param_read_counter % 50 == 0 and read:
-      self.read_param()
-    self.param_read_counter += 1
+  def update(self, sm):
+    self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise
@@ -107,7 +95,7 @@ class LongitudinalPlanner:
     if vCluRatio > 0.5:
       self.vCluRatio = vCluRatio
       v_cruise *= vCluRatio
-      v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+      #v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
 
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
     force_slow_decel = sm['controlsState'].forceDecel
@@ -153,7 +141,6 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error)
 
-    #self.mpc.mode = 'acc'
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise_sol, x, v, a, j, y, prev_accel_constraint)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)

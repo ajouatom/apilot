@@ -30,13 +30,13 @@ _NO_OVERSHOOT_TIME_HORIZON = 4.  # s. Time to use for velocity desired based on 
 
 # Lookup table for the minimum smooth deceleration during the ENTERING state
 # depending on the actual maximum absolute lateral acceleration predicted on the turn ahead.
-_ENTERING_SMOOTH_DECEL_V = [-0.2, -1.]  # min decel value allowed on ENTERING state
+_ENTERING_SMOOTH_DECEL_V = [-0.2, -0.5]  # min decel value allowed on ENTERING state
 _ENTERING_SMOOTH_DECEL_BP = [1.3, 3.]  # absolute value of lat acc ahead
 
 # Lookup table for the acceleration for the TURNING state
 # depending on the current lateral acceleration of the vehicle.
-_TURNING_ACC_V = [0.5, 0., -0.4]  # acc value
-_TURNING_ACC_BP = [1.5, 2.3, 3.]  # absolute value of current lat acc
+_TURNING_ACC_V = [1.2, 0.94, 0.9, 0.8, -0.1]  # acc value
+_TURNING_ACC_BP = [1.5, 10, 12, 14, 16]  # absolute value of current lat acc
 
 _LEAVING_ACC = 0.5  # Confortble acceleration to regain speed while leaving a turn.
 
@@ -97,7 +97,8 @@ class VisionTurnController():
     self._CP = CP
     self._op_enabled = False
     self._gas_pressed = False
-    self._is_enabled = self._params.get_bool("AutoCurveSpeedCtrl")
+    self._is_enabled = False #self._params.get_bool("AutoCurveSpeedCtrl")
+    self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self._last_params_update = 0.
     self._v_cruise_setpoint = 0.
     self._v_ego = 0.
@@ -146,6 +147,7 @@ class VisionTurnController():
     time = sec_since_boot()
     if time > self._last_params_update + 5.0:
       self._is_enabled = self._params.get_bool("AutoCurveSpeedCtrl")
+      self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
       self._last_params_update = time
 
   def _update_calculations(self, sm):
@@ -202,7 +204,7 @@ class VisionTurnController():
     self._max_v_for_current_curvature = math.sqrt(_A_LAT_REG_MAX / current_curvature) if current_curvature > 0 \
       else V_CRUISE_MAX * CV.KPH_TO_MS
 
-    pred_curvatures = eval_curvature(path_poly, _EVAL_RANGE)
+    pred_curvatures = eval_curvature(path_poly, _EVAL_RANGE) * self.autoCurveSpeedFactor
     max_pred_curvature = np.amax(pred_curvatures)
     self._max_pred_lat_acc = self._v_ego**2 * max_pred_curvature
 
