@@ -543,6 +543,7 @@ class CarState(CarStateBase):
         ("ComfortBandLower", "SCC14"),
 
         ("SCC14_Signal_29", "SCC14"),
+        ("SCC14_Signal_48", "SCC14"),
       ]
       checks += [
         ("SCC11", 50),

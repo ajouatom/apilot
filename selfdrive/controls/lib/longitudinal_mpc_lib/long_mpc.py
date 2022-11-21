@@ -238,7 +238,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.filter_x = FirstOrderFilter(0., 1.0, DT_MDL)
+    self.filter_x = FirstOrderFilter(0., 2.0, DT_MDL)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.filter_aMyCar = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
@@ -424,7 +424,7 @@ class LongitudinalMpc:
     aMyCar = self.filter_aMyCar.update((v_ego - self.vEgo_prev) / DT_MDL)
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-20., 0, 40.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
-      self.t_follow *= interp(aMyCar, [-2, 0], [self.applyDynamicTFollow, 1.0])
+      self.t_follow *= interp(aMyCar, [-1, 0], [self.applyDynamicTFollow, 1.0])
       if self.vRel_prev < 1000:
         aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
         #self.t_follow *= interp(aRel, [-1., 0, 4.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
@@ -468,8 +468,8 @@ class LongitudinalMpc:
           self.filter_x.x = x[-1]
         elif startSign and self.trafficState != 2:
           self.filter_x.x = x[-1]
-        #elif abs(self.filter_x.x - x[-1]) > 20.0:
-        #  self.filter_x.x = x[-1]
+        elif abs(self.filter_x.x - x[-1]) > 20.0:
+          self.filter_x.x = x[-1]
         else:
           self.filter_x.update(x[-1] - v_ego*DT_MDL)
         model_x = self.filter_x.x #x[N] 
@@ -554,8 +554,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      self.debugLongText1 = 'A{:.2f},{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
-        aRel, aMyCar, y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      self.debugLongText1 = 'A{:.2f},{:.2f},{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
+        aRel, aMyCar, self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
