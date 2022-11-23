@@ -496,7 +496,6 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     CameraWidget::setFrameId(model.getFrameId());
     CameraWidget::paintGL();
   }
-  p.endNativePainting();
 
   if (s->worldObjectsVisible()) {
     if (sm.rcv_frame("modelV2") > s->scene.started_frame) {
@@ -507,6 +506,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     }
     drawHud(p, model);
   }
+  p.endNativePainting();
 
   double cur_draw_t = millis_since_boot();
   double dt = cur_draw_t - prev_draw_t;
