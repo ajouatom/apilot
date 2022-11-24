@@ -421,7 +421,7 @@ class LongitudinalMpc:
 
     aRel = 0.
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-20., 0, 40.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-50., 0, 50.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
       self.t_follow *= interp(self.prev_a[0], [-1, 0], [self.applyDynamicTFollow, 1.0])
       if self.vRel_prev < 1000:
         aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
