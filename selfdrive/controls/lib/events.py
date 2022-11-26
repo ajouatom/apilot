@@ -959,5 +959,19 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.cruiseResume: {
     ET.WARNING: EngagementAlert(AudibleAlert.longEngaged),
   },
+  EventName.trafficSignGreen: {
+    ET.WARNING: Alert(
+      "출발합니다.",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.trafficSignGreen, 3.),
+  },
+  EventName.trafficSignChanged: {
+    ET.WARNING: Alert(
+      "신호가바뀌었어요.",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.trafficSignChanged, 3.),
+  },
 
 }

@@ -280,9 +280,12 @@ class CruiseHelper:
     if dRel==0 and 5 < self.dRel < 20.0: ## 레이더가 갑자기 사라지면...
       #self.radarAlarmCount = 500
       pass
-    if xState == "SOFT_HOLD" and self.longActiveUser>0:
-      if self.trafficState == 1 and controls.sm['longitudinalPlan'].trafficState == 2:
-        self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+    if self.longActiveUser>0:
+      if xState == "SOFT_HOLD" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
+        controls.events.add(EventName.trafficSignChanged)
+        #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+      elif xState == "E2E_CRUISE" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2 and CS.vEgo < 0.1:
+        controls.events.add(EventName.trafficSignGreen)
     self.trafficState = controls.sm['longitudinalPlan'].trafficState
     self.dRel = dRel
     self.vRel = vRel
@@ -434,7 +437,7 @@ def enable_radar_tracks(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
-  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO, CAR.HYUNDAI_GENESIS, CAR.KONA_HEV, CAR.GRANDEUR_IG, CAR.KONA_EV]:
+  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     rdr_fw_address = 0x7d0 #일부차량은 다름..
     if True:
