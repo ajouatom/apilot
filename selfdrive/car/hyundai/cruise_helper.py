@@ -434,7 +434,7 @@ def enable_radar_tracks(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
-  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE_HEV_2022, CAR.NEXO, CAR.HYUNDAI_GENESIS, CAR.KONA_HEV, CAR.GRANDEUR_IG, CAR.KONA_EV]:
+  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     rdr_fw_address = 0x7d0 #일부차량은 다름..
     if True:
