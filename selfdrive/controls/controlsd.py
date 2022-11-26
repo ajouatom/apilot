@@ -197,6 +197,7 @@ class Controls:
     self.pcmLongSpeed = 100.0
     self.latGearShifter = False
     self.longGearShifter = False
+    self.longOverride = False
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -615,10 +616,12 @@ class Controls:
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and self.latGearShifter
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
-    longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) #and self.CP.openpilotLongitudinalControl
+    override = self.events.any(ET.OVERRIDE_LONGITUDINAL)
+    longActive1 = self.active and not override and self.longGearShifter
     if not self.longGearShifter:
       self.cruise_helper.longActiveUser = 0
     CC.longActive = longActive1 and self.cruise_helper.longActiveUser>0
+    self.longOverride = not longActive1 and override
 
     hudControl = CC.hudControl
     hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and CC.longActive else False
@@ -719,7 +722,7 @@ class Controls:
     if len(angular_rate_value) > 2:
       CC.angularVelocity = angular_rate_value
 
-    CC.cruiseControl.override = self.enabled and not CC.longActive and self.CP.openpilotLongitudinalControl and self.cruise_helper.longActiveUser > 0
+    CC.cruiseControl.override = self.enabled and self.longOverride #not CC.longActive and self.CP.openpilotLongitudinalControl
     CC.cruiseControl.cancel = CS.cruiseState.enabled and (not self.enabled or not self.CP.pcmCruise)
     if self.joystick_mode and self.sm.rcv_frame['testJoystick'] > 0 and self.sm['testJoystick'].buttons[0]:
       CC.cruiseControl.cancel = True
