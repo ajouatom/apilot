@@ -284,7 +284,7 @@ class CruiseHelper:
       if xState == "SOFT_HOLD" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
         controls.events.add(EventName.trafficSignChanged)
         #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
-      elif xState == "E2E_CRUISE" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
+      elif xState == "E2E_CRUISE" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2 and CS.vEgo < 0.1:
         controls.events.add(EventName.trafficSignGreen)
     self.trafficState = controls.sm['longitudinalPlan'].trafficState
     self.dRel = dRel
