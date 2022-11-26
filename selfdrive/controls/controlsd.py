@@ -616,7 +616,9 @@ class Controls:
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and self.latGearShifter
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) #and self.CP.openpilotLongitudinalControl
-    CC.longActive = longActive1 and self.cruise_helper.longActiveUser>0 and self.longGearShifter
+    if not self.longGearShifter:
+      self.cruise_helper.longActiveUser = 0
+    CC.longActive = longActive1 and self.cruise_helper.longActiveUser>0
 
     hudControl = CC.hudControl
     hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and CC.longActive else False
