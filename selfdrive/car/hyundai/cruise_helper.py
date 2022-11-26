@@ -280,9 +280,12 @@ class CruiseHelper:
     if dRel==0 and 5 < self.dRel < 20.0: ## 레이더가 갑자기 사라지면...
       #self.radarAlarmCount = 500
       pass
-    if xState == "SOFT_HOLD" and self.longActiveUser>0:
-      if self.trafficState == 1 and controls.sm['longitudinalPlan'].trafficState == 2:
-        self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+    if self.longActiveUser>0:
+      if xState == "SOFT_HOLD" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
+        controls.events.add(EventName.trafficSignChanged)
+        #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+      elif xState == "E2E_CRUISE" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
+        controls.events.add(EventName.trafficSignGreen)
     self.trafficState = controls.sm['longitudinalPlan'].trafficState
     self.dRel = dRel
     self.vRel = vRel

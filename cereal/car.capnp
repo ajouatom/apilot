@@ -118,6 +118,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 
     cruisePaused @116; #ajouatom
     cruiseResume @117; #ajouatom
+    trafficSignGreen @118; #ajouatom
+    trafficSignChanged @119; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -422,6 +424,9 @@ struct CarControl {
 
       longEngaged @9;
       longDisengaged @10;
+
+      trafficSignGreen @11;
+      trafficSignChanged @12;
     }
   }
 

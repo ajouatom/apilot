@@ -959,5 +959,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.cruiseResume: {
     ET.WARNING: EngagementAlert(AudibleAlert.longEngaged),
   },
+  EventName.trafficSignGreen: {
+    ET.WARNING: EngagementAlert(AudibleAlert.trafficSignGreen),
+  },
+  EventName.trafficSignChanged: {
+    ET.WARNING: EngagementAlert(AudibleAlert.trafficSignChanged),
+  },
 
 }
