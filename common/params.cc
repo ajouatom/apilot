@@ -245,7 +245,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ApplyDynamicTFollow", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
     { "TFollowRatio", PERSISTENT },
-    { "JerkUpperLowerLimit", PERSISTENT },        
+    { "JerkUpperLowerLimit", PERSISTENT },
+    { "KeepEngage", PERSISTENT },        
 };
 
 } // namespace
