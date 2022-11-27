@@ -62,6 +62,7 @@ class CruiseHelper:
     self.dRel = 0
     self.vRel = 0
     self.trafficState = 0
+    self.xState = "CRUISE"
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -281,6 +282,8 @@ class CruiseHelper:
       #self.radarAlarmCount = 500
       pass
     if self.longActiveUser>0:
+      if xState != self.xState and xState == "SOFT_HOLD":
+        controls.events.add(EventName.autoHold)
       if xState == "SOFT_HOLD" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
         controls.events.add(EventName.trafficSignChanged)
         #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
@@ -436,6 +439,7 @@ class CruiseHelper:
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 
     self.preBrakePressed = CS.brakePressed
+    self.xState = xState
     if CS.gasPressed:
       self.gasPressedCount += 1
       if CS.gas > self.preGasPressedMax:
@@ -450,7 +454,7 @@ def enable_radar_tracks(CP, logcan, sendcan):
   # START: Try to enable radar tracks
   print("Try to enable radar tracks")  
   # if self.CP.openpilotLongitudinalControl and self.CP.carFingerprint in [HYUNDAI_CAR.SANTA_FE_2022]:
-  if CP.openpilotLongitudinalControl and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
+  if CP.openpilotLongitudinalControl: # and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     rdr_fw_address = 0x7d0 #일부차량은 다름..
     if True:

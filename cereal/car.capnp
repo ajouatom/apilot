@@ -120,6 +120,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     cruiseResume @117; #ajouatom
     trafficSignGreen @118; #ajouatom
     trafficSignChanged @119; #ajouatom
+    autoHold @120; #ajouatom
+    trafficStopping @121; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -427,6 +429,12 @@ struct CarControl {
 
       trafficSignGreen @11;
       trafficSignChanged @12;
+      laneChange @13;
+      stopping @14;
+      autoHold @15;
+      engage2 @16;
+      disengage2 @17;
+      
     }
   }
 

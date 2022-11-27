@@ -540,7 +540,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "Changing Lanes",
       "",
       AlertStatus.normal, AlertSize.none,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
+      Priority.LOW, VisualAlert.none, AudibleAlert.laneChange, .1),
   },
 
   EventName.steerSaturated: {
@@ -976,6 +976,20 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.trafficSignChanged, 3.),
+  },
+  EventName.autoHold: {
+    ET.WARNING: Alert(
+      "소프트 오토홀드",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.autoHold, 3.),
+  },
+  EventName.trafficStopping: {
+    ET.WARNING: Alert(
+      "신호 감속정지중입니다.",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.stopping, 3.),
   },
 
 }
