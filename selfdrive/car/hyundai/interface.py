@@ -21,22 +21,23 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed, e2eDecel):
     v_current_kph = current_speed * CV.MS_TO_KPH
+    accelMin = CarControllerParams.ACCEL_MIN if not e2eDecel else -3.0
     if not eco_mode:
       if eco_speed == 0:
         return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
       gas_max_bp = [eco_speed, 150.]
       gas_max_v = [1.5, CarControllerParams.ACCEL_MAX]
 
-      return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
+      return accelMin, interp(v_current_kph, gas_max_bp, gas_max_v)
 
     #gas_max_bp = [10., 20., 50., 70., 130., 150.]
     #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
     gas_max_bp = [10., 70., 100., 150.]
     gas_max_v = [1.5, 1.0, 0.5, 0.1]
 
-    return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
+    return accelMin, interp(v_current_kph, gas_max_bp, gas_max_v)
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[], experimental_long=False):  # pylint: disable=dangerous-default-value
