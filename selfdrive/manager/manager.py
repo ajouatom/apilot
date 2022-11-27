@@ -86,6 +86,7 @@ def manager_init() -> None:
     ("SccConnectedBus2", "0"),   
     ("TFollowRatio", "100"),
     ("JerkUpperLowerLimit", "8"),    
+    ("KeepEngage", "1"),   
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

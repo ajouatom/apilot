@@ -242,12 +242,14 @@ class LongitudinalMpc:
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
+    self.buttonStopDist = 0
 
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
     self.xState = "CRUISE"
     self.e2ePaused = False
     self.longActiveUser = 0
+    self.cruiseButtonCounter = 0
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
@@ -448,13 +450,13 @@ class LongitudinalMpc:
     if self.mode == 'acc':
       self.params[:,5] = LEAD_DANGER_FACTOR
 
-      longActiveUserChanged = 0
+      cruiseButtonCounterDiff = controls.cruiseButtonCounter - self.cruiseButtonCounter
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
-      if controls.longActiveUser != self.longActiveUser:
-        longActiveUserChanged = controls.longActiveUser
-        if longActiveUserChanged in [-1, 1]: #버튼으로 +-움직이면 신호정지 재계
-          self.e2ePaused = False
-      if v_ego_kph > 50.0 or longActiveUserChanged<0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (x[-1] > 40.0 and abs(y[-1])<15.0)):
+      if controls.longActiveUser <= 0:
+        self.e2ePaused = False
+      if self.e2ePaused and cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
+        self.e2ePaused = False
+      if v_ego_kph > 50.0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (x[-1] > 40.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
       if carstate.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
@@ -489,26 +491,27 @@ class LongitudinalMpc:
 
         #2단계: 신호감지조건과 주행조건과의 관계로 상태 결정.
         if self.xState == "E2E_STOP" and not self.e2ePaused: 
-          if v_ego < 0.5: # 정지상태이면...
+          if v_ego < 0.1: # 정지상태이면...
             model_x = 0.0
             v_cruise = 0.0
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = "LEAD"
           elif self.startSignCount*DT_MDL >= 0.3: # 0.3초 이상 신호바뀜..
             self.xState = "E2E_CRUISE"
-          if carstate.gasPressed or (self.longActiveUser> 0 and longActiveUserChanged==1):       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
+          if carstate.gasPressed: # or cruiseButtonCounterDiff>0:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
             self.e2ePaused = True
         #SOFT_HOLD: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xState == "SOFT_HOLD": 
           model_x = 0.0
-          if carstate.gasPressed or longActiveUserChanged==1:
+          if carstate.gasPressed or cruiseButtonCounterDiff > 0:
             self.xState = "E2E_CRUISE"
         #E2E_CRUISE: 주행상태.
         else:
           if self.status:
             self.xState = "LEAD"
           elif stopSign and not self.e2ePaused:                 #신호인식이 되면 정지모드
+            self.buttonStopDist = 0
             self.xState = "E2E_STOP"
           else:
             self.xState = "E2E_CRUISE"
@@ -535,10 +538,14 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+        if cruiseButtonCounterDiff > 0:
+          self.buttonStopDist += 1.0
+        model_x += self.buttonStopDist
         if False: #self.trafficStopModelSpeed:
           v_cruise = v[0]
 
       self.longActiveUser = controls.longActiveUser
+      self.cruiseButtonCounter = controls.cruiseButtonCounter
       x2 = model_x * np.ones(N+1) + self.trafficStopDistanceAdjust
 
       # Fake an obstacle for cruise, this ensures smooth acceleration to set speed

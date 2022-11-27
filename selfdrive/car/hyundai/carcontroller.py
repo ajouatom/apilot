@@ -214,7 +214,7 @@ class CarController:
                                                           CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
                                                           CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
                                                           CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022):
-        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC.enabled, CC.enabled and CC.longActive))
+        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC))
 
       # 5 Hz ACC options
       if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl: #  and self.CP.sccBus == 0:

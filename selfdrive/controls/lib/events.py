@@ -862,13 +862,17 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.canBusMissing: {
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Bus Disconnected"),
-    ET.PERMANENT: Alert(
-      "CAN Bus Disconnected: Likely Faulty Cable",
-      "",
-      AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, 1., creation_delay=1.),
-    ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected: Check Connections"),
+    #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Bus Disconnected"),
+    #ET.PERMANENT: Alert(
+    #  "CAN Bus Disconnected: Likely Faulty Cable",
+    #  "",
+    #  AlertStatus.normal, AlertSize.small,
+    #  Priority.LOW, VisualAlert.none, AudibleAlert.none, 1., creation_delay=1.),
+    #ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected: Check Connections"),
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not D"),
+    ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected"),
+
   },
 
   EventName.steerUnavailable: {

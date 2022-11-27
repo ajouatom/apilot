@@ -31,6 +31,8 @@ from system.hardware import HARDWARE
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.car.hyundai.cruise_helper import CruiseHelper
 
+GearShifter = car.CarState.GearShifter
+
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
 LANE_DEPARTURE_THRESHOLD = 0.1
@@ -193,6 +195,11 @@ class Controls:
     self.debugText1 = ""
     self.debugText2 = ""
     self.pcmLongSpeed = 100.0
+    self.latGearShifter = False
+    self.longGearShifter = False
+    self.longOverride = False
+    self.cruiseButtonCounter = 0
+    self.v_future = 100
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -428,11 +435,11 @@ class Controls:
         self.events.add(EventName.localizerMalfunction)
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
-    #speeds = self.sm['longitudinalPlan'].speeds
-    #if len(speeds) > 1:
-    #  v_future = speeds[-1]
-    #else:
-    #  v_future = 100.0
+    speeds = self.sm['longitudinalPlan'].speeds
+    if len(speeds) > 1:
+      self.v_future = speeds[-1]
+    else:
+      self.v_future = 100.0
     #if CS.brakePressed and v_future >= self.CP.vEgoStarting \
     #  and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
     #  self.events.add(EventName.noTarget)
@@ -606,15 +613,20 @@ class Controls:
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
     # Check which actuators can be enabled
+    self.latGearShifter = True if CS.gearShifter in [GearShifter.drive,GearShifter.neutral] else False
+    self.longGearShifter = True if CS.gearShifter in [GearShifter.drive] else False
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
-                   CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
+                   CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and self.latGearShifter
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
-    longActive1 = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) #and self.CP.openpilotLongitudinalControl
-    longActiveUser = self.cruise_helper.longActiveUser
-    CC.longActive = longActive1 and longActiveUser > 0
+    override = self.events.any(ET.OVERRIDE_LONGITUDINAL)
+    longActive1 = self.active and not override and self.longGearShifter
+    if not self.longGearShifter:
+      self.cruise_helper.longActiveUser = 0
+    CC.longActive = longActive1 and self.cruise_helper.longActiveUser>0
+    self.longOverride = not longActive1 and override
 
     hudControl = CC.hudControl
-    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
+    hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and CC.longActive else False
 
 
     actuators = CC.actuators
@@ -712,7 +724,7 @@ class Controls:
     if len(angular_rate_value) > 2:
       CC.angularVelocity = angular_rate_value
 
-    CC.cruiseControl.override = self.enabled and not CC.longActive and self.CP.openpilotLongitudinalControl and self.cruise_helper.longActiveUser>0
+    CC.cruiseControl.override = self.enabled and self.longOverride #not CC.longActive and self.CP.openpilotLongitudinalControl
     CC.cruiseControl.cancel = CS.cruiseState.enabled and (not self.enabled or not self.CP.pcmCruise)
     if self.joystick_mode and self.sm.rcv_frame['testJoystick'] > 0 and self.sm['testJoystick'].buttons[0]:
       CC.cruiseControl.cancel = True
@@ -830,6 +842,7 @@ class Controls:
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
+    controlsState.cruiseButtonCounter = self.cruiseButtonCounter
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)
@@ -838,7 +851,7 @@ class Controls:
     controlsState.startMonoTime = int(start_time * 1e9)
     controlsState.forceDecel = bool(force_decel)
     controlsState.canErrorCounter = self.can_rcv_timeout_counter
-    if self.cruise_helper.longActiveUser < 0:
+    if not CC.longActive:
       self.experimentalMode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
     controlsState.experimentalMode = self.experimentalMode #self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
 

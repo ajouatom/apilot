@@ -74,6 +74,7 @@ class CarInterfaceBase(ABC):
     self.cruiseGap = int(Params().get("PrevCruiseGap"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
     Params().put("MyDrivingMode", str(self.myDrivingMode))
+    self.keepEngage = Params().get_bool("KeepEngage")
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -228,10 +229,10 @@ class CarInterfaceBase(ABC):
     #  events.add(EventName.doorOpen)
     if cs_out.seatbeltUnlatched:
       events.add(EventName.seatbeltNotLatched)
-    if cs_out.gearShifter != GearShifter.drive and (extra_gears is None or
+    if not self.keepEngage and cs_out.gearShifter != GearShifter.drive and (extra_gears is None or
        cs_out.gearShifter not in extra_gears):
       events.add(EventName.wrongGear)
-    if cs_out.gearShifter == GearShifter.reverse:
+    if not self.keepEngage and cs_out.gearShifter == GearShifter.reverse:
       events.add(EventName.reverseGear)
     if not cs_out.cruiseState.available:
       events.add(EventName.wrongCarMode)
@@ -245,8 +246,8 @@ class CarInterfaceBase(ABC):
       events.add(EventName.speedTooHigh)
     if cs_out.cruiseState.nonAdaptive:
       events.add(EventName.wrongCruiseMode)
-    #if cs_out.brakeHoldActive and self.CP.openpilotLongitudinalControl:
-    #  events.add(EventName.brakeHold)
+    if cs_out.brakeHoldActive and self.CP.openpilotLongitudinalControl:
+      events.add(EventName.brakeHold)
     if cs_out.parkingBrake:
       events.add(EventName.parkBrake)
     if cs_out.accFaulted:
