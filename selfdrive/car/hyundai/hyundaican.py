@@ -102,7 +102,7 @@ def create_lfahda_mfc(packer, CC):
   latActive = CC.latActive
   longActive = CC.longActive
   values = {
-    "LFA_Icon_State": 1 if latActive else 2 if enabled else 0,
+    "LFA_Icon_State": 2 if latActive else 1 if enabled else 0,
     "HDA_Active": 1 if longActive else 0,
     "HDA_Icon_State": 2 if longActive else 0,
     "HDA_VSetReq": longActive, #enabled,
