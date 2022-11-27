@@ -198,6 +198,8 @@ class Controls:
     self.latGearShifter = False
     self.longGearShifter = False
     self.longOverride = False
+    self.cruiseButtonCounter = 0
+    self.v_future = 100
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -433,11 +435,11 @@ class Controls:
         self.events.add(EventName.localizerMalfunction)
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
-    #speeds = self.sm['longitudinalPlan'].speeds
-    #if len(speeds) > 1:
-    #  v_future = speeds[-1]
-    #else:
-    #  v_future = 100.0
+    speeds = self.sm['longitudinalPlan'].speeds
+    if len(speeds) > 1:
+      self.v_future = speeds[-1]
+    else:
+      self.v_future = 100.0
     #if CS.brakePressed and v_future >= self.CP.vEgoStarting \
     #  and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
     #  self.events.add(EventName.noTarget)
@@ -840,6 +842,7 @@ class Controls:
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
+    controlsState.cruiseButtonCounter = self.cruiseButtonCounter
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)
