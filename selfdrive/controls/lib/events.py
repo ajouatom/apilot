@@ -540,7 +540,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "Changing Lanes",
       "",
       AlertStatus.normal, AlertSize.none,
-      Priority.LOW, VisualAlert.none, AudibleAlert.laneChange, .1),
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
   },
 
   EventName.steerSaturated: {
