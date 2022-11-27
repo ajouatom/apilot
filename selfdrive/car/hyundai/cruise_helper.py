@@ -343,8 +343,8 @@ class CruiseHelper:
           self.v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
         if xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
-        elif xState == "E2E_STOP": # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
-          #v_cruise_kph = v_ego_kph_set
+        elif xState == "E2E_STOP" and v_ego_kph_set < 30: # 감속중 가스페달을 누르면 신호정지를 무시한다는 뜻이긴한데... 속도유지 필요함..
+          v_cruise_kph = v_ego_kph_set
           pass
       elif not CS.gasPressed and self.gasPressedCount > 2:
         if CS.myDrivingMode == 2:
