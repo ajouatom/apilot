@@ -538,9 +538,9 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
-        if cruiseButtonCounterDiff > 0:
-          self.buttonStopDist += 1.0
-        model_x += self.buttonStopDist
+        #if cruiseButtonCounterDiff > 0:
+        #  self.buttonStopDist += 1.0
+        #model_x += self.buttonStopDist
         if False: #self.trafficStopModelSpeed:
           v_cruise = v[0]
 
