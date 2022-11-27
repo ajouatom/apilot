@@ -73,7 +73,7 @@ class CruiseHelper:
 
   def update_params(self, frame, all):
     if all or frame % 300 == 0:
-      self.autoCurveSpeedCtrl = Params().get_bool("AutoCurveSpeedCtrl")
+      self.autoCurveSpeedCtrl = False#Params().get_bool("AutoCurveSpeedCtrl")
       self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
       self.autoNaviSpeedCtrl = Params().get_bool("AutoNaviSpeedCtrl")
       self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
