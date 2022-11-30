@@ -21,16 +21,15 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed, e2eDecel):
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
     v_current_kph = current_speed * CV.MS_TO_KPH
-    accelMin = CarControllerParams.ACCEL_MIN if not e2eDecel else -3.0
     if not eco_mode:
       if eco_speed == 0:
         return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
       gas_max_bp = [eco_speed, 150.]
       gas_max_v = [1.5, CarControllerParams.ACCEL_MAX]
 
-      return accelMin, interp(v_current_kph, gas_max_bp, gas_max_v)
+      return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
 
     #gas_max_bp = [10., 20., 50., 70., 130., 150.]
     #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
@@ -254,6 +253,18 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.855
       ret.steerRatio = 15.5
       tire_stiffness_factor = 0.7
+    elif candidate == CAR.GENESIS_EQ900:
+      ret.mass = 2200
+      ret.wheelbase = 3.15
+      ret.steerRatio = 16.0
+      ret.steerActuatorDelay = 0.075
+    elif candidate == CAR.GENESIS_EQ900_L:
+      ret.mass = 2290
+      ret.wheelbase = 3.45
+    elif candidate == CAR.GENESIS_G90_2019:
+      ret.mass = 2150
+      ret.wheelbase = 3.16
+      
 
     # *** longitudinal control ***
     if candidate in CANFD_CAR:
@@ -302,9 +313,9 @@ class CarInterface(CarInterfaceBase):
 
     ret.stoppingControl = True
     ret.startingState = True
-    ret.vEgoStarting = 0.3
-    ret.vEgoStopping = 0.3
-    ret.startAccel = 1.5 #2.0 comma
+    ret.vEgoStarting = 0.1 #0.3
+    ret.vEgoStopping = 0.1 #0.3
+    ret.startAccel = 1.0 #1.5 #2.0 comma
     ret.longitudinalActuatorDelayLowerBound = 0.5
     ret.longitudinalActuatorDelayUpperBound = 0.5
 
