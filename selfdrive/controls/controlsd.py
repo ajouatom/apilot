@@ -626,7 +626,7 @@ class Controls:
 
     hudControl = CC.hudControl
     xState = self.sm['longitudinalPlan'].xState
-    hudControl.softHold = True if xState == "SOFT_HOLD" and CC.longActive else False
+    hudControl.softHold = True if xState == "SOFT_HOLD" else False
 
 
     actuators = CC.actuators
