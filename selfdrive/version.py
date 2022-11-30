@@ -7,7 +7,8 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
-TESTED_BRANCHES = ['devel', 'release2-staging', 'release3-staging', 'dashcam-staging', 'release2', 'release3', 'dashcam']
+RELEASE_BRANCHES = ['release3-staging', 'dashcam3-staging', 'release3', 'dashcam3', 'c2-master', 'c3-master']
+TESTED_BRANCHES = RELEASE_BRANCHES + ['devel', 'devel-staging']
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
@@ -94,6 +95,9 @@ def is_comma_remote() -> bool:
 def is_tested_branch() -> bool:
   return get_short_branch() in TESTED_BRANCHES
 
+@cache
+def is_release_branch() -> bool:
+  return get_short_branch() in RELEASE_BRANCHES
 
 @cache
 def is_dirty() -> bool:

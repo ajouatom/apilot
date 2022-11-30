@@ -88,6 +88,7 @@ def manager_init() -> None:
     ("LongitudinalTuningKpV", "100"),     
     ("EnableRadarTracks", "0"),      
     ("ApplyDynamicTFollow", "110"), 
+    ("ApplyDynamicTFollowApart", "95"), 
     ("ApplyDynamicTFollowDecel", "110"), 
     ("SccConnectedBus2", "0"),   
     ("TFollowRatio", "100"),

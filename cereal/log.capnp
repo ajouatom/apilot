@@ -1936,6 +1936,11 @@ struct EncodeData {
 struct UserFlag {
 }
 
+struct Microphone {
+  ambientNoiseLevelRaw @0 :Float32;
+  filteredAmbientNoiseLevel @1 :Float32;
+}
+
 struct RoadLimitSpeed {
     active @0 :Int16;
     roadLimitSpeed @1 :Int16;
@@ -2012,6 +2017,9 @@ struct Event {
     wideRoadEncodeIdx @77 :EncodeIndex;
     qRoadEncodeIdx @90 :EncodeIndex;
 
+    # microphone data
+    microphone @103 :Microphone;
+
     # systems stuff
     androidLog @20 :AndroidLogEntry;
     managerState @78 :ManagerState;
@@ -2031,7 +2039,7 @@ struct Event {
     userFlag @93 :UserFlag;
     uiDebug @102 :UIDebug;
     # neokii
-    roadLimitSpeed @103 :RoadLimitSpeed;
+    roadLimitSpeed @104 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;

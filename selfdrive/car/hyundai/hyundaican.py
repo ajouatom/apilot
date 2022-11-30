@@ -22,7 +22,8 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
                          CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_SELTOS, CAR.ELANTRA_2021, CAR.GENESIS_G70_2020,
                          CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022,
-                         CAR.SANTA_FE_2022, CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022, CAR.NEXO):
+                         CAR.SANTA_FE_2022, CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022,
+                         CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022, CAR.NEXO):
     values["CF_Lkas_LdwsActivemode"] = int(left_lane) + (int(right_lane) << 1)
     values["CF_Lkas_LdwsOpt_USM"] = 2
 
@@ -122,6 +123,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   longEnabled = CC.longEnabled
   longActive = CC.longActive
   radarAlarm = hud_control.radarAlarm
+  stopReq = 1 if stopping else 0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
@@ -130,6 +132,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 2 if long_override else 4 if brakePressed else 1 if longActive else 0
+    if softHold and brakePressed:
+      scc12_accMode = 1
+      scc14_accMode = 1
+      stopReq = 1
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk
@@ -177,7 +183,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if makeNewCommands:
     scc12_values = {
       "ACCMode": scc12_accMode, #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0,
-      "StopReq": 1 if stopping else 0,
+      "StopReq": stopReq,
       "aReqRaw": accel,
       "aReqValue": accel, # stock ramps up and down respecting jerk limit until it reaches aReqRaw
       "CR_VSM_Alive": idx % 0xF,
@@ -189,7 +195,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   else:
     values = CS.scc12
     values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
-    values["StopReq"] = 1 if stopping else 0
+    values["StopReq"] = stopReq
     values["aReqRaw"] = accel
     values["aReqValue"] = accel
 
