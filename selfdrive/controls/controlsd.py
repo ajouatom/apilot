@@ -626,6 +626,8 @@ class Controls:
     if not CC.longEnabled:
       self.cruise_helper.longActiveUser = 0
 
+    CC.activeHda = self.cruise_helper.ndaActive
+
     hudControl = CC.hudControl
     xState = self.sm['longitudinalPlan'].xState
     hudControl.softHold = True if xState == "SOFT_HOLD" and CC.longActive else False
@@ -647,8 +649,7 @@ class Controls:
     if not self.joystick_mode:
       # accel PID loop
       ecoSpeed = self.cruise_helper.accelLimitEcoSpeed or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel)
-      e2eDecel = xState == "E2E_STOP"
-      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS, CS.myDrivingMode <= 2, ecoSpeed, e2eDecel) # cruiseGap이 1,2는 연비운전모드
+      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS, CS.myDrivingMode <= 2, ecoSpeed) # cruiseGap이 1,2는 연비운전모드
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
