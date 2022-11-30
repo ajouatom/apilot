@@ -3,9 +3,9 @@ from cereal import car
 from panda import Panda
 from common.numpy_fast import interp
 from common.conversions import Conversions as CV
-from selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CANFD_CAR, CAMERA_SCC_CAR, EV_CAR, HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, Buttons, CarControllerParams
+from selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CANFD_CAR, CAMERA_SCC_CAR, CANFD_RADAR_SCC_CAR, EV_CAR, HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, Buttons, CarControllerParams
 from selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR
-from selfdrive.car import STD_CARGO_KG, create_button_event, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
+from selfdrive.car import STD_CARGO_KG, create_button_event, scale_tire_stiffness, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.disable_ecu import disable_ecu
 from common.params import Params
@@ -21,27 +21,7 @@ BUTTONS_DICT = {Buttons.RES_ACCEL: ButtonType.accelCruise, Buttons.SET_DECEL: Bu
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
-    v_current_kph = current_speed * CV.MS_TO_KPH
-    if not eco_mode:
-      if eco_speed == 0:
-        return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
-      gas_max_bp = [eco_speed, 150.]
-      gas_max_v = [1.5, CarControllerParams.ACCEL_MAX]
-
-      return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
-
-    #gas_max_bp = [10., 20., 50., 70., 130., 150.]
-    #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
-    gas_max_bp = [10., 70., 100., 150.]
-    gas_max_v = [1.5, 1.0, 0.5, 0.1]
-
-    return accelMin, interp(v_current_kph, gas_max_bp, gas_max_v)
-
-  @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[], experimental_long=False):  # pylint: disable=dangerous-default-value
-    ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
-
+  def _get_params(ret, candidate, fingerprint, car_fw, experimental_long):
     ret.carName = "hyundai"
     ret.radarOffCan = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
 
@@ -127,18 +107,6 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.7
       ret.steerRatio = 13.73
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
-    elif candidate in [CAR.GRANDEUR_IG, CAR.GRANDEUR_IG_HEV]:
-      ret.mass = 1570. + STD_CARGO_KG
-      ret.wheelbase = 2.845
-      ret.steerRatio = 16.
-      tire_stiffness_factor = 0.8
-      ret.centerToFront = ret.wheelbase * 0.385
-    elif candidate in [CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV]:
-      ret.mass = 1600. + STD_CARGO_KG
-      ret.wheelbase = 2.885
-      ret.steerRatio = 17.
-      tire_stiffness_factor = 0.8
-      ret.centerToFront = ret.wheelbase * 0.385
     elif candidate == CAR.VELOSTER:
       ret.mass = 3558. * CV.LB_TO_KG
       ret.wheelbase = 2.80
@@ -158,11 +126,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1870. + STD_CARGO_KG  # weight from Limited trim - the only supported trim
       ret.wheelbase = 3.000
       ret.steerRatio = 14.2  # steering ratio according to Hyundai News https://www.hyundainews.com/assets/documents/original/48035-2022SantaCruzProductGuideSpecsv2081521.pdf
-    elif candidate == CAR.NEXO: # fix PolorBear - 22.06.05
-      ret.mass = 1885. + STD_CARGO_KG
-      ret.wheelbase = 2.79
-      ret.steerRatio = 15.3
-      tire_stiffness_factor = 0.385
 
     # Kia
     elif candidate == CAR.KIA_SORENTO:
@@ -248,6 +211,24 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2200
       ret.wheelbase = 3.15
       ret.steerRatio = 12.069
+
+    elif candidate in [CAR.GRANDEUR_IG, CAR.GRANDEUR_IG_HEV]:
+      ret.mass = 1570. + STD_CARGO_KG
+      ret.wheelbase = 2.845
+      ret.steerRatio = 16.
+      tire_stiffness_factor = 0.8
+      ret.centerToFront = ret.wheelbase * 0.385
+    elif candidate in [CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV]:
+      ret.mass = 1600. + STD_CARGO_KG
+      ret.wheelbase = 2.885
+      ret.steerRatio = 17.
+      tire_stiffness_factor = 0.8
+      ret.centerToFront = ret.wheelbase * 0.385
+    elif candidate == CAR.NEXO: # fix PolorBear - 22.06.05
+      ret.mass = 1885. + STD_CARGO_KG
+      ret.wheelbase = 2.79
+      ret.steerRatio = 15.3
+      tire_stiffness_factor = 0.385
     elif candidate in [CAR.K7, CAR.K7_HEV]:
       ret.mass = 1850. + STD_CARGO_KG
       ret.wheelbase = 2.855
