@@ -1,0 +1,14 @@
+*.pyc
+.*.swp
+.*.swo
+*.o
+*.so
+*.os
+*.d
+*.dump
+a.out
+*~
+.#*
+.vscode*
+.DS_Store
+.sconsign.dblite
