@@ -27,7 +27,6 @@ a.out
 *.os
 *.os-*
 
-*.a
 *.clb
 *.class
 *.pyxbldc
@@ -37,7 +36,6 @@ clcache
 compile_commands.json
 
 persist
-board/obj/
 selfdrive/boardd/boardd
 selfdrive/logcatd/logcatd
 selfdrive/mapd/default_speeds_by_region.json
