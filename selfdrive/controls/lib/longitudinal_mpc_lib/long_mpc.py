@@ -257,7 +257,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    sefl.xStopFilter = StreamingMovingAverage(10)
+    self.xStopFilter = StreamingMovingAverage(10)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
