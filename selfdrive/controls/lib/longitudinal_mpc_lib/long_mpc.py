@@ -473,7 +473,7 @@ class LongitudinalMpc:
           self.startSignCount = 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - x[-1]) < 20.0:
-          self.xStop = (self.xStop - v_ego * DT_MDL) * 0.9 + x[-1] * 0.1
+          self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
         else:
           self.xStop = x[-1]
           
