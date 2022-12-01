@@ -223,7 +223,7 @@ class StreamingMovingAverage:
     self.sum = 0
 
   def set(self, value):
-    for i in len(self.values):
+    for i in range(len(self.values)):
       self.vaules[i] = value
     self.sum = value * len(self.vaules)
     return value
