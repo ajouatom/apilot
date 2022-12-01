@@ -258,10 +258,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.xStopFilter = StreamingMovingAverage(10)
-    self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
-    self.vRel_prev = 1000
-    self.vEgo_prev = 0
+    self.xStopFilter = StreamingMovingAverage(5)
     self.buttonStopDist = 0
 
     self.t_follow = T_FOLLOW
@@ -445,17 +442,9 @@ class LongitudinalMpc:
     cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [0.8, 0.9, 1.0, 1.1])
     self.t_follow *= cruiseGapRatio
 
-    aRel = 0.
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
       self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-      if self.vRel_prev < 1000:
-        aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
-        #self.t_follow *= interp(aRel, [-1., 0, 4.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
-      self.vRel_prev = radarstate.leadOne.vRel
-    else:
-      self.vRel_prev = 1000
-      self.filter_aRel.update(0)
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -585,8 +574,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      self.debugLongText1 = 'A{:.2f},{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
-        aRel, self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
+        self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
@@ -645,7 +634,6 @@ class LongitudinalMpc:
         self.source = 'lead1'
 
     self.v_cruise = v_cruise
-    self.vEgo_prev = v_ego
 
   def run(self):
     # t0 = sec_since_boot()
