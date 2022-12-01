@@ -216,6 +216,24 @@ def gen_long_ocp():
   ocp.code_export_directory = EXPORT_DIR
   return ocp
 
+class StreamingMovingAverage:
+  def __init__(self, window_size):
+    self.window_size = window_size
+    self.values = []
+    self.sum = 0
+
+  def set(self, value):
+    for i in range(len(self.values)):
+      self.values[i] = value
+    self.sum = value * len(self.values)
+    return value
+
+  def process(self, value):
+    self.values.append(value)
+    self.sum += value
+    if len(self.values) > self.window_size:
+      self.sum -= self.values.pop(0)
+    return float(self.sum) / len(self.values)
 
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
@@ -233,12 +251,14 @@ class LongitudinalMpc:
     self.trafficStopModelSpeed = True
     self.e2eDecelSpeed = 0
     self.applyDynamicTFollow = 1.0
+    self.applyDynamicTFollowApart = 1.0
     self.applyDynamicTFollowDecel = 1.0
     self.tFollowRatio = 1.0
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
+    self.xStopFilter = StreamingMovingAverage(10)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
@@ -401,11 +421,13 @@ class LongitudinalMpc:
       self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
       self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
+    if self.lo_timer == 50:
       self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
       self.trafficStopModelSpeed = Params().get_bool("TrafficStopModelSpeed")
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
       self.e2eDecelSpeed = float(int(Params().get("E2eDecelSpeed", encoding="utf8")))
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
+      self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
       self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
       self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
 
@@ -425,7 +447,7 @@ class LongitudinalMpc:
 
     aRel = 0.
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, 2.0 - self.applyDynamicTFollow])
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
       self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
       if self.vRel_prev < 1000:
         aRel = self.filter_aRel.update((self.vRel_prev - radarstate.leadOne.vRel) / DT_MDL)
@@ -473,9 +495,11 @@ class LongitudinalMpc:
           self.startSignCount = 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - x[-1]) < 20.0:
-          self.xStop = (self.xStop - v_ego * DT_MDL) * 0.9 + x[-1] * 0.1
+          #self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
+          self.xStop = self.xStopFilter.process(x[-1])
         else:
           self.xStop = x[-1]
+          self.xStopFilter.set(x[-1])
           
         model_x = self.xStop
 

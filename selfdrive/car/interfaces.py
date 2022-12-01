@@ -10,8 +10,8 @@ from common.conversions import Conversions as CV
 from common.kalman.simple_kalman import KF1D
 from common.numpy_fast import interp
 from common.realtime import DT_CTRL
-from selfdrive.car import apply_hysteresis, gen_empty_fingerprint
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, apply_deadzone
+from selfdrive.car import apply_hysteresis, gen_empty_fingerprint, scale_rot_inertia, scale_tire_stiffness
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, apply_center_deadzone
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from common.params import Params
@@ -92,12 +92,50 @@ class CarInterfaceBase(ABC):
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
-    return ACCEL_MIN, ACCEL_MAX
+    v_current_kph = current_speed * CV.MS_TO_KPH
+    if not eco_mode:
+      if eco_speed == 0:
+        return ACCEL_MIN, ACCEL_MAX
+      gas_max_bp = [eco_speed, 150.]
+      gas_max_v = [1.5, ACCEL_MAX]
+
+      return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
+
+    #gas_max_bp = [10., 20., 50., 70., 130., 150.]
+    #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
+    gas_max_bp = [10., 70., 100., 150.]
+    gas_max_v = [1.5, 1.0, 0.5, 0.1]
+
+    return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
+    #return ACCEL_MIN, ACCEL_MAX
+  @classmethod
+  def get_params(cls, candidate: str, fingerprint: Optional[Dict[int, Dict[int, int]]] = None, car_fw: Optional[List[car.CarParams.CarFw]] = None, experimental_long: bool = False):
+    if fingerprint is None:
+      fingerprint = gen_empty_fingerprint()
+
+    if car_fw is None:
+      car_fw = list()
+
+    ret = CarInterfaceBase.get_std_params(candidate)
+    ret = cls._get_params(ret, candidate, fingerprint, car_fw, experimental_long)
+
+    # Set common params using fields set by the car interface
+    # TODO: get actual value, for now starting with reasonable value for
+    # civic and scaling by mass and wheelbase
+    ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
+
+    # TODO: some car interfaces set stiffness factor
+    if ret.tireStiffnessFront == 0 or ret.tireStiffnessRear == 0:
+      # TODO: start from empirically derived lateral slip stiffness for the civic and scale by
+      # mass and CG position, so all cars will have approximately similar dyn behaviors
+      ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
+
+    return ret
 
   @staticmethod
   @abstractmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, experimental_long=False):
-    pass
+  def _get_params(ret: car.CarParams, candidate: str, fingerprint: Dict[int, Dict[int, int]], car_fw: List[car.CarParams.CarFw], experimental_long: bool):
+    raise NotImplementedError
 
   @staticmethod
   def init(CP, logcan, sendcan):
@@ -116,7 +154,7 @@ class CarInterfaceBase(ABC):
   def torque_from_lateral_accel_linear(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, friction_compensation):
     # The default is a linear relationship between torque and lateral acceleration (accounting for road roll and steering friction)
     friction_interp = interp(
-      apply_deadzone(lateral_accel_error, lateral_accel_deadzone),
+      apply_center_deadzone(lateral_accel_error, lateral_accel_deadzone),
       [-FRICTION_THRESHOLD, FRICTION_THRESHOLD],
       [-torque_params.friction, torque_params.friction]
     )
@@ -128,7 +166,7 @@ class CarInterfaceBase(ABC):
 
   # returns a set of default params to avoid repetition in car specific params
   @staticmethod
-  def get_std_params(candidate, fingerprint):
+  def get_std_params(candidate):
     ret = car.CarParams.new_message()
     ret.carFingerprint = candidate
 
