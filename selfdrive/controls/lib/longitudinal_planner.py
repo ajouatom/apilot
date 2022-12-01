@@ -184,6 +184,7 @@ class LongitudinalPlanner:
     longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
+    longitudinalPlan.xStop = float(self.mpc.xStop)
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:

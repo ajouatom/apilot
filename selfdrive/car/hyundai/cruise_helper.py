@@ -68,6 +68,7 @@ class CruiseHelper:
     self.over_speed_limit = False
 
     self.roadLimitSpeed = 0.0
+    self.ndaActive = False
 
     self.update_params(0, True)
 
@@ -233,6 +234,7 @@ class CruiseHelper:
   def update_speed_nda(self, CS, controls):
     clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
     road_speed_limiter = get_road_speed_limiter()
+    self.ndaActive = road_speed_limiter_get_active() > 0
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
       road_speed_limiter.get_max_speed(clu11_speed, True) #self.is_metric)
 
@@ -361,10 +363,10 @@ class CruiseHelper:
           self.v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
         if xState == "SOFT_HOLD": #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
-        elif xState in ["E2E_STOP", "E2E_CRUISE"] and v_ego_kph_set < v_cruise_kph and controls.v_future*CV.MS_TO_KPH < v_ego_kph: # 모델이 감속을 지시하고 엑셀을 밟으면 속도를 빠르게 하면 안됨.
+        elif xState in ["E2E_STOP", "E2E_CRUISE"] and v_ego_kph_set < v_cruise_kph and controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: # 모델이 감속을 지시하고 엑셀을 밟으면 속도를 빠르게 하면 안됨.
           v_cruise_kph = v_ego_kph_set
           pass
-      elif not CS.gasPressed and self.gasPressedCount > 2:
+      elif not CS.gasPressed and self.gasPressedCount > 2: #엑셀을 밟았다가 떼면..
         if CS.myDrivingMode == 2:
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True

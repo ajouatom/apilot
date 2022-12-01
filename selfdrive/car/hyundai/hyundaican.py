@@ -100,9 +100,9 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
 def create_lfahda_mfc(packer, CC):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
-    "HDA_Active": 1 if CC.longActive else 0,
-    "HDA_Icon_State": 2 if CC.longActive else 0,
-    "HDA_VSetReq": CC.longActive, #enabled,
+    "HDA_Active": 1 if CC.activeHda else 0,
+    "HDA_Icon_State": 2 if CC.activeHda else 0,
+    "HDA_VSetReq": CC.activeHda, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
     "HDA_Chime" : 1 if CC.latActive else 0,
@@ -122,6 +122,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   longEnabled = CC.longEnabled
   longActive = CC.longActive
   radarAlarm = hud_control.radarAlarm
+  stopReq = 1 if stopping else 0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
@@ -130,6 +131,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 2 if long_override else 4 if brakePressed else 1 if longActive else 0
+    if softHold and brakePressed:
+      scc12_accMode = 1
+      scc14_accMode = 1
+      stopReq = 1
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk
@@ -177,7 +182,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if makeNewCommands:
     scc12_values = {
       "ACCMode": scc12_accMode, #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0,
-      "StopReq": 1 if stopping else 0,
+      "StopReq": stopReq,
       "aReqRaw": accel,
       "aReqValue": accel, # stock ramps up and down respecting jerk limit until it reaches aReqRaw
       "CR_VSM_Alive": idx % 0xF,
@@ -189,7 +194,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   else:
     values = CS.scc12
     values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
-    values["StopReq"] = 1 if stopping else 0
+    values["StopReq"] = stopReq
     values["aReqRaw"] = accel
     values["aReqValue"] = accel
 
