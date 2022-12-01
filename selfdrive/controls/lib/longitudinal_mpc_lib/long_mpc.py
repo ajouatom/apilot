@@ -493,10 +493,10 @@ class LongitudinalMpc:
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - x[-1]) < 20.0:
           #self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
-          self.xStop = self.xStopFilter.process(x[-1] - v_ego*DT_MDL) + v_ego*DT_MDL
+          self.xStop = self.xStopFilter.process(x[-1])
         else:
           self.xStop = x[-1]
-          self.xStopFilter.set(x[-1] - v_ego*DT_MDL)
+          self.xStopFilter.set(x[-1])
           
         model_x = self.xStop
 
