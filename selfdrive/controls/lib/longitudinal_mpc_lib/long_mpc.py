@@ -216,6 +216,24 @@ def gen_long_ocp():
   ocp.code_export_directory = EXPORT_DIR
   return ocp
 
+class StreamingMovingAverage:
+  def __init__(self, window_size):
+    self.window_size = window_size
+    self.values = []
+    self.sum = 0
+
+  def set(value):
+    for i in len(self.values):
+      self.vaules[i] = value
+    self.sum = value * len(self.vaules)
+    return value
+
+  def process(self, value):
+    self.values.append(value)
+    self.sum += value
+    if len(self.values) > self.window_size:
+      self.sum -= self.values.pop(0)
+    return float(self.sum) / len(self.values)
 
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
@@ -239,6 +257,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
+    sefl.xStopFilter = StreamingMovingAverage(10)
     self.filter_aRel = FirstOrderFilter(0., 0.1, DT_MDL)
     self.vRel_prev = 1000
     self.vEgo_prev = 0
@@ -473,9 +492,11 @@ class LongitudinalMpc:
           self.startSignCount = 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - x[-1]) < 20.0:
-          self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
+          #self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
+          self.xStop = self.xStopFilter.process(x[-1] - v_ego*DT_MDL) + v_ego*DT_MDL
         else:
           self.xStop = x[-1]
+          self.xStopFilter.set(x[-1] - v_ego*DT_MDL)
           
         model_x = self.xStop
 
