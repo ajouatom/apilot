@@ -246,6 +246,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalTuningKpV", PERSISTENT },
     { "EnableRadarTracks", PERSISTENT },
     { "ApplyDynamicTFollow", PERSISTENT },
+    { "ApplyDynamicTFollowApart", PERSISTENT },
     { "ApplyDynamicTFollowDecel", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
     { "TFollowRatio", PERSISTENT },
