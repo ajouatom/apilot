@@ -71,7 +71,8 @@ class LongControl:
     self.longitudinalTuningKf = 1.0
     self.longitudinalTuningKpV = 1.0
     self.accelBoost = 1.0
-    self.stopping_accel = 0.0 #정지할때는 브레이크소음때문에 해야하나?
+    self.startAccelApply = 0.0
+    self.stopAccelApply = 0.0
 
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
@@ -89,6 +90,9 @@ class LongControl:
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
+    elif self.readParamCount == 50:
+      self.startAccelApply = float(int(Params().get("StartAccelApply", encoding="utf8"))) * 0.01
+      self.stopAccelApply = float(int(Params().get("StopAccelApply", encoding="utf8"))) * 0.01
       
     longitudinalActuatorDelayLowerBound = self.CP.longitudinalActuatorDelayLowerBound * 1.0 #self.longitudinalActuatorDelayLowerBoundCost
     longitudinalActuatorDelayUpperBound = self.CP.longitudinalActuatorDelayUpperBound * 1.0 #self.longitudinalActuatorDelayUpperBoundCost
@@ -121,36 +125,34 @@ class LongControl:
 
     self.pid.neg_limit = accel_limits[0]
     self.pid.pos_limit = accel_limits[1] * self.accelBoost
+
+    self.CP.startingState = True if self.startAccelApply > 0.0 else False
+    self.CP.startAccel = 2.0 * self.startAccelApply
+    self.CP.stopAccel = -2.0 * self.stopAccelApply
+
     output_accel = self.last_output_accel
+
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        v_target, v_target_1sec, CS.brakePressed,
                                                        CS.cruiseState.standstill, CC.hudControl.softHold)
-    pid_control = False
-    if self.long_control_state != LongCtrlState.stopping:
-      self.stopping_accel = 0.0
 
     if self.long_control_state == LongCtrlState.off:
       self.reset(CS.vEgo)
       output_accel = 0.
 
     elif self.long_control_state == LongCtrlState.stopping:
-      #if output_accel > self.CP.stopAccel:
-      #  output_accel = min(output_accel, 0.0)
-      #  output_accel -= self.CP.stoppingDecelRate * DT_CTRL
-      #  if CC.hudControl.softHold:
-      #    output_accel = self.CP.stopAccel
-      #self.reset(CS.vEgo)
-      if self.stopping_accel > self.CP.stopAccel:
-        self.stopping_accel -= self.CP.stoppingDecelRate * DT_CTRL
-      if CC.hudControl.softHold:
-        v_target_now = 0.0
-      pid_control = True
+      if output_accel > self.CP.stopAccel:
+        output_accel = min(output_accel, 0.0)
+        output_accel -= self.CP.stoppingDecelRate * DT_CTRL
+        if CC.hudControl.softHold:
+          output_accel = self.CP.stopAccel
+      self.reset(CS.vEgo)
 
     elif self.long_control_state == LongCtrlState.starting:
       output_accel = self.CP.startAccel
       self.reset(CS.vEgo)
 
-    if self.long_control_state == LongCtrlState.pid or pid_control:
+    if self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target_now
 
       # Toyota starts braking more when it thinks you want to stop
@@ -169,7 +171,5 @@ class LongControl:
     self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1] * self.accelBoost)
 
     self.debugLoCText = "T:{:.2f},{:.2f} V:{:.2f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format(t_since_plan, longitudinalActuatorDelayLowerBound, (self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
-    if self.long_control_state == LongCtrlState.stopping:
-      return self.last_output_accel + self.stopping_accel
 
     return self.last_output_accel
