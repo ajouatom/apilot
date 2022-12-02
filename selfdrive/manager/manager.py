@@ -66,6 +66,8 @@ def manager_init() -> None:
     ("LongControlActiveSound", "1"),
     ("AccelLimitEcoSpeed", "3"),
     ("AccelBoost", "100"),
+    ("StartAccelApply", "0"),
+    ("StopAccelApply", "0"),
     ("TrafficStopDistanceAdjust", "400"),
     ("AutoSpeedUptoRoadSpeedLimit", "100"),
     ("ApplyLongDynamicCost", "0"), 

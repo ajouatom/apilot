@@ -258,7 +258,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.xStopFilter = StreamingMovingAverage(5)
+    self.xStopFilter = StreamingMovingAverage(20)
     self.buttonStopDist = 0
 
     self.t_follow = T_FOLLOW
@@ -409,6 +409,7 @@ class LongitudinalMpc:
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
+    model_x = model.position.x[-1]
     self.lo_timer += 1
     if self.lo_timer > 100:
       self.lo_timer = 0
@@ -469,26 +470,24 @@ class LongitudinalMpc:
         self.e2ePaused = False
       if self.e2ePaused and cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
         self.e2ePaused = False
-      if v_ego_kph > 50.0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (x[-1] > 40.0 and abs(y[-1])<15.0)):
+      if v_ego_kph > 50.0 or self.xState in ["LEAD", "CRUISE"] or (v_ego_kph > 30.0 and (model_x > 40.0 and abs(y[-1])<15.0)):
         self.e2ePaused = False
 
       if carstate.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
 
         #1단계: 모델값을 이용한 신호감지
         startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
-        stopSign = v_ego_kph<80.0 and x[-1] < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
-        model_x = x[-1]
+        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
         else:
           self.startSignCount = 0
 
-        if self.xState == "E2E_STOP": # and abs(self.xStop - x[-1]) < 20.0:
-          #self.xStop = (self.xStop - v_ego * DT_MDL) * 0.7 + x[-1] * 0.3
-          self.xStop = self.xStopFilter.process(x[-1])
+        if self.xState == "E2E_STOP": # and abs(self.xStop - model_x) < 20.0:
+          self.xStop = self.xStopFilter.process(model_x - v_ego)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
         else:
-          self.xStop = x[-1]
-          self.xStopFilter.set(x[-1])
+          self.xStop = model_x
+          self.xStopFilter.set(model_x)
           
         model_x = self.xStop
 
@@ -535,6 +534,7 @@ class LongitudinalMpc:
         self.xState = "CRUISE"
         self.trafficState = 0
 
+      fakeCruiseDistance = 0.0
       #3단계: 조건에 따른. 감속및 주행.
       if self.xState in ["LEAD", "CRUISE"] or self.e2ePaused:
         model_x = 1000.0
@@ -552,6 +552,7 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+        fakeCruiseDistance = 10.0
 
         #if cruiseButtonCounterDiff > 0:
         #  self.buttonStopDist += 1.0
@@ -570,12 +571,12 @@ class LongitudinalMpc:
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
       self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
-        self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+        self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
