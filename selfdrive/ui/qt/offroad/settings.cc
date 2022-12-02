@@ -683,7 +683,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new TimeZoneSelectCombo());
   toggleLayout->addWidget(new ParamControl("KeepEngage", "인게이지 유지모드", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new ParamControl("UseLanelines", "레인모드사용", "", "../assets/offroad/icon_road.png", this));
-  toggleLayout->addWidget(new CValueControl("PathOffset", "차선치우침 좌우보정", "+가우측인지 좌측인지 모르겠네용~", "../assets/offroad/icon_road.png", -200, 200, 1));
 }
 
 TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {

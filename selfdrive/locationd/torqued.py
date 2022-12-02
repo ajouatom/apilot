@@ -10,6 +10,7 @@ from cereal import car, log
 from common.params import Params
 from common.realtime import Priority, config_realtime_process, DT_MDL
 from common.filter_simple import FirstOrderFilter
+from selfdrive.controls.ntune import ntune_torque_get, ntune_common_get
 from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
 
@@ -93,9 +94,16 @@ class PointBuckets:
 
 
 class TorqueEstimator:
+
+  def get_friction(self):
+    return ntune_torque_get('friction')
+
+  def get_lat_accel_factor(self):
+    return ntune_torque_get('latAccelFactor')
+
   def __init__(self, CP, decimated=False):
     self.hist_len = int(HISTORY / DT_MDL)
-    self.lag = CP.steerActuatorDelay + .2   # from controlsd
+    self.lag = ntune_common_get('steerActuatorDelay') + .2   # from controlsd
     if decimated:
       self.min_bucket_points = MIN_BUCKET_POINTS / 10
       self.min_points_total = MIN_POINTS_TOTAL_QLOG
@@ -108,11 +116,11 @@ class TorqueEstimator:
     self.offline_friction = 0.0
     self.offline_latAccelFactor = 0.0
     self.resets = 0.0
-    self.use_params = CP.carName in ALLOWED_CARS
+    self.use_params = False
 
     if CP.lateralTuning.which() == 'torque':
-      self.offline_friction = CP.lateralTuning.torque.friction
-      self.offline_latAccelFactor = CP.lateralTuning.torque.latAccelFactor
+      self.offline_friction = self.get_friction()
+      self.offline_latAccelFactor = self.get_lat_accel_factor()
 
     self.reset()
 
@@ -159,8 +167,8 @@ class TorqueEstimator:
   def get_restore_key(self, CP, version):
     a, b = None, None
     if CP.lateralTuning.which() == 'torque':
-      a = CP.lateralTuning.torque.friction
-      b = CP.lateralTuning.torque.latAccelFactor
+      a = self.get_friction()
+      b = self.get_lat_accel_factor()
     return (CP.carFingerprint, CP.lateralTuning.which(), a, b, version)
 
   def reset(self):
@@ -224,26 +232,31 @@ class TorqueEstimator:
     liveTorqueParameters.version = VERSION
     liveTorqueParameters.useParams = self.use_params
 
-    if self.filtered_points.is_valid():
+    self.checkNTune()
+
+    try:
       latAccelFactor, latAccelOffset, friction_coeff = self.estimate_params()
       liveTorqueParameters.latAccelFactorRaw = float(latAccelFactor)
       liveTorqueParameters.latAccelOffsetRaw = float(latAccelOffset)
       liveTorqueParameters.frictionCoefficientRaw = float(friction_coeff)
 
-      if self.is_sane(latAccelFactor, latAccelOffset, friction_coeff):
-        liveTorqueParameters.liveValid = True
-        self.update_params({'latAccelFactor': latAccelFactor, 'latAccelOffset': latAccelOffset, 'frictionCoefficient': friction_coeff})
-        self.invalid_values_tracker = max(0.0, self.invalid_values_tracker - 0.5)
+      if self.filtered_points.is_valid():
+        if self.is_sane(latAccelFactor, latAccelOffset, friction_coeff):
+          liveTorqueParameters.liveValid = True
+          self.update_params({'latAccelFactor': latAccelFactor, 'latAccelOffset': latAccelOffset, 'frictionCoefficient': friction_coeff})
+          self.invalid_values_tracker = max(0.0, self.invalid_values_tracker - 0.5)
+        else:
+          cloudlog.exception("Live torque parameters are outside acceptable bounds.")
+          liveTorqueParameters.liveValid = False
+          self.invalid_values_tracker += 1.0
+          # Reset when ~10 invalid over 5 secs
+          if self.invalid_values_tracker > MAX_INVALID_THRESHOLD:
+            # Do not reset the filter as it may cause a drastic jump, just reset points
+            self.reset()
       else:
-        cloudlog.exception("Live torque parameters are outside acceptable bounds.")
         liveTorqueParameters.liveValid = False
-        self.invalid_values_tracker += 1.0
-        # Reset when ~10 invalid over 5 secs
-        if self.invalid_values_tracker > MAX_INVALID_THRESHOLD:
-          # Do not reset the filter as it may cause a drastic jump, just reset points
-          self.reset()
-    else:
-      liveTorqueParameters.liveValid = False
+    except:
+      pass
 
     if with_points:
       liveTorqueParameters.points = self.filtered_points.get_points()[:, [0, 2]].tolist()
@@ -256,6 +269,12 @@ class TorqueEstimator:
     liveTorqueParameters.maxResets = self.resets
     return msg
 
+  def checkNTune(self):
+    if abs(self.get_friction() - self.offline_friction) > 0.0001 \
+            or abs(self.get_lat_accel_factor() - self.offline_latAccelFactor) > 0.0001:
+      self.reset()
+      self.offline_friction = self.get_friction()
+      self.offline_latAccelFactor = self.get_lat_accel_factor()
 
 def main(sm=None, pm=None):
   config_realtime_process(2, Priority.CTRL_LOW)
