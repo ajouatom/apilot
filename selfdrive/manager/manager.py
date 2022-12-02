@@ -95,6 +95,7 @@ def manager_init() -> None:
     ("JerkUpperLowerLimit", "8"),    
     ("KeepEngage", "1"),
     ("UseLanelines", "0"),    
+    ("PathOffset", "0"),        
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

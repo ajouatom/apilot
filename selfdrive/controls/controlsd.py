@@ -11,9 +11,8 @@ from common.params import Params, put_nonblocking
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from panda import ALTERNATIVE_EXPERIENCE
-from selfdrive.controls.ntune import ntune_common_enabled, ntune_common_get
 from selfdrive.swaglog import cloudlog
-from selfdrive.version import is_release_branch, get_short_branch
+from selfdrive.version import is_tested_branch, get_short_branch
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
 from selfdrive.controls.lib.lateral_planner import CAMERA_OFFSET
@@ -605,13 +604,7 @@ class Controls:
     # Update VehicleModel
     lp = self.sm['liveParameters']
     x = max(lp.stiffnessFactor, 0.1)
-    #sr = max(lp.steerRatio, 0.1)
-
-    if ntune_common_enabled('useLiveSteerRatio'):
-      sr = max(lp.steerRatio, 0.1)
-    else:
-      sr = max(ntune_common_get('steerRatio'), 0.1)
-
+    sr = max(lp.steerRatio, 0.1)
     self.VM.update_params(x, sr)
 
     # Update Torque Params
