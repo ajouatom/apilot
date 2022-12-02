@@ -264,6 +264,7 @@ class LongitudinalMpc:
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
     self.xState = "CRUISE"
+    self.xStop = 0.0
     self.e2ePaused = False
     self.longActiveUser = 0
     self.cruiseButtonCounter = 0
@@ -476,15 +477,7 @@ class LongitudinalMpc:
         #1단계: 모델값을 이용한 신호감지
         startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
         stopSign = v_ego_kph<80.0 and x[-1] < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
-        if stopSign and self.trafficState != 1:
-          self.filter_x.x = x[-1]
-        elif startSign and self.trafficState != 2:
-          self.filter_x.x = x[-1]
-        elif abs(self.filter_x.x - x[-1]) > 20.0:
-          self.filter_x.x = x[-1]
-        else:
-          self.filter_x.update(x[-1] - v_ego*DT_MDL)
-        model_x = self.filter_x.x #x[N] 
+        model_x = x[-1]
         if startSign:
           self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
         else:
@@ -559,6 +552,7 @@ class LongitudinalMpc:
         pass
       elif self.xState == "E2E_STOP":
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+
         #if cruiseButtonCounterDiff > 0:
         #  self.buttonStopDist += 1.0
         #model_x += self.buttonStopDist
@@ -584,6 +578,9 @@ class LongitudinalMpc:
         self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
+
+      if self.source == 'e2e' and model_x < 20.0: #신호감속인경우 그리고 20M이내에는 감속도 제한함.. 정지선 x를 지나가더라도.... 급격한 x값의 변화로 인한 감속정지를 막기위해.... 되려나?
+        self.params[:,0] = -3.0 #MIN_ACCEL  
 
       # These are not used in ACC mode
       x[:], v[:], a[:], j[:] = 0.0, 0.0, 0.0, 0.0

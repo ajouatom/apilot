@@ -202,7 +202,7 @@ class CarController:
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
-        startingJerk = 1
+        startingJerk = 3 #1
         if self.CP.carFingerprint in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):
           startingJerk = 5
         jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid,LongCtrlState.starting,LongCtrlState.stopping] else startingJerk  #comma: jerk=3

@@ -101,9 +101,9 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
 def create_lfahda_mfc(packer, CC):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
-    "HDA_Active": 1 if CC.longActive else 0,
-    "HDA_Icon_State": 2 if CC.longActive else 0,
-    "HDA_VSetReq": CC.longActive, #enabled,
+    "HDA_Active": 1 if CC.activeHda else 0,
+    "HDA_Icon_State": 2 if CC.activeHda else 0,
+    "HDA_VSetReq": CC.activeHda, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
     "HDA_Chime" : 1 if CC.latActive else 0,
