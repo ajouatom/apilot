@@ -228,6 +228,7 @@ struct CarState {
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
   myDrivingMode @50 : Int32; #0: Eco, Eco2, Normal, Speed
+  naviSpeedLimit @51 : Float32; 
 
   struct Tpms {
     fl @0 :Float32;
@@ -527,6 +528,7 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
+  naviCluster @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

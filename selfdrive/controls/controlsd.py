@@ -597,9 +597,8 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = "LiveT[{:.0f}{}]: {:.2f},{:.2f},{:.2f}\nRawT: {:.2f},{:.2f},{:.2f}".format(torque_params.totalBucketPoints, torque_params.liveValid, 
-                                                                                              torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered, 
-                                                                                              torque_params.latAccelFactorRaw, torque_params.latAccelOffsetRaw, torque_params.frictionCoefficientRaw)
+        self.debugText2 = "LiveT[{:.0f}{}]: {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, torque_params.liveValid, 
+                                                                         torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']
@@ -745,7 +744,11 @@ class Controls:
 
     hudControl = CC.hudControl
 
-    hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+    if self.CP.openpilotLongitudinalControl and CS.vEgo < 0.1:  #정지시에만 목표속도표시함.
+      hudControl.setSpeed = float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+    else:
+      hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+
     #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
     hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 1000 else False
     hudControl.speedVisible = self.enabled

@@ -243,6 +243,11 @@ class CarState(CarStateBase):
     vEgoClu, aEgoClu = self.update_clu_speed_kf(ret.vEgoCluster)
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
 
+    if self.CP.naviCluster == 1:
+      ret.naviSpeedLimit = cp.vl["Navi_HU"]["SpeedLim_Nav_Clu"]
+    else:
+      ret.naviSpeedLimit = 0
+
     #scc12_2 = cp_cam.vl["SCC12"]
     #scc12 = cp.vl["SCC12"]
     #print("scc12_2=", scc12_2)
@@ -460,6 +465,10 @@ class CarState(CarStateBase):
     else:
       signals.append(("CF_Lvr_Gear", "LVR12"))
       checks.append(("LVR12", 100))
+
+    if CP.naviCluster == 1:
+      signals.append(("SpeedLim_Nav_Clu", "Navi_HU"))
+      checks.append(("Navi_HU", 5))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
 

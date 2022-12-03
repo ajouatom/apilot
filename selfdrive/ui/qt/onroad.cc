@@ -888,6 +888,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   UIState *s = uiState();
   const SubMaster &sm = *(s->sm);
   const auto cs = sm["controlsState"].getControlsState();
+  const auto car_state = sm["carState"].getCarState();
   //const auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
   const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
 
@@ -922,16 +923,17 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
     left_dist = sectionLeftDist;
   }
 
-  if(activeNDA > 0)
+  if (activeNDA > 0)
   {
       int w = 120;
       int h = 54;
-      int x = (width() + (bdr_s*2))/2 - w/2 - bdr_s;
+      int x = (width() + (bdr_s * 2)) / 2 - w / 2 - bdr_s;
       int y = 40 - bdr_s;
 
       p.setOpacity(1.f);
       p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
   }
+  else limit_speed = car_state.getNaviSpeedLimit();
 
 
   const int x_start = 30;

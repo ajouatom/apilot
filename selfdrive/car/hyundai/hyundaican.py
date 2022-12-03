@@ -100,7 +100,7 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
 
 def create_lfahda_mfc(packer, CC):
   values = {
-    "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
+    "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 2 if CC.latEnabled else 0,
     "HDA_Active": 1 if CC.activeHda else 0,
     "HDA_Icon_State": 2 if CC.activeHda else 0,
     "HDA_VSetReq": CC.activeHda, #enabled,
@@ -124,12 +124,13 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   longActive = CC.longActive
   radarAlarm = hud_control.radarAlarm
   stopReq = 1 if stopping else 0
+  accel = accel if longActive else 0.0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
-  if enabled:
+  if enabled and longEnabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 2 if long_override else 4 if brakePressed else 1 if longActive else 0
     if softHold and brakePressed:
@@ -152,7 +153,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   commands = []
   if makeNewCommands:
     scc11_values = {
-    "MainMode_ACC": 1 if enabled else 0 ,
+    "MainMode_ACC": 1 if longEnabled else 0 ,
     "TauGapSet": cruiseGap,
     "VSetDis": set_speed if longEnabled else 0,
     "AliveCounterACC": idx % 0x10,
@@ -166,7 +167,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
   else:
     values = CS.scc11
-    values["MainMode_ACC"] = 1 if enabled else 0 
+    values["MainMode_ACC"] = 1 if longEnabled else 0 
     values["TauGapSet"] = cruiseGap
     values["VSetDis"] = set_speed if longEnabled else 0
     values["AliveCounterACC"] = idx % 0x10
