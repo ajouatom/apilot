@@ -597,7 +597,7 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = 'LiveT[{:.0f}{}]: {:.2f},{:.2f},{:.2f}\nRawT: {:.2f},{:.2f},{:.2f}'.format(torque_params.totalBucketPoints, torque_params.liveValid, 
+        self.debugText2 = "LiveT[{:.0f}{}]: {:.2f},{:.2f},{:.2f}\nRawT: {:.2f},{:.2f},{:.2f}".format(torque_params.totalBucketPoints, torque_params.liveValid, 
                                                                                               torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered, 
                                                                                               torque_params.latAccelFactorRaw, torque_params.latAccelOffsetRaw, torque_params.frictionCoefficientRaw)
         #print(self.debugText2)
