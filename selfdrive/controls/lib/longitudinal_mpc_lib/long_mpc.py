@@ -484,7 +484,7 @@ class LongitudinalMpc:
           self.startSignCount = 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - model_x) < 20.0:
-          self.xStop = self.xStopFilter.process(model_x - v_ego)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          self.xStop = self.xStopFilter.process(model_x)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
         else:
           self.xStop = model_x
           self.xStopFilter.set(model_x)
