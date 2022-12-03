@@ -155,7 +155,7 @@ class LongControl:
       output_accel = self.CP.startAccel
       self.reset(CS.vEgo)
 
-    if self.long_control_state == LongCtrlState.pid:
+    elif self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target_now
 
       # Toyota starts braking more when it thinks you want to stop

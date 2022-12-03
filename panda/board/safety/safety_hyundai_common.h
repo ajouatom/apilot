@@ -50,7 +50,7 @@ void hyundai_common_cruise_state_check(const int main_engaged) {
             if (controls_allowed == 0) {
                 controls_allowed = 1;
                 set_engaged_prev = true;
-                puts("[hyundai_common_cruise_state_check] controls_allowed = 1\n");
+                print("[hyundai_common_cruise_state_check] controls_allowed = 1\n");
             }
         }
 
@@ -58,7 +58,7 @@ void hyundai_common_cruise_state_check(const int main_engaged) {
             controls_allowed = 0;
             set_engaged_prev = false;
             button_engaged_prev = false;
-            puts("[hyundai_common_cruise_state_check] controls_allowed = 0\n");
+            print("[hyundai_common_cruise_state_check] controls_allowed = 0\n");
         }
         main_engaged_prev = main_engaged;
     }
@@ -71,7 +71,7 @@ void hyundai_common_cruise_state_check2(const int cruise_engaged) {
     if (1 || !hyundai_longitudinal) {
         if (cruise_engaged && !cruise_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
             controls_allowed = 1;
-            puts("[hyundai_common_cruise_state_check2] controls_allowed = 1\n");
+            print("[hyundai_common_cruise_state_check2] controls_allowed = 1\n");
         }
 
         if (!cruise_engaged) {
@@ -92,7 +92,7 @@ void hyundai_common_cruise_buttons_check(const int cruise_button, const int main
   if (hyundai_longitudinal) {
     // exit controls on cancel press
     if (cruise_button == HYUNDAI_BTN_CANCEL) {
-      if(controls_allowed) puts("[hyundai_common_cruise_buttons_check] controls_allowed = 0\n");
+      if(controls_allowed) print("[hyundai_common_cruise_buttons_check] controls_allowed = 0\n");
       controls_allowed = 0;
       button_engaged_prev = false;
       set_engaged_prev = false;
@@ -105,7 +105,7 @@ void hyundai_common_cruise_buttons_check(const int cruise_button, const int main
         if (controls_allowed == 0) {
             controls_allowed = 1;
             button_engaged_prev = true;
-            puts("[hyundai_common_cruise_buttons_check] controls_allowed = 1\n");
+            print("[hyundai_common_cruise_buttons_check] controls_allowed = 1\n");
         }
     }
 
