@@ -32,7 +32,10 @@ def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
 
   else:
     if long_control_state == LongCtrlState.off:
-      long_control_state = LongCtrlState.pid
+      if stopping_condition: #off에서 바로 정지조건인데... 차량이 이동하고 있으면... stopping으로 가보자~
+        long_control_state = LongCtrlState.stopping
+      else:
+        long_control_state = LongCtrlState.pid
 
     elif long_control_state == LongCtrlState.pid:
       if stopping_condition:
