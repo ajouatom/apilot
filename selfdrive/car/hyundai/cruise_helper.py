@@ -231,6 +231,10 @@ class CruiseHelper:
     v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
+  def update_speed_navi(self, CS, controls):
+    navi = CS.naviSafetyInfo
+    controls.debugText1 = 'S{}/{},D{}/{},N{}'.format(navi.sign, navi.speed2, navi.dist1, navi.dist2, navi.speedLimit)
+
   def update_speed_nda(self, CS, controls):
     clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
     road_speed_limiter = get_road_speed_limiter()
@@ -272,6 +276,7 @@ class CruiseHelper:
     self.update_params(controls.sm.frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
+    self.update_speed_navi(CS, controls)
     
     curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
 
@@ -448,7 +453,7 @@ class CruiseHelper:
       self.gasPressedCount += 1
       if CS.gas > self.preGasPressedMax:
         self.preGasPressedMax = CS.gas
-      controls.debugText1 = 'GAS: {:3.1f}/{:3.1f}={:3.1f}'.format(CS.gas*100., self.preGasPressedMax*100., self.gasPressedCount * DT_CTRL)
+      #controls.debugText1 = 'GAS: {:3.1f}/{:3.1f}={:3.1f}'.format(CS.gas*100., self.preGasPressedMax*100., self.gasPressedCount * DT_CTRL)
     else:
       self.preGasPressedMax = 0.0
       self.gasPressedCount = 0

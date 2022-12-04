@@ -228,7 +228,16 @@ struct CarState {
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
   myDrivingMode @50 : Int32; #0: Eco, Eco2, Normal, Speed
-  naviSpeedLimit @51 : Float32; 
+  naviSafetyInfo @51 : NaviSafetyInfo;
+
+  struct NaviSafetyInfo {
+    sign @0 : Int32; # OPKR_S_Sign
+    dist1 @1 : Int32; # OPKR_S_Dist  < 1023
+    speed2 @2 : Int32; # OPKR_SBR_LSpd < 150 
+    dist2 @3 : Int32; # OPKR_SBR_Dist < 65535
+    speedLimit @4: Int32; # SpeedLim_Nav_Clu
+    dist @5: Int32; # SafetyDist
+  }
 
   struct Tpms {
     fl @0 :Float32;

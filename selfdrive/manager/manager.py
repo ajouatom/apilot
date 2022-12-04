@@ -86,6 +86,7 @@ def manager_init() -> None:
     ("E2eDecelSpeed", "90"),        
     ("LongitudinalTuningKf", "110"),     
     ("LongitudinalTuningKpV", "100"),     
+    ("LongitudinalTuningKiV", "0"),     
     ("EnableRadarTracks", "0"),      
     ("ApplyDynamicTFollow", "110"), 
     ("ApplyDynamicTFollowApart", "95"), 

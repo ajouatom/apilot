@@ -221,19 +221,22 @@ class StreamingMovingAverage:
     self.window_size = window_size
     self.values = []
     self.sum = 0
+    self.result = 0
 
   def set(self, value):
     for i in range(len(self.values)):
       self.values[i] = value
     self.sum = value * len(self.values)
+    self.result = value
     return value
 
-  def process(self, value):
+  def process(self, value, median = False):
     self.values.append(value)
     self.sum += value
     if len(self.values) > self.window_size:
       self.sum -= self.values.pop(0)
-    return float(self.sum) / len(self.values)
+    self.result = np.median(self.values) if median else float(self.sum) / len(self.values)
+    return self.result
 
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
@@ -258,7 +261,7 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.xStopFilter = StreamingMovingAverage(10)
+    self.xStopFilter = StreamingMovingAverage(11)
     self.buttonStopDist = 0
 
     self.t_follow = T_FOLLOW
@@ -484,7 +487,7 @@ class LongitudinalMpc:
           self.startSignCount = 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - model_x) < 20.0:
-          self.xStop = self.xStopFilter.process(model_x)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          self.xStop = self.xStopFilter.process(model_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
         else:
           self.xStop = model_x
           self.xStopFilter.set(model_x)

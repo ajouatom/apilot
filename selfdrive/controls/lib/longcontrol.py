@@ -89,9 +89,11 @@ class LongControl:
       self.longitudinalActuatorDelayUpperBoundCost = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) / 100.
       self.longitudinalActuatorDelayLowerBoundCost = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) / 100.
       self.longitudinalTuningKf = float(int(Params().get("LongitudinalTuningKf", encoding="utf8"))) / 100.
-      self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) / 100.
+      self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) * 0.01
+      self.longitudinalTuningKiV = float(int(Params().get("LongitudinalTuningKiV", encoding="utf8"))) * 0.001
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
+      self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
     elif self.readParamCount == 50:
       self.startAccelApply = float(int(Params().get("StartAccelApply", encoding="utf8"))) * 0.01
