@@ -364,7 +364,7 @@ struct CarControl {
   latOverride @17: Bool;
   longEnabled @18: Bool;
   longOverride @19: Bool;
-  activeHda @20: Bool;
+  activeHda @20: Int8;
 
   struct Actuators {
     # range from 0.0 - 1.0

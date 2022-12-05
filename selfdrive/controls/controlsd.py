@@ -197,6 +197,8 @@ class Controls:
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
     self.v_future = 100
+    self.enableAutoEngage = Params().get_bool("EnableAutoEngage")
+    self.powerOnTimer = 0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -562,11 +564,16 @@ class Controls:
 
     # DISABLED
     elif self.state == State.disabled:
-      if self.events.any(ET.ENABLE):
+      autoEngage = False
+      self.powerOnTimer = self.powerOnTimer + 1 if self.powerOnTimer < 100000 else 100000
+      if self.powerOnTimer > 300 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+        autoEngage = True
+      if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
 
         else:
+          self.enableAutoEngage = False
           if self.events.any(ET.PRE_ENABLE):
             self.state = State.preEnabled
           elif self.events.any(ET.OVERRIDE_LATERAL) or self.events.any(ET.OVERRIDE_LONGITUDINAL):
@@ -606,8 +613,9 @@ class Controls:
 
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
+
     # Check which actuators can be enabled
-    CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive,GearShifter.neutral] else False
+    CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive] else False
     CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive] else False
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled
@@ -627,7 +635,7 @@ class Controls:
 
     hudControl = CC.hudControl
     xState = self.sm['longitudinalPlan'].xState
-    hudControl.softHold = True if xState == "SOFT_HOLD" else False
+    hudControl.softHold = True if xState == "SOFT_HOLD" and CC.longEnabled else False
 
 
     actuators = CC.actuators

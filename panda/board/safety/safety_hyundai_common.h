@@ -6,6 +6,7 @@ const int HYUNDAI_PARAM_HYBRID_GAS = 2;
 const int HYUNDAI_PARAM_LONGITUDINAL = 4;
 const int HYUNDAI_PARAM_CAMERA_SCC = 8;
 const int HYUNDAI_PARAM_ALT_LIMITS = 64; // TODO: shift this down with the rest of the common flags
+const int HYUNDAI_PARAM_AUTO_ENGAGE = 128;
 
 const uint8_t HYUNDAI_PREV_BUTTON_SAMPLES = 8;  // roughly 160 ms
 const uint32_t HYUNDAI_STANDSTILL_THRSLD = 30;  // ~1kph
@@ -26,6 +27,7 @@ bool hyundai_alt_limits = false;
 bool main_engaged_prev = false;
 bool set_engaged_prev = false;
 bool button_engaged_prev = false;
+bool hyundai_auto_engage = false;
 uint8_t hyundai_last_button_interaction;  // button messages since the user pressed an enable button
 
 void hyundai_common_init(uint16_t param) {
@@ -41,6 +43,7 @@ void hyundai_common_init(uint16_t param) {
 #else
   hyundai_longitudinal = false;
 #endif
+  hyundai_auto_engage = GET_FLAG(param, HYUNDAI_PARAM_AUTO_ENGAGE);
 }
 
 void hyundai_common_cruise_state_check(const int main_engaged) {

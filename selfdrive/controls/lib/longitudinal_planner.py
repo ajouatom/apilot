@@ -185,6 +185,9 @@ class LongitudinalPlanner:
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
     longitudinalPlan.xStop = float(self.mpc.xStop)
+    longitudinalPlan.leadX = float(self.mpc.filter_x_lead.result)
+    longitudinalPlan.leadV = float(self.mpc.filter_v_lead.result)
+    longitudinalPlan.tFollow = float(self.mpc.t_follow)
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:

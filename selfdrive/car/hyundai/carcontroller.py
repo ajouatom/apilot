@@ -5,7 +5,7 @@ from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
-from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR
+from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, FEATURES
 import random
 from common.params import Params
 
@@ -102,10 +102,12 @@ class CarController:
       self.angle_limit_counter = 0
 
     # Cut steer actuation bit for two frames and hold torque with induced temporary fault
-    torque_fault = CC.latActive and self.angle_limit_counter > MAX_ANGLE_FRAMES
+    max_angle_frames = MAX_ANGLE_FRAMES - 2 if self.CP.carFingerprint in (CAR.HYUNDAI_GENESIS) else MAX_ANGLE_FRAMES
+
+    torque_fault = CC.latActive and self.angle_limit_counter > max_angle_frames
     lat_active = CC.latActive and not torque_fault
 
-    if self.angle_limit_counter >= MAX_ANGLE_FRAMES + MAX_ANGLE_CONSECUTIVE_FRAMES:
+    if self.angle_limit_counter >= max_angle_frames + MAX_ANGLE_CONSECUTIVE_FRAMES:
       self.angle_limit_counter = 0
 
     # CAN-FD platforms
@@ -177,7 +179,7 @@ class CarController:
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
-          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12:
+          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12 and CS.cruise_buttons[-1] == Buttons.NONE:
             self.last_button_frame = self.frame
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
@@ -207,11 +209,12 @@ class CarController:
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 
       # 20 Hz LFA MFA message
-      if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,
-                                                          CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
-                                                          CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
-                                                          CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022,
-                                                          CAR.SANTA_FE, CAR.HYUNDAI_GENESIS):
+      if self.frame % 5 == 0 and self.car_fingerprint in FEATURES["send_lfa_mfa"]:
+      #if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,
+      #                                                    CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
+      #                                                    CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
+      #                                                    CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022,
+      #                                                    CAR.SANTA_FE, CAR.HYUNDAI_GENESIS, CAR.TUCSON_TL_SCC):
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC))
 
       # 5 Hz ACC options

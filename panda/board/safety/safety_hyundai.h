@@ -105,6 +105,11 @@ int     busLKAS11 = -1;
 bool    brakePressed = false;
 int     cruiseEngaged = 0;
 
+bool apilot_connected_prev = false;
+uint32_t LKAS11_lastTxTime = 0;
+uint32_t LKAS11_maxTxDiffTime = 0;
+
+
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
 
 static uint8_t hyundai_get_counter(CANPacket_t *to_push) {
@@ -333,6 +338,20 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
     }
   }
 
+  if (addr == 1056 && hyundai_auto_engage) {
+      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
+
+      if (mainModeACC == 1) {
+          controls_allowed = 1;
+          hyundai_auto_engage = 0;
+      }
+  }
+
+  apilot_connected = true;
+  if (addr == 832) {
+      LKAS11_lastTxTime = microsecond_timer_get();
+  }
+
   return tx;
 }
 
@@ -350,6 +369,10 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   //int is_mdps12_msg = (addr = 593);
   //int is_ems11_msg = (addr == 790);
   // forward cam to ccan and viceversa, except lkas cmd
+  if (apilot_connected != apilot_connected_prev) {
+      print("[hyundai_fwd_hook] apilot_connected="); puth2(apilot_connected); print("\n");
+      apilot_connected_prev = apilot_connected;
+  }
   if (bus_num == 0) {
     bus_fwd = 2;
   }
@@ -357,8 +380,31 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
       int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
 
-      if (!block_msg) {
+      if (apilot_connected) {
+          if (!block_msg) {
+              bus_fwd = 0;
+          }
+      }
+      else {
           bus_fwd = 0;
+          if (is_lkas11_msg) {
+              LKAS11_lastTxTime = microsecond_timer_get();
+              LKAS11_maxTxDiffTime = 0;
+          }
+      }
+  }
+  if (apilot_connected) {
+      uint32_t now = microsecond_timer_get();
+      uint32_t diff = now - LKAS11_lastTxTime;
+      if (diff > LKAS11_maxTxDiffTime)
+      {
+          LKAS11_maxTxDiffTime = diff;
+          print("diff="); puth(diff); print("\n");
+      }
+      if (diff > 0x15000) {
+          apilot_connected = false;  // Neokii코드 참조: 오픈파일럿이 죽거나 재부팅하면,,,, 강제로 끊어줌.
+          print("apilot may be reboot...\n");
+          controls_allowed = false;
       }
   }
 

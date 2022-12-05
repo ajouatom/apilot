@@ -10,7 +10,7 @@ from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
 from common.conversions import Conversions as CV
 from common.params import Params
 from common.realtime import DT_MDL
-from common.filter_simple import FirstOrderFilter
+from common.filter_simple import StreamingMovingAverage
 
 if __name__ == '__main__':  # generating code
   from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
@@ -65,8 +65,11 @@ T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.3 #2.5
 STOP_DISTANCE = 6.5
 
-def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
-  return (v_lead**2) / (2 * COMFORT_BRAKE)
+def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE, krkeegan=False):
+  if not krkeegan:
+    return (v_lead**2) / (2 * COMFORT_BRAKE)
+
+  # KRKeegan방법은 lead거리값을 고의로 늘려주어. solver가 더빠른 가속을 유발하도록 하는것 같음...
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
@@ -216,28 +219,6 @@ def gen_long_ocp():
   ocp.code_export_directory = EXPORT_DIR
   return ocp
 
-class StreamingMovingAverage:
-  def __init__(self, window_size):
-    self.window_size = window_size
-    self.values = []
-    self.sum = 0
-    self.result = 0
-
-  def set(self, value):
-    for i in range(len(self.values)):
-      self.values[i] = value
-    self.sum = value * len(self.values)
-    self.result = value
-    return value
-
-  def process(self, value, median = False):
-    self.values.append(value)
-    self.sum += value
-    if len(self.values) > self.window_size:
-      self.sum -= self.values.pop(0)
-    self.result = np.median(self.values) if median else float(self.sum) / len(self.values)
-    return self.result
-
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
     self.mode = mode
@@ -261,7 +242,11 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.xStopFilter = StreamingMovingAverage(11)
+    self.xStopFilter = StreamingMovingAverage(3)  #11
+    self.xStopFilter2 = StreamingMovingAverage(7) #3
+    self.filter_x_lead = StreamingMovingAverage(3)  #레이더입력을 필터링했는데.... 별로 의미없는듯~~ 그래도 한번...
+    self.filter_v_lead = StreamingMovingAverage(3)
+    self.prev_lead = False
     self.buttonStopDist = 0
 
     self.t_follow = T_FOLLOW
@@ -294,6 +279,7 @@ class LongitudinalMpc:
     self.comfort_brake = COMFORT_BRAKE
     self.xState = "CRUISE"
     self.startSignCount = 0
+    self.stopSignCount = 0
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
     self.last_cloudlog_t = 0
@@ -381,14 +367,25 @@ class LongitudinalMpc:
     lead_xv = np.column_stack((x_lead_traj, v_lead_traj))
     return lead_xv
 
-  def process_lead(self, lead):
-    v_ego = self.x0[1]
+  def process_lead(self, lead, filtering=False):
+    v_ego = self.x0[1]    
     if lead is not None and lead.status:
-      x_lead = lead.dRel if lead.radar else max(max(lead.dRel-DIFF_RADAR_VISION, 0.), 20.0)  #비젼의 경우 20M이내는 무시하도록 함... 테스트..
+      #x_lead = lead.dRel if lead.radar else max(lead.dRel-DIFF_RADAR_VISION, 0.)
+      x_lead = lead.dRel
       v_lead = lead.vLead
+      if filtering:
+        if self.prev_lead:
+          x_lead = self.filter_x_lead.process(x_lead)
+          v_lead = self.filter_v_lead.process(v_lead)
+        else:
+          self.filter_x_lead.set(x_lead)
+          self.filter_v_lead.set(v_lead)
+        self.prev_lead = True
       a_lead = lead.aLeadK
       a_lead_tau = lead.aLeadTau
     else:
+      if filtering:
+        self.prev_lead = False
       # Fake a fast lead car, so mpc can keep running in the same mode
       x_lead = 50.0
       v_lead = v_ego + 10.0
@@ -412,6 +409,8 @@ class LongitudinalMpc:
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
+    a_ego = carstate.aEgo
+
     model_x = model.position.x[-1]
     self.lo_timer += 1
     if self.lo_timer > 100:
@@ -437,7 +436,7 @@ class LongitudinalMpc:
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
-    lead_xv_0 = self.process_lead(radarstate.leadOne)
+    lead_xv_0 = self.process_lead(radarstate.leadOne, filtering=True) # 레이더, 그리고 SCC레이더인경우에만 filtering
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
     v_ego_kph = v_ego * CV.MS_TO_KPH
@@ -446,9 +445,12 @@ class LongitudinalMpc:
     cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [0.8, 0.9, 1.0, 1.1])
     self.t_follow *= cruiseGapRatio
 
+    # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
-      self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
+      #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
+      # 선행차가속도와 내차가속도와의 차이로 거리제어... => 이걸 Apart에 적용해도 될듯~
+      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -458,8 +460,8 @@ class LongitudinalMpc:
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
     # and then treat that as a stopped car/obstacle at this new distance.
-    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
-    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
+    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
+    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
     self.params[:,0] = MIN_ACCEL
     self.params[:,1] = self.max_a
 
@@ -481,20 +483,24 @@ class LongitudinalMpc:
         #1단계: 모델값을 이용한 신호감지
         startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
         stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
-        if startSign:
-          self.startSignCount = self.startSignCount + 1 #모델은 0.05초  /1 frame
-        else:
-          self.startSignCount = 0
+
+        self.startSignCount = self.startSignCount + 1 if startSign else 0
+        self.stopSignCount = self.stopSignCount + 1 if stopSign else 0
+
+        startSign = 1 if self.startSignCount > 0.3 * DT_MDL else 0
+        stopSign = 1 if self.stopSignCount > 0.3 * DT_MDL else 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - model_x) < 20.0:
-          self.xStop = self.xStopFilter.process(model_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          stopFilterX = self.xStopFilter.process(model_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          self.xStop = self.xStopFilter2.process(stopFilterX)
         else:
           self.xStop = model_x
           self.xStopFilter.set(model_x)
+          self.xStopFilter2.set(model_x)
           
         model_x = self.xStop
 
-        self.trafficState = 1 if stopSign else 2 if self.startSignCount*DT_MDL > 0.3 else self.trafficState #0 
+        self.trafficState = 1 if self.stopSignCount*DT_MDL > 0.3 else 2 if self.startSignCount*DT_MDL > 0.3 else self.trafficState #0 
 
         # SOFT_HOLD: 기능
         if carstate.brakePressed and v_ego < 0.1:  
@@ -512,7 +518,7 @@ class LongitudinalMpc:
             v_cruise = 0.0
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = "LEAD"
-          elif self.startSignCount*DT_MDL >= 0.3: # 0.3초 이상 신호바뀜..
+          elif startSign == 1:  # 출발신호
             self.xState = "E2E_CRUISE"
           if carstate.gasPressed: # or cruiseButtonCounterDiff>0:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = "E2E_CRUISE"
@@ -520,13 +526,17 @@ class LongitudinalMpc:
         #SOFT_HOLD: 정지 유지상태: 신호오류등 상황발생시 정지유지.
         elif self.xState == "SOFT_HOLD": 
           model_x = 0.0
-          if carstate.gasPressed or cruiseButtonCounterDiff > 0:
+          if carstate.gasPressed:
             self.xState = "E2E_CRUISE"
+            self.e2ePaused = True
+          if cruiseButtonCounterDiff > 0:
+            self.xState = "E2E_STOP" if self.trafficState == 1 else "E2E_CRUISE"
+            self.e2ePaused = False
         #E2E_CRUISE: 주행상태.
         else:
           if self.status:
             self.xState = "LEAD"
-          elif stopSign and not self.e2ePaused:                 #신호인식이 되면 정지모드
+          elif stopSign == 1 and not self.e2ePaused:                 #신호인식이 되면 정지모드
             self.buttonStopDist = 0
             self.xState = "E2E_STOP"
           else:
@@ -584,7 +594,7 @@ class LongitudinalMpc:
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
       if self.source == 'e2e' and model_x < 20.0: #신호감속인경우 그리고 20M이내에는 감속도 제한함.. 정지선 x를 지나가더라도.... 급격한 x값의 변화로 인한 감속정지를 막기위해.... 되려나?
-        self.params[:,0] = -3.0 #MIN_ACCEL  
+        self.params[:,0] = -COMFORT_BRAKE #MIN_ACCEL  
 
       # These are not used in ACC mode
       x[:], v[:], a[:], j[:] = 0.0, 0.0, 0.0, 0.0

@@ -29,3 +29,5 @@ bool siren_enabled = false;
 uint32_t siren_countdown = 0; // siren plays while countdown > 0
 uint32_t controls_allowed_countdown = 0;
 
+bool apilot_connected = false;
+

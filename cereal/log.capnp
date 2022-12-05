@@ -955,6 +955,9 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   visionTurnControllerState @41 :VisionTurnControllerState;
   visionTurnSpeed @42 :Float32;
   xStop @43 : Float32;
+  leadX @44 : Float32;
+  leadV @45 : Float32;
+  tFollow @46 : Float32;
 
   enum LongitudinalPlanSource {
     cruise @0;

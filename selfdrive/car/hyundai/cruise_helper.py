@@ -59,6 +59,10 @@ class CruiseHelper:
     self.autoSpeedAdjustWithLeadCar = 0
     self.autoResumeFromGasSpeedMode = 0
     self.radarAlarmCount = 0
+    self.autoRoadLimitCtrl = 0
+    self.naviSpeedLimitDecelRate = 0.5
+    self.naviSpeedLimitTarget = 30
+    self.autoNaviSpeedCtrl = 1
     self.dRel = 0
     self.vRel = 0
     self.trafficState = 0
@@ -68,7 +72,7 @@ class CruiseHelper:
     self.over_speed_limit = False
 
     self.roadLimitSpeed = 0.0
-    self.ndaActive = False
+    self.ndaActive = 0
 
     self.update_params(0, True)
 
@@ -76,8 +80,9 @@ class CruiseHelper:
     if all or frame % 300 == 0:
       self.autoCurveSpeedCtrl = False#Params().get_bool("AutoCurveSpeedCtrl")
       self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
-      self.autoNaviSpeedCtrl = Params().get_bool("AutoNaviSpeedCtrl")
+      self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
       self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
+      self.naviSpeedLimitDecelRate = float(Params().get("NaviSpeedLimitDecelRate", encoding="utf8"))*0.01
       #self.naviDecelMarginDist = float(int(Params().get("NaviDecelMarginDist", encoding="utf8")))
       #self.naviDecelRate = float(int(Params().get("NaviDecelRate", encoding="utf8")))
     if all or (frame + 100) % 300 == 0:
@@ -197,6 +202,10 @@ class CruiseHelper:
 
   def update_cruise_buttons(self, enabled, buttonEvents, v_cruise_kph, metric):
     global ButtonCnt, LongPressed, ButtonPrev
+
+    button_speed_up_diff = 1
+    button_speed_dn_diff = 10 if self.cruiseButtonMode in [3] else 1
+
     button_type = 0
     if enabled:
       if ButtonCnt:
@@ -207,10 +216,10 @@ class CruiseHelper:
           ButtonPrev = b.type
         elif not b.pressed and ButtonCnt:
           if not LongPressed and b.type == ButtonType.accelCruise:
-            v_cruise_kph += 1 if metric else 1 * CV.MPH_TO_KPH
+            v_cruise_kph += button_speed_up_diff if metric else button_speed_up_diff * CV.MPH_TO_KPH
             button_type = ButtonType.accelCruise
           elif not LongPressed and b.type == ButtonType.decelCruise:
-            v_cruise_kph -= 1 if metric else 1 * CV.MPH_TO_KPH
+            v_cruise_kph -= button_speed_dn_diff if metric else button_speed_dn_diff * CV.MPH_TO_KPH
             button_type = ButtonType.decelCruise
           elif not LongPressed and b.type == ButtonType.gapAdjustCruise:
             pass
@@ -231,14 +240,23 @@ class CruiseHelper:
     v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
-  def update_speed_navi(self, CS, controls):
+  def update_speed_navi(self, CS, controls, v_cruise_kph):
     navi = CS.naviSafetyInfo
     controls.debugText1 = 'S{}/{},D{}/{},N{}'.format(navi.sign, navi.speed2, navi.dist1, navi.dist2, navi.speedLimit)
+    v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 3.0
+    v_kph_apply = v_cruise_kph
+    if self.naviSpeedLimitDecelRate > 0.0 and navi.speedLimit > 0 and navi.speedLimit < 255 and v_kph_apply > navi.speedLimit:
+      v_kph_apply = min(v_ego_kph, self.naviSpeedLimitTarget)
+      self.naviSpeedLimitTarget = max(navi.speedLimit, v_kph_apply - self.naviSpeedLimitDecelRate * 2.5 * DT_CTRL)
+    else:
+      self.naviSpeedLimitTarget = v_cruise_kph
+      return 0
+    return self.naviSpeedLimitTarget
 
   def update_speed_nda(self, CS, controls):
     clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
     road_speed_limiter = get_road_speed_limiter()
-    self.ndaActive = road_speed_limiter_get_active() > 0
+    self.ndaActive = 1 if road_speed_limiter_get_active() > 0 else 0
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
       road_speed_limiter.get_max_speed(clu11_speed, True) #self.is_metric)
 
@@ -276,7 +294,7 @@ class CruiseHelper:
     self.update_params(controls.sm.frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
-    self.update_speed_navi(CS, controls)
+    carNaviSpeed = self.update_speed_navi(CS, controls, v_cruise_kph)
     
     curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
 
@@ -347,7 +365,7 @@ class CruiseHelper:
               v_cruise_kph = 3
               self.cruise_control(controls, CS, -1)
               pass
-            elif v_cruise_kph > v_ego_kph_set:
+            elif v_cruise_kph > v_ego_kph_set+1:
               v_cruise_kph = v_ego_kph_set
               self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
             else:
@@ -435,8 +453,12 @@ class CruiseHelper:
       #controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, roadSpeed, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
-      if self.autoNaviSpeedCtrl and naviSpeed > 0:
+      if self.autoNaviSpeedCtrl > 0 and naviSpeed > 0:
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, naviSpeed)
+        self.ndaActive = 2 if self.ndaActive == 1 else 0
+      elif self.autoNaviSpeedCtrl > 1 and carNaviSpeed > 0:
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, carNaviSpeed)
+        self.ndaActive = 2
       if roadSpeed > 30:
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
