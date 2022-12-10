@@ -125,8 +125,8 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.7
       ret.centerToFront = ret.wheelbase * 0.4
       ret.steerRatio = 14.00
-    elif candidate == CAR.TUCSON_HYBRID_4TH_GEN:
-      ret.mass = 1680. + STD_CARGO_KG  # average of all 3 trims
+    elif candidate in (CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN):
+      ret.mass = 1630. + STD_CARGO_KG  # average
       ret.wheelbase = 2.756
       ret.steerRatio = 16.
       tire_stiffness_factor = 0.385
@@ -196,6 +196,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1767. + STD_CARGO_KG  # SX Prestige trim support only
       ret.wheelbase = 2.756
       ret.steerRatio = 13.6
+    elif candidate == CAR.KIA_SORENTO_PHEV_4TH_GEN:
+      ret.mass = 4095.8 * CV.LB_TO_KG + STD_CARGO_KG # weight from EX and above trims, average of FWD and AWD versions (EX, X-Line EX AWD, SX, SX Pestige, X-Line SX Prestige AWD)
+      ret.wheelbase = 2.81
+      ret.steerRatio = 13.27 # steering ratio according to Kia News https://www.kiamedia.com/us/en/models/sorento-phev/2022/specifications
 
     # Genesis
     elif candidate == CAR.GENESIS_G70:
