@@ -204,7 +204,7 @@ class CruiseHelper:
     global ButtonCnt, LongPressed, ButtonPrev
 
     button_speed_up_diff = 1
-    button_speed_dn_diff = 10 if self.cruiseButtonMode in [3] else 1
+    button_speed_dn_diff = 10 if self.cruiseButtonMode in [3, 4] else 1
 
     button_type = 0
     if enabled:
@@ -365,7 +365,7 @@ class CruiseHelper:
               v_cruise_kph = 3
               self.cruise_control(controls, CS, -1)
               pass
-            elif v_cruise_kph > v_ego_kph_set+1:
+            elif v_cruise_kph > v_ego_kph_set+1 and self.cruiseButtonMode in [0,1,2]:
               v_cruise_kph = v_ego_kph_set
               self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
             else:

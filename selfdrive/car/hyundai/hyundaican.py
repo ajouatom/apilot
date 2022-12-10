@@ -103,9 +103,9 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
 def create_lfahda_mfc(packer, CC):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
-    "HDA_Active": 1 if CC.activeHda == 1 else 0,
-    "HDA_Icon_State": CC.activeHda,
-    "HDA_VSetReq": CC.activeHda == 1, #enabled,
+    "HDA_Active": 1 if CC.activeHda > 0 else 0,
+    "HDA_Icon_State": int(CC.activeHda),
+    "HDA_VSetReq": 1 if CC.activeHda > 0 else 0, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
     "HDA_Chime" : 1 if CC.latEnabled else 0,
@@ -136,9 +136,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
     if softHold and brakePressed and longEnabled: #longActive:
-      scc12_accMode = 1
-      scc14_accMode = 1
-      stopReq = 1
+      #scc12_accMode = 1
+      #scc14_accMode = 1
+      #stopReq = 1
+      pass
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk
