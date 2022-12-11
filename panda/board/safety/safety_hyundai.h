@@ -108,6 +108,7 @@ int     cruiseEngaged = 0;
 bool apilot_connected_prev = false;
 uint32_t LKAS11_lastTxTime = 0;
 uint32_t LKAS11_maxTxDiffTime = 0;
+bool LKAS11_forwarding = true;
 
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
@@ -311,12 +312,14 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
-    bool steer_req = 1;//ajouatom GET_BIT(to_send, 27U) != 0U;
+    bool steer_req = GET_BIT(to_send, 27U) != 0U;
 
     const SteeringLimits limits = hyundai_alt_limits ? HYUNDAI_STEERING_LIMITS_ALT : HYUNDAI_STEERING_LIMITS;
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
       tx = 0;
+      LKAS11_forwarding = true;
     }
+    else LKAS11_forwarding = false;
   }
 
   // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
@@ -378,7 +381,9 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   }
   if (bus_num == 2) {
 
-      int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
+      //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
+      int block_msg = is_lfahda_mfc_msg || is_scc_msg;
+      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS메시지에 불량이 있으면 TX를 안함.. 여기서 그냥 포워딩해버리자 => 시험..
 
       if (apilot_connected) {
           if (!block_msg) {
