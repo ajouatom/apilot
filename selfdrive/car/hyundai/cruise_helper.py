@@ -12,6 +12,7 @@ from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 #from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 from selfdrive.car.hyundai.values import CAR
 from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
+from common.filter_simple import StreamingMovingAverage
 
 from selfdrive.road_speed_limiter import road_speed_limiter_get_max_speed, road_speed_limiter_get_active, \
   get_road_speed_limiter
@@ -73,12 +74,14 @@ class CruiseHelper:
 
     self.roadLimitSpeed = 0.0
     self.ndaActive = 0
+    self.trafficSignedFrame = 0
+    self.curveSpeedFilter = StreamingMovingAverage(20)
 
     self.update_params(0, True)
 
   def update_params(self, frame, all):
     if all or frame % 300 == 0:
-      self.autoCurveSpeedCtrl = False#Params().get_bool("AutoCurveSpeedCtrl")
+      self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
       self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
       self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
       self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
@@ -127,6 +130,33 @@ class CruiseHelper:
 #   - 브레이클를 밟았다 떼면: Cruise disable... 유지
 #   - 엑셀을 밟으면: 30Km/h이상되면 auto Resume
 #   - 엑셀을 밟았다 떼면: zz
+
+## 이방법은 잘안됨~~ 선택못하게 막자~
+  def cal_curve_speed_apilot(self, controls, v_ego, frame):
+    md = controls.sm['modelV2']
+    if len(md.position.x) == TRAJECTORY_SIZE and len(md.position.y) == TRAJECTORY_SIZE:
+      x = md.position.x
+      y = md.position.y
+      self.position_x = x[-1]
+      self.position_y = y[-1]
+      slope, intercept = np.polyfit(x, y, 1)
+      slope = abs(slope)
+      if slope > 0.01:
+        speed_kph = clip(20.0 / slope * self.autoCurveSpeedFactor, 10, 200) 
+        speed_kph = self.curveSpeedFilter.process(speed_kph)
+      else:
+        speed_kph = 200
+        self.curveSpeedFilter.set(speed_kph)
+
+      #controls.debugText1 = 'CURVE={:5.4f},{:5.1f},POS={:5.1f},{:5.1f}'.format( slope, speed_kph, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
+
+    else:
+      self.position_x = 1000.0
+      self.position_y = 300.0
+      speed_kph = 200
+      self.curveSpeedFilter.set(speed_kph)
+
+    return speed_kph
   def cal_curve_speed(self, controls, v_ego, frame, curve_speed_last):
     curve_speed_ms = curve_speed_last
     bCurve = False
@@ -171,7 +201,7 @@ class CruiseHelper:
       if np.isnan(curve_speed_ms):
         curve_speed_ms = 255.
 
-      #controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
+      controls.debugText1 = 'CURVE={:5.1f},MODEL={:5.1f},POS={:5.1f},{:5.1f}'.format( curve_speed_ms*CV.MS_TO_KPH, model_speed*CV.MS_TO_KPH, x[TRAJECTORY_SIZE-1], y[TRAJECTORY_SIZE-1])
   
     return curve_speed_ms
 
@@ -242,7 +272,7 @@ class CruiseHelper:
 
   def update_speed_navi(self, CS, controls, v_cruise_kph):
     navi = CS.naviSafetyInfo
-    controls.debugText1 = 'S{}/{},D{}/{},N{}'.format(navi.sign, navi.speed2, navi.dist1, navi.dist2, navi.speedLimit)
+    #controls.debugText1 = 'S{}/{},D{}/{},N{}'.format(navi.sign, navi.speed2, navi.dist1, navi.dist2, navi.speedLimit)
     v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 3.0
     v_kph_apply = v_cruise_kph
     if self.naviSpeedLimitDecelRate > 0.0 and navi.speedLimit > 0 and navi.speedLimit < 255 and v_kph_apply > navi.speedLimit:
@@ -278,7 +308,8 @@ class CruiseHelper:
   def update_speed_curve(self, CS, controls):
     curve_speed = self.cal_curve_speed(controls, CS.vEgo, controls.sm.frame, self.curve_speed_last)
     self.curve_speed_last = curve_speed
-    return clip(curve_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
+    curve_speed_apilot = self.cal_curve_speed_apilot(controls, CS.vEgo, controls.sm.frame)
+    return clip(curve_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH), clip(curve_speed_apilot, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
 
   def v_cruise_speed_up(self, v_cruise_kph, roadSpeed):
     if v_cruise_kph < roadSpeed:
@@ -291,12 +322,13 @@ class CruiseHelper:
     return clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
 
   def update_v_cruise_apilot(self, v_cruise_kph, buttonEvents, enabled, metric, controls, CS):
-    self.update_params(controls.sm.frame, False)
+    frame = controls.sm.frame
+    self.update_params(frame, False)
     button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
     carNaviSpeed = self.update_speed_navi(CS, controls, v_cruise_kph)
     
-    curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
+    curveSpeed,curveSpeed_apilot = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
 
     v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 3.0 #실제속도가 v_cruise_kph보다 조금 빨라 3을 더함.
     v_ego_kph_set = clip(v_ego_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
@@ -312,7 +344,9 @@ class CruiseHelper:
       if xState != self.xState and xState == "SOFT_HOLD":
         controls.events.add(EventName.autoHold)
       if xState == "SOFT_HOLD" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
-        controls.events.add(EventName.trafficSignChanged)
+        if (frame - self.trafficSignedFrame)*DT_CTRL > 20.0: # 신호인식 불량시 시끄러워, 알리고 20초가 지나면 알리자.
+          controls.events.add(EventName.trafficSignChanged)
+          self.trafficSignedFrame = frame
         #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
       elif xState == "E2E_CRUISE" and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2 and CS.vEgo < 0.1:
         controls.events.add(EventName.trafficSignGreen)
@@ -464,8 +498,10 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
-      if self.autoCurveSpeedCtrl:
+      if self.autoCurveSpeedCtrl==2:
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+      elif self.autoCurveSpeedCtrl==3:
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curve_speed_apilot)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 

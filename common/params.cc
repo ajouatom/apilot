@@ -219,6 +219,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "JEgoCost", PERSISTENT },
     { "AChangeCost", PERSISTENT },
     { "DangerZoneCost", PERSISTENT },
+    { "LeadDangerFactor", PERSISTENT },
     { "LongControlActiveSound", PERSISTENT },
     { "AccelLimitEcoSpeed", PERSISTENT },
     { "AccelBoost", PERSISTENT },

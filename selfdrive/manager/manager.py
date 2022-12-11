@@ -64,6 +64,7 @@ def manager_init() -> None:
     ("JEgoCost", "5"),
     ("AChangeCost", "150"),
     ("DangerZoneCost", "100"),
+    ("LeadDangerFactor", "75"),
     ("LongControlActiveSound", "1"),
     ("AccelLimitEcoSpeed", "3"),
     ("AccelBoost", "100"),

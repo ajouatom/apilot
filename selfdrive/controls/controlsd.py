@@ -197,7 +197,7 @@ class Controls:
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
     self.v_future = 100
-    self.enableAutoEngage = Params().get_bool("EnableAutoEngage")
+    self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
     self.powerOnTimer = 0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True

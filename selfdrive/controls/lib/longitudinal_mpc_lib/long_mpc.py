@@ -229,6 +229,7 @@ class LongitudinalMpc:
     self.JEgoCost = 5.
     self.AChangeCost = 200.
     self.DangerZoneCost = 100.
+    self.leadDangerFactor = LEAD_DANGER_FACTOR
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
@@ -419,6 +420,7 @@ class LongitudinalMpc:
       self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
       self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
       self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
       self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
     if self.lo_timer == 50:
@@ -449,8 +451,9 @@ class LongitudinalMpc:
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
       #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-      # 선행차가속도와 내차가속도와의 차이로 거리제어... => 이걸 Apart에 적용해도 될듯~
+      # 선행차감속도* 내차감속도 : 둘다감속이 심하면 더 t_follow를 크게..
       self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
+      self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 내차의 감속도에 추가 적용
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -467,7 +470,7 @@ class LongitudinalMpc:
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
-      self.params[:,5] = LEAD_DANGER_FACTOR
+      self.params[:,5] = self.leadDangerFactor #LEAD_DANGER_FACTOR
 
       cruiseButtonCounterDiff = controls.cruiseButtonCounter - self.cruiseButtonCounter
       #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)

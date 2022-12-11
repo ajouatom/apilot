@@ -117,7 +117,8 @@ class LongControl:
       v_target = min(v_target_lower, v_target_upper)
       a_target = min(a_target_lower, a_target_upper)
 
-      if speeds[-1] < v_target_now:
+      #if speeds[-1] < v_target_now:
+      if a_target < 0.0:
         a_target *= self.longitudinalTuningKf
 
       v_target_1sec = interp(longitudinalActuatorDelayUpperBound + t_since_plan + 1.0, T_IDXS[:CONTROL_N], speeds)

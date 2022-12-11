@@ -99,7 +99,7 @@ class VisionTurnController():
     self._CP = CP
     self._op_enabled = False
     self._gas_pressed = False
-    self._is_enabled = self._params.get_bool("AutoCurveSpeedCtrl")
+    self._is_enabled = int(self._params.get("AutoCurveSpeedCtrl")) == 1
     self.autoCurveSpeedFactor = 1.0 #float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self._last_params_update = 0.
     self._v_cruise_setpoint = 0.
@@ -148,7 +148,7 @@ class VisionTurnController():
   def _update_params(self):
     time = sec_since_boot()
     if time > self._last_params_update + 5.0:
-      self._is_enabled = self._params.get_bool("AutoCurveSpeedCtrl")
+      self._is_enabled = int(self._params.get("AutoCurveSpeedCtrl")) == 1
       self.autoCurveSpeedFactor = 1.0 #float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
       self._last_params_update = time
 
