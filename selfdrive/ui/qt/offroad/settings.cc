@@ -619,6 +619,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("KeepEngage", "인게이지 유지모드", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new ParamControl("UseLanelines", "레인모드사용", "", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("PathOffset", "차선치우침 좌우보정", "(-)좌측, (+)우측", "../assets/offroad/icon_road.png", -200, 200, 1));
+  toggleLayout->addWidget(new ParamControl("HapticFeedbackWhenSpeedCamera", "핸들진동사용", "핸들햅틱진동기능이 있는 차량만 적용됩니다.", "../assets/offroad/icon_road.png", this));  
 }
 
 TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {

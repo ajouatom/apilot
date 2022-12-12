@@ -199,6 +199,8 @@ class Controls:
     self.v_future = 100
     self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
     self.powerOnTimer = 0
+    self.right_lane_visible = False
+    self.left_lane_visible = False
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -764,8 +766,10 @@ class Controls:
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
 
-    hudControl.rightLaneVisible = True
-    hudControl.leftLaneVisible = True
+    hudControl.rightLaneVisible = self.right_lane_visible
+    hudControl.leftLaneVisible = self.left_lane_visible
+    #hudControl.rightLaneVisible = True
+    #hudControl.leftLaneVisible = True
 
     hudControl.cruiseGap = CS.cruiseGap
     hudControl.objDist = int(self.cruise_helper.dRel)
@@ -780,6 +784,11 @@ class Controls:
     if len(desire_prediction) and ldw_allowed:
       right_lane_visible = model_v2.laneLineProbs[2] > 0.5
       left_lane_visible = model_v2.laneLineProbs[1] > 0.5
+
+      if self.sm.frame % 100 == 0:
+        self.right_lane_visible = right_lane_visible
+        self.left_lane_visible = left_lane_visible
+
       l_lane_change_prob = desire_prediction[Desire.laneChangeLeft - 1]
       r_lane_change_prob = desire_prediction[Desire.laneChangeRight - 1]
 

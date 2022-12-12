@@ -57,6 +57,10 @@ class CarController:
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
     self.jerkUpperLowerLimit = 12.0       
+    self.speedCameraHapticEndFrame = 0
+    self.hapticFeedbackWhenSpeedCamera = False
+    self.blinking_signal = False #아이콘 깜박이용 1Hz
+    self.blinking_frame = int(1.0 / DT_CTRL)
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -81,11 +85,23 @@ class CarController:
     sys_warning, sys_state, left_lane_warning, right_lane_warning = process_hud_alert(CC.enabled, self.car_fingerprint,
                                                                                       hud_control)
 
+    if CC.activeHda == 2 and self.speedCameraHapticEndFrame < self.frame: # 과속카메라 감속시작
+      self.speedCameraHapticEndFrame = self.frame + (2.0 / DT_CTRL)  #2초간 켜줌..
+
+    if self.frame < self.speedCameraHapticEndFrame and self.hapticFeedbackWhenSpeedCamera:
+      left_lane_warning = right_lane_warning = True  
+     
+    if self.frame % self.blinking_frame == 0:
+      self.blinking_signal = True
+    elif self.frame % self.blinking_frame == self.blinking_frame / 2:
+      self.blinking_signal = False
+
     can_sends = []
 
     # *** common hyundai stuff ***
     if self.frame % 100 == 0:
       self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
+      self.hapticFeedbackWhenSpeedCamera = Params().get_bool("HapticFeedbackWhenSpeedCamera")
 
     # tester present - w/ no response (keeps relevant ECU disabled)
     if self.frame % 100 == 0 and not (self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value) and self.CP.openpilotLongitudinalControl:
@@ -215,7 +231,7 @@ class CarController:
       #                                                    CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
       #                                                    CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022,
       #                                                    CAR.SANTA_FE, CAR.HYUNDAI_GENESIS, CAR.TUCSON_TL_SCC):
-        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC))
+        can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC, self.blinking_signal))
 
       # 5 Hz ACC options
       if self.frame % 20 == 0 and self.CP.openpilotLongitudinalControl: #  and self.CP.sccBus == 0:

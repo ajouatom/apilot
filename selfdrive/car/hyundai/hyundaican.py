@@ -100,11 +100,11 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
   return packer.make_can_msg("CLU11", bus, values)
 
 
-def create_lfahda_mfc(packer, CC):
+def create_lfahda_mfc(packer, CC, blinking_signal):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
     "HDA_Active": 1 if CC.activeHda > 0 else 0,
-    "HDA_Icon_State": 2 if CC.activeHda > 0 else 0,
+    "HDA_Icon_State": 0 if CC.activeHda > 0 and blinking_signal else 2 if CC.activeHda > 0 else 0,
     "HDA_VSetReq": 1 if CC.activeHda > 0 else 0, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
@@ -167,8 +167,6 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     #"ACC_ObjLatPos": 0,
     "ACC_ObjRelSpd": hud_control.objRelSpd,
     "ACC_ObjDist": hud_control.objDist, # close lead makes controls tighter
-    "Navi_SCC_Camera_Act": 2 if CC.activeHda == 2 else 0,
-    "Navi_SCC_Camera_Status": 2 if CC.activeHda == 2 else 0,
     "DriverAlertDisplay": 0,
     }
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
@@ -185,8 +183,6 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     #values["ACC_ObjLatPos"] = 0
     values["ACC_ObjRelSpd"] = hud_control.objRelSpd
     values["ACC_ObjDist"] = hud_control.objDist
-    values["Navi_SCC_Camera_Act"] = 2 if CC.activeHda == 2 else 0
-    values["Navi_SCC_Camera_Status"] = 2 if CC.activeHda == 2 else 0
     values["DriverAlertDisplay"] = 0
     commands.append(packer.make_can_msg("SCC11", 0, values))
 
