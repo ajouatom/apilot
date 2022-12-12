@@ -300,7 +300,7 @@ void AnnotatedCameraWidget::initializeGL() {
   ic_satellite = QPixmap("../assets/images/satellite.png");
 
   ic_trafficLight_green = QPixmap("../assets/images/traffic_green.png");
-  ic_trafficLight_red = QPixmap("../assets/images/images/traffic_red.png");
+  ic_trafficLight_red = QPixmap("../assets/images/traffic_red.png");
   ic_navi = QPixmap("../assets/images/img_navi.png");
   ic_scc2 = QPixmap("../assets/images/img_scc2.png");
   ic_radartracks = QPixmap("../assets/images/img_radartracks.png");
