@@ -972,6 +972,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   leadX @44 : Float32;
   leadV @45 : Float32;
   tFollow @46 : Float32;
+  cruiseGap @47 : Int32;
 
   enum LongitudinalPlanSource {
     cruise @0;

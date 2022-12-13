@@ -246,6 +246,7 @@ class LongitudinalMpc:
     self.filter_v_lead = StreamingMovingAverage(3)
     self.prev_lead = False
     self.buttonStopDist = 0
+    self.applyCruiseGap = 1.
 
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
@@ -441,8 +442,11 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
     if carstate.cruiseGap == 4:
-      cruiseGapRatio = interp(v_ego_kph, [0,50,140], [1.1, 1.2, 1.45])
+      self.applyCruiseGap = interp(v_ego_kph, [0, 40, 80, 140], [1,2,3,4])
+      cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
+      self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
     else:
+      self.applyCruiseGap = carstate.cruiseGap
       cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3], [1.1, 1.2, 1.45])
 
     self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio) # 0.9아래는 위험하니 적용안함.
