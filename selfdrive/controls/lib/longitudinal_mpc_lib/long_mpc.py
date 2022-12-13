@@ -46,9 +46,6 @@ LIMIT_COST = 1e6
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
 
-AUTO_TR_BP = [0., 50.*CV.KPH_TO_MS, 100.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
-#AUTO_TR_V = [1.0, 1.2, 1.35, 1.45]
-AUTO_TR_V = [1.2, 1.2, 1.3, 1.40]
 DIFF_RADAR_VISION = 2.0
 # Fewer timestamps don't hurt performance and lead to
 # much better convergence of the MPC with low iterations
@@ -442,10 +439,10 @@ class LongitudinalMpc:
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
     v_ego_kph = v_ego * CV.MS_TO_KPH
-    self.t_follow = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V) #if self.mode == 'acc' else T_FOLLOW
-    self.t_follow *= self.tFollowRatio
-    cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [0.8, 0.9, 1.0, 1.1])
-    self.t_follow *= cruiseGapRatio
+    #APILOT에서는 속도별 t_follow를 적용하지 않음.
+    cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [1.0, 1.2, 1.4, 1.6])
+    self.t_follow = max(1.0, cruiseGapRatio * self.tFollowRatio) # 1.0아래는 위험하니 적용안함.
+
 
     # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
     if radarstate.leadOne.status:
