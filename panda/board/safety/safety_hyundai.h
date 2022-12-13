@@ -312,12 +312,12 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
-    bool steer_req = GET_BIT(to_send, 27U) != 0U;
+    bool steer_req = 1;// GET_BIT(to_send, 27U) != 0U;
 
     const SteeringLimits limits = hyundai_alt_limits ? HYUNDAI_STEERING_LIMITS_ALT : HYUNDAI_STEERING_LIMITS;
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
       tx = 0;
-      LKAS11_forwarding = true;
+      LKAS11_forwarding = false;// true;
     }
     else LKAS11_forwarding = false;
   }

@@ -85,8 +85,10 @@ class CarController:
     sys_warning, sys_state, left_lane_warning, right_lane_warning = process_hud_alert(CC.enabled, self.car_fingerprint,
                                                                                       hud_control)
 
-    if CC.activeHda == 2 and self.speedCameraHapticEndFrame < self.frame: # 과속카메라 감속시작
+    if CC.activeHda == 2 and self.speedCameraHapticEndFrame < 0: # 과속카메라 감속시작
       self.speedCameraHapticEndFrame = self.frame + (2.0 / DT_CTRL)  #2초간 켜줌..
+    elif CC.activeHda != 2:
+      self.speedCameraHapticEndFrame = -1
 
     if self.frame < self.speedCameraHapticEndFrame and self.hapticFeedbackWhenSpeedCamera:
       left_lane_warning = right_lane_warning = True  
