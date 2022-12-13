@@ -942,7 +942,8 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   }
 
   int radar_tracks = Params().getBool("EnableRadarTracks");
-  int nda_mode = (int)Params().get("AutoNaviSpeedCtrl");
+  QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
+  int nda_mode = nda_mode_str.toInt();
   // debug Code
   int w = 120;
   int dx = w + 15;

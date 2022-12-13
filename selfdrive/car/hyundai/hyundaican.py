@@ -104,7 +104,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
     "HDA_Active": 1 if CC.activeHda > 0 else 0,
-    "HDA_Icon_State": 0 if CC.activeHda > 0 and blinking_signal else 2 if CC.activeHda > 0 else 0,
+    "HDA_Icon_State": 0 if CC.activeHda > 1 and blinking_signal else 2 if CC.activeHda > 0 else 0,
     "HDA_VSetReq": 1 if CC.activeHda > 0 else 0, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
