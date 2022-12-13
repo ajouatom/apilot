@@ -627,7 +627,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   int TRsign_w = 140;
   int TRsign_h = 250;
   int TRsign_x = 65;
-  int TRsign_y = 520;
+  int TRsign_y = 535;
   prev_traffic_state = (lp.getTrafficState() == 2) ? 2 : (lp.getTrafficState() == 1) ? 1 : prev_traffic_state;
   if (prev_traffic_state == 2) {
       trafficLight = 1;
@@ -942,24 +942,35 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   }
 
   int radar_tracks = Params().getBool("EnableRadarTracks");
+  int nda_mode = (int)Params().get("AutoNaviSpeedCtrl");
   // debug Code
   int w = 120;
+  int dx = w + 15;
   int h = 54;
-  int x = (width() + (bdr_s * 2)) / 2 - w / 2 - bdr_s;
+  int x = (width() + (bdr_s * 2)) / 2 - w / 2 - bdr_s - dx;
   int y = 40 - bdr_s;
 
-  if (navCluster == 1) p.drawPixmap(x + w + 15, y, w, h, ic_navi);
-  if (sccBus == 2) p.drawPixmap(x - w - 15, y, w, h, ic_scc2);
-  if (radar_tracks) p.drawPixmap(x + w * 2 + 15 + 15, y, w*2, h, ic_radartracks);
+  if (sccBus == 2) {
+      p.drawPixmap(x, y, w, h, ic_scc2); 
+      x += dx;
+  }
+  if (navCluster == 1 && nda_mode==2) {
+      p.drawPixmap(x, y, w, h, ic_navi); 
+      x += dx;
+  }
 
-  if (activeNDA > 0)
-  {
+  if (activeNDA > 0 && nda_mode>0) {
       p.setOpacity(1.f);
       p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
+      x += dx;
   }
   else {
       limit_speed = navi_info.getSpeedLimit();
       left_dist = navi_info.getDist();
+  }
+  if (radar_tracks) {
+      p.drawPixmap(x, y, w * 2, h, ic_radartracks);
+      x += (w + dx);
   }
 
 
