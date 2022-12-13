@@ -439,9 +439,13 @@ class LongitudinalMpc:
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
     v_ego_kph = v_ego * CV.MS_TO_KPH
-    #APILOT에서는 속도별 t_follow를 적용하지 않음.
-    cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3,4], [1.0, 1.2, 1.4, 1.6])
-    self.t_follow = max(1.0, cruiseGapRatio * self.tFollowRatio) # 1.0아래는 위험하니 적용안함.
+
+    if carstate.cruiseGap == 4:
+      cruiseGapRatio = interp(v_ego_kph, [0,50,140], [1.1, 1.2, 1.45])
+    else:
+      cruiseGapRatio = interp(carstate.cruiseGap, [1,2,3], [1.1, 1.2, 1.45])
+
+    self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio) # 0.9아래는 위험하니 적용안함.
 
 
     # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
