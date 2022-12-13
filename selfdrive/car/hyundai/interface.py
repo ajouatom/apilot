@@ -377,6 +377,10 @@ class CarInterface(CarInterfaceBase):
     elif Params().get_bool("EnableRadarTracks"): #롱컨관계없이 EnableRadarTracks는 사용할 수 있을듯..
       enable_radar_tracks(CP, logcan, sendcan)      
 
+    # for blinkers
+    if CP.flags & HyundaiFlags.ENABLE_BLINKERS:
+      disable_ecu(logcan, sendcan, bus=5, addr=0x7B1, com_cont_req=b'\x28\x83\x01')
+
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)
 
