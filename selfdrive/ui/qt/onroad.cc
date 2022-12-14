@@ -627,7 +627,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   int TRsign_w = 140;
   int TRsign_h = 250;
   int TRsign_x = 65;
-  int TRsign_y = 535;
+  int TRsign_y = 550;
   prev_traffic_state = (lp.getTrafficState() == 2) ? 2 : (lp.getTrafficState() == 1) ? 1 : prev_traffic_state;
   if (prev_traffic_state == 2) {
       trafficLight = 1;
@@ -704,6 +704,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   p.save();
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
+  const auto controls_state = sm["controlsState"].getControlsState();
   //auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
   UIState* s = uiState();
 
@@ -743,7 +744,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   const int y = rect().bottom() - footer_h / 2 - 10;
 
   // cruise gap
-  int gap = car_state.getCruiseGap();
+  int gap = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
   int myDrivingMode = car_state.getMyDrivingMode();
   //bool longControl = 0;// scc_smoother.getLongControl();
   //int autoTrGap = 0;// scc_smoother.getAutoTrGap();
@@ -782,7 +783,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   {
   case 0: strDrivingMode = "GAP"; break;
   case 1: strDrivingMode = "연비"; break;
-  case 2: strDrivingMode = "관성"; break;
+  case 2: strDrivingMode = "안전"; break;
   case 3: strDrivingMode = "일반"; break;
   case 4: strDrivingMode = "고속"; break;
   }

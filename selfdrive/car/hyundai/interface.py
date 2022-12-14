@@ -393,17 +393,6 @@ class CarInterface(CarInterfaceBase):
 
       ret.buttonEvents = buttonEvents
 
-      if self.CS.cruise_buttons[-1] != 0: # and not self.CS.CP.openpilotLongitudinalControl:
-        # ajouatom
-        if self.CS.cruise_buttons[-1] == Buttons.GAP_DIST:
-          self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1
-          print("cruiseGap=", self.cruiseGap )
-          Params().put("PrevCruiseGap", str(self.cruiseGap))
-
-    if not self.CS.CP.openpilotLongitudinalControl:
-      self.cruiseGap = ret.cruiseGap
-
-    ret.cruiseGap = self.cruiseGap
     # On some newer model years, the CANCEL button acts as a pause/resume button based on the PCM state
     # To avoid re-engaging when openpilot cancels, check user engagement intention via buttons
     # Main button also can trigger an engagement on these cars

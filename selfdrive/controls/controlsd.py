@@ -786,13 +786,17 @@ class Controls:
 
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
-    if len(desire_prediction) and ldw_allowed:
+
+    if len(desire_prediction):
       right_lane_visible = model_v2.laneLineProbs[2] > 0.5
       left_lane_visible = model_v2.laneLineProbs[1] > 0.5
-
       if self.sm.frame % 100 == 0:
         self.right_lane_visible = right_lane_visible
         self.left_lane_visible = left_lane_visible
+
+    if len(desire_prediction) and ldw_allowed:
+      #right_lane_visible = model_v2.laneLineProbs[2] > 0.5
+      #left_lane_visible = model_v2.laneLineProbs[1] > 0.5
 
       l_lane_change_prob = desire_prediction[Desire.laneChangeLeft - 1]
       r_lane_change_prob = desire_prediction[Desire.laneChangeRight - 1]
@@ -875,6 +879,7 @@ class Controls:
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.cruiseButtonCounter = self.cruiseButtonCounter
+    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)

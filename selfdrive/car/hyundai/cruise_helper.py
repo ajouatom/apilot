@@ -80,6 +80,9 @@ class CruiseHelper:
     self.update_params(0, True)
 
   def update_params(self, frame, all):
+    if all:
+      self.longCruiseGap = int(Params().get("PrevCruiseGap"))
+
     if all or frame % 300 == 0:
       self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
       self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
@@ -252,21 +255,24 @@ class CruiseHelper:
             v_cruise_kph -= button_speed_dn_diff if metric else button_speed_dn_diff * CV.MPH_TO_KPH
             button_type = ButtonType.decelCruise
           elif not LongPressed and b.type == ButtonType.gapAdjustCruise:
-            pass
+            self.longCruiseGap = 1 if self.longCruiseGap == 4 else self.longCruiseGap + 1
+            Params().put("PrevCruiseGap", str(self.longCruiseGap))
+
           LongPressed = False
           ButtonCnt = 0
-      if ButtonCnt > 70:
+      if ButtonCnt == 50:
         LongPressed = True
         V_CRUISE_DELTA = V_CRUISE_DELTA_KM if metric else V_CRUISE_DELTA_MI
         if ButtonPrev == ButtonType.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.accelCruise
+          ButtonCnt = 0
         elif ButtonPrev == ButtonType.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - -v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.decelCruise
+          ButtonCnt = 0
         elif ButtonPrev == ButtonType.gapAdjustCruise:
           button_type = ButtonType.gapAdjustCruise
-        ButtonCnt %= 70
     v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
@@ -424,7 +430,7 @@ class CruiseHelper:
           v_cruise_kph = v_ego_kph_set
           pass
       elif not CS.gasPressed and self.gasPressedCount > 2: #엑셀을 밟았다가 떼면..
-        if CS.myDrivingMode == 2:
+        if False: #CS.myDrivingMode == 2: 관성모드 없앰..
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
         else:

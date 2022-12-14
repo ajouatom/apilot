@@ -71,8 +71,8 @@ class CarInterfaceBase(ABC):
     self.CS = None
     self.can_parsers = []
 
-    self.cruiseGap = int(Params().get("PrevCruiseGap"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
+    self.mySafeModeFactor = 0.8
     Params().put("MyDrivingMode", str(self.myDrivingMode))
     self.keepEngage = Params().get_bool("KeepEngage")
 
@@ -247,7 +247,10 @@ class CarInterfaceBase(ABC):
 
     if self.frame % 10 == 0:
       self.myDrivingMode = int(Params().get("MyDrivingMode"))
+      self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
+      
     ret.myDrivingMode = self.myDrivingMode
+    ret.mySafeModeFactor = self.mySafeModeFactor
     # copy back for next iteration
     reader = ret.as_reader()
     if self.CS is not None:

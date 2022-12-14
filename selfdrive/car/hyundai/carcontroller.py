@@ -58,7 +58,7 @@ class CarController:
     self.pcmCruiseButtonDelay = 0
     self.jerkUpperLowerLimit = 12.0       
     self.speedCameraHapticEndFrame = 0
-    self.hapticFeedbackWhenSpeedCamera = False
+    self.hapticFeedbackWhenSpeedCamera = 0
     self.blinking_signal = False #아이콘 깜박이용 1Hz
     self.blinking_frame = int(1.0 / DT_CTRL)
 
@@ -86,12 +86,14 @@ class CarController:
                                                                                       hud_control)
 
     if CC.activeHda == 2 and self.speedCameraHapticEndFrame < 0: # 과속카메라 감속시작
-      self.speedCameraHapticEndFrame = self.frame + (2.0 / DT_CTRL)  #2초간 켜줌..
+      self.speedCameraHapticEndFrame = self.frame + (8.0 / DT_CTRL)  #6초간 켜줌..
     elif CC.activeHda != 2:
       self.speedCameraHapticEndFrame = -1
 
-    if self.frame < self.speedCameraHapticEndFrame and self.hapticFeedbackWhenSpeedCamera:
-      left_lane_warning = right_lane_warning = True  
+    if self.frame < self.speedCameraHapticEndFrame and self.hapticFeedbackWhenSpeedCamera>0:
+      haptic_stop = (self.speedCameraHapticEndFrame - (5.0/DT_CTRL)) < self.frame < (self.speedCameraHapticEndFrame - (3.0/DT_CTRL))
+      if not haptic_stop:
+         left_lane_warning = right_lane_warning = self.hapticFeedbackWhenSpeedCamera 
      
     if self.frame % self.blinking_frame == 0:
       self.blinking_signal = True
@@ -103,7 +105,7 @@ class CarController:
     # *** common hyundai stuff ***
     if self.frame % 100 == 0:
       self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
-      self.hapticFeedbackWhenSpeedCamera = Params().get_bool("HapticFeedbackWhenSpeedCamera")
+      self.hapticFeedbackWhenSpeedCamera = int(Params().get("HapticFeedbackWhenSpeedCamera", encoding="utf8"))
 
     # tester present - w/ no response (keeps relevant ECU disabled)
     if self.frame % 100 == 0 and not (self.CP.flags & HyundaiFlags.CANFD_CAMERA_SCC.value) and self.CP.openpilotLongitudinalControl:
