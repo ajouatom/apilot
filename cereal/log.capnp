@@ -670,6 +670,9 @@ struct ControlsState @0x97ff69c53601abf1 {
   vCruiseOut @69: Float32;
   cruiseButtonCounter @70: Int32;
   longCruiseGap @71: Int8;
+  myDrivingMode @72 : Int32; #0: Eco, Eco2, Normal, Speed
+  mySafeModeFactor @73 : Float32;
+
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
     disabled @0;
@@ -965,16 +968,21 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   debugLongText1 @36 : Text;
   debugLongText2 @37 : Text;
   trafficState @38 : Int32;
-  xState @39 : Text;
+  xState @39 : XState;
   xCruiseTarget @40 : Float32;
   visionTurnControllerState @41 :VisionTurnControllerState;
   visionTurnSpeed @42 :Float32;
   xStop @43 : Float32;
-  leadX @44 : Float32;
-  leadV @45 : Float32;
-  tFollow @46 : Float32;
-  cruiseGap @47 : Int32;
+  tFollow @44 : Float32;
+  cruiseGap @45 : Int32;
 
+  enum XState {
+    lead @0;
+    cruise @1;
+    e2eCruise @2;
+    e2eStop @3;
+    softHold @4;
+  }
   enum LongitudinalPlanSource {
     cruise @0;
     lead0 @1;

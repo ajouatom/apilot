@@ -72,6 +72,12 @@ class Ratekeeper:
     expected_dt = self._interval * (1 / 0.9)
     return avg_dt > expected_dt
 
+  def reset_time(self):
+    self._next_frame_time = sec_since_boot() + self._interval
+    self._frame = 0
+    self._remaining = 0.0
+    self._last_monitor_time = sec_since_boot()
+
   # Maintain loop rate by calling this at the end of each loop
   def keep_time(self) -> bool:
     lagged = self.monitor_time()

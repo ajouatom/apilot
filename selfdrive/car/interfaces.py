@@ -71,9 +71,6 @@ class CarInterfaceBase(ABC):
     self.CS = None
     self.can_parsers = []
 
-    self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
-    self.mySafeModeFactor = 0.8
-    Params().put("MyDrivingMode", str(self.myDrivingMode))
     self.keepEngage = Params().get_bool("KeepEngage")
 
     if CarState is not None:
@@ -91,23 +88,9 @@ class CarInterfaceBase(ABC):
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed, eco_mode, eco_speed):
-    v_current_kph = current_speed * CV.MS_TO_KPH
-    if not eco_mode:
-      if eco_speed == 0:
-        return ACCEL_MIN, ACCEL_MAX
-      gas_max_bp = [eco_speed, 150.]
-      gas_max_v = [1.5, ACCEL_MAX]
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    return ACCEL_MIN, ACCEL_MAX
 
-      return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
-
-    #gas_max_bp = [10., 20., 50., 70., 130., 150.]
-    #gas_max_v = [1.5, 1.23, 0.67, 0.47, 0.16, 0.1]
-    gas_max_bp = [10., 70., 100., 150.]
-    gas_max_v = [1.5, 1.0, 0.5, 0.1]
-
-    return ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
-    #return ACCEL_MIN, ACCEL_MAX
   @classmethod
   def get_params(cls, candidate: str, fingerprint: Optional[Dict[int, Dict[int, int]]] = None, car_fw: Optional[List[car.CarParams.CarFw]] = None, experimental_long: bool = False):
     if fingerprint is None:
@@ -245,12 +228,6 @@ class CarInterfaceBase(ABC):
     if ret.cruiseState.speedCluster == 0:
       ret.cruiseState.speedCluster = ret.cruiseState.speed
 
-    if self.frame % 10 == 0:
-      self.myDrivingMode = int(Params().get("MyDrivingMode"))
-      self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
-      
-    ret.myDrivingMode = self.myDrivingMode
-    ret.mySafeModeFactor = self.mySafeModeFactor
     # copy back for next iteration
     reader = ret.as_reader()
     if self.CS is not None:

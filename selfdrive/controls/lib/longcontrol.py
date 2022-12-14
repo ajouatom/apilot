@@ -69,11 +69,8 @@ class LongControl:
     self.last_output_accel = 0.0
     self.debugLoCText = ""
     self.readParamCount = 0
-    self.longitudinalActuatorDelayUpperBoundCost = 1.0
-    self.longitudinalActuatorDelayLowerBoundCost = 1.0
     self.longitudinalTuningKf = 1.0
     self.longitudinalTuningKpV = 1.0
-    self.accelBoost = 1.0
     self.startAccelApply = 0.0
     self.stopAccelApply = 0.0
 
@@ -86,21 +83,19 @@ class LongControl:
     self.readParamCount += 1
     if self.readParamCount >= 100:
       self.readParamCount = 0
-      self.longitudinalActuatorDelayUpperBoundCost = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) / 100.
-      self.longitudinalActuatorDelayLowerBoundCost = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) / 100.
       self.longitudinalTuningKf = float(int(Params().get("LongitudinalTuningKf", encoding="utf8"))) / 100.
+    elif self.readParamCount == 10:
       self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) * 0.01
       self.longitudinalTuningKiV = float(int(Params().get("LongitudinalTuningKiV", encoding="utf8"))) * 0.001
-      self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
       self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
-    elif self.readParamCount == 50:
+    elif self.readParamCount == 30:
+      pass
+    elif self.readParamCount == 40:
       self.startAccelApply = float(int(Params().get("StartAccelApply", encoding="utf8"))) * 0.01
       self.stopAccelApply = float(int(Params().get("StopAccelApply", encoding="utf8"))) * 0.01
       
-    longitudinalActuatorDelayLowerBound = self.CP.longitudinalActuatorDelayLowerBound * 1.0 #self.longitudinalActuatorDelayLowerBoundCost
-    longitudinalActuatorDelayUpperBound = self.CP.longitudinalActuatorDelayUpperBound * 1.0 #self.longitudinalActuatorDelayUpperBoundCost
     """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Interp control trajectory
     speeds = long_plan.speeds
@@ -108,11 +103,11 @@ class LongControl:
       v_target_now = interp(t_since_plan, T_IDXS[:CONTROL_N], speeds)
       a_target_now = interp(t_since_plan, T_IDXS[:CONTROL_N], long_plan.accels)
 
-      v_target_lower = interp(longitudinalActuatorDelayLowerBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
-      a_target_lower = 2 * (v_target_lower - v_target_now) / longitudinalActuatorDelayLowerBound - a_target_now
+      v_target_lower = interp(self.CP.longitudinalActuatorDelayLowerBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
+      a_target_lower = 2 * (v_target_lower - v_target_now) / self.CP.longitudinalActuatorDelayLowerBound - a_target_now
 
-      v_target_upper = interp(longitudinalActuatorDelayUpperBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
-      a_target_upper = 2 * (v_target_upper - v_target_now) / longitudinalActuatorDelayUpperBound - a_target_now
+      v_target_upper = interp(self.CP.longitudinalActuatorDelayUpperBound + t_since_plan, T_IDXS[:CONTROL_N], speeds)
+      a_target_upper = 2 * (v_target_upper - v_target_now) / self.CP.longitudinalActuatorDelayUpperBound - a_target_now
 
       v_target = min(v_target_lower, v_target_upper)
       a_target = min(a_target_lower, a_target_upper)
@@ -121,8 +116,7 @@ class LongControl:
       if a_target < 0.0:
         a_target *= self.longitudinalTuningKf
 
-      v_target_1sec = interp(longitudinalActuatorDelayUpperBound + t_since_plan + 1.0, T_IDXS[:CONTROL_N], speeds)
-
+      v_target_1sec = interp(self.CP.longitudinalActuatorDelayUpperBound + t_since_plan + 1.0, T_IDXS[:CONTROL_N], speeds)
     else:
       v_target = 0.0
       v_target_now = 0.0
@@ -130,7 +124,7 @@ class LongControl:
       a_target = 0.0
 
     self.pid.neg_limit = accel_limits[0]
-    self.pid.pos_limit = accel_limits[1] * self.accelBoost * CS.mySafeModeFactor
+    self.pid.pos_limit = accel_limits[1]
 
     self.CP.startingState = True if self.startAccelApply > 0.0 else False
     self.CP.startAccel = 2.0 * self.startAccelApply
@@ -174,8 +168,8 @@ class LongControl:
                                      feedforward=a_target,
                                      freeze_integrator=freeze_integrator)
 
-    self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1] * self.accelBoost * CS.mySafeModeFactor)
+    self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
-    self.debugLoCText = "T:{:.2f},{:.2f} V:{:.2f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format(t_since_plan, longitudinalActuatorDelayLowerBound, (self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
+    self.debugLoCText = "T:{:.2f} V:{:.2f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format(t_since_plan, (self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
 
     return self.last_output_accel

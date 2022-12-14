@@ -84,11 +84,10 @@ protected:
   QPixmap ic_satellite;
   QPixmap ic_trafficLight_green;
   QPixmap ic_trafficLight_red;
+  QPixmap ic_trafficLight_x;
   QPixmap ic_navi;
   QPixmap ic_scc2;
   QPixmap ic_radartracks;
-
-  int prev_traffic_state = 0;
 
   QMap<QString, QPixmap> ic_oil_com;
 

@@ -227,9 +227,7 @@ struct CarState {
   # neokii
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
-  myDrivingMode @50 : Int32; #0: Eco, Eco2, Normal, Speed
-  naviSafetyInfo @51 : NaviSafetyInfo;
-  mySafeModeFactor @52 : Float32;
+  naviSafetyInfo @50 : NaviSafetyInfo;
 
   struct NaviSafetyInfo {
     sign @0 : Int32; # OPKR_S_Sign

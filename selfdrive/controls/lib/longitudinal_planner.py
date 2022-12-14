@@ -14,11 +14,13 @@ from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDX
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N
 from selfdrive.controls.lib.vision_turn_controller import VisionTurnController
 from system.swaglog import cloudlog
+from common.params import Params
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
-A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
+#A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
+A_CRUISE_MAX_VALS = [2.0, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
 
 # Lookup table for turns
@@ -63,6 +65,16 @@ class LongitudinalPlanner:
     self.cruise_source = 'cruise'
     self.vision_turn_controller = VisionTurnController(CP)
     self.vCluRatio = 1.0
+
+    self.accelBoost = 1.0
+    self.myEcoModeFactor = 1.0
+    self.params_count = 0
+
+  def update_params(self):
+    self.params_count = (self.params_count + 1) % 200
+    if (self.params_count % 50) == 0:
+      self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
+      self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
     
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -83,6 +95,7 @@ class LongitudinalPlanner:
     return x, v, a, j, y
 
   def update(self, sm):
+    self.update_params()
     self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
 
     v_ego = sm['carState'].vEgo
@@ -96,6 +109,8 @@ class LongitudinalPlanner:
       self.vCluRatio = vCluRatio
       v_cruise *= vCluRatio
       #v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+    mySafeModeFactor = sm['controlsState'].mySafeModeFactor
+    myDrivingMode = sm['controlsState'].myDrivingMode
 
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
     force_slow_decel = sm['controlsState'].forceDecel
@@ -111,7 +126,14 @@ class LongitudinalPlanner:
                                                                         self.a_desired, v_cruise, sm)
 
     if self.mpc.mode == 'acc':
-      accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+      #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+      if myDrivingMode in [1]: # 연비
+        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor, 0, MAX_ACCEL)
+      elif myDrivingMode in [2]: # 안전
+        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
+      elif myDrivingMode in [3,4]: # 일반, 고속
+        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost, 0, MAX_ACCEL)
+      accel_limits = [A_CRUISE_MIN, myMaxAccel]
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:
       accel_limits = [MIN_ACCEL, MAX_ACCEL]
@@ -185,8 +207,6 @@ class LongitudinalPlanner:
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
     longitudinalPlan.xStop = float(self.mpc.xStop)
-    longitudinalPlan.leadX = float(self.mpc.filter_x_lead.result)
-    longitudinalPlan.leadV = float(self.mpc.filter_v_lead.result)
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
     longitudinalPlan.cruiseGap = int(self.mpc.applyCruiseGap)
     if self.CP.openpilotLongitudinalControl:

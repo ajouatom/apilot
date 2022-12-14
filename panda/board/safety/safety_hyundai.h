@@ -278,6 +278,16 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
     tx = msg_allowed(to_send, HYUNDAI_TX_MSGS, sizeof(HYUNDAI_TX_MSGS)/sizeof(HYUNDAI_TX_MSGS[0]));
   }
 
+  if (addr == 1056 && hyundai_auto_engage) {
+      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
+
+      if (mainModeACC == 1) {
+          controls_allowed = 1;
+          hyundai_auto_engage = 0;
+          LKAS11_forwarding = true;
+      }
+  }
+
   // FCA11: Block any potential actuation
   if (addr == 909) {
     int CR_VSM_DecCmd = GET_BYTE(to_send, 1);
@@ -339,16 +349,6 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
     if (!(allowed_resume || allowed_cancel || allowed_set)) {
       tx = 0;
     }
-  }
-
-  if (addr == 1056 && hyundai_auto_engage) {
-      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
-
-      if (mainModeACC == 1) {
-          controls_allowed = 1;
-          hyundai_auto_engage = 0;
-          LKAS11_forwarding = true;
-      }
   }
 
   apilot_connected = true;
