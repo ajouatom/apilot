@@ -126,13 +126,15 @@ class LongitudinalPlanner:
                                                                         self.a_desired, v_cruise, sm)
 
     if self.mpc.mode == 'acc':
-      #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+      #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]      
       if myDrivingMode in [1]: # 연비
         myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [2]: # 안전
         myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [3,4]: # 일반, 고속
         myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost, 0, MAX_ACCEL)
+      else:
+        myMaxAccel = get_max_accel(v_ego)
       accel_limits = [A_CRUISE_MIN, myMaxAccel]
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:

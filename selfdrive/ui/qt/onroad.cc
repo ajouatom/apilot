@@ -301,6 +301,7 @@ void AnnotatedCameraWidget::initializeGL() {
   ic_trafficLight_green = QPixmap("../assets/images/traffic_green.png");
   ic_trafficLight_red = QPixmap("../assets/images/traffic_red.png");
   ic_trafficLight_x = QPixmap("../assets/images/traffic_x.png");
+  ic_trafficLight_none = QPixmap("../assets/images/traffic_none.png");
   ic_navi = QPixmap("../assets/images/img_navi.png");
   ic_scc2 = QPixmap("../assets/images/img_scc2.png");
   ic_radartracks = QPixmap("../assets/images/img_radartracks.png");
@@ -630,9 +631,10 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
 
   p.setOpacity(0.8);
   switch (lp.getTrafficState()) {
-  case 0: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x); break;
+  case 0: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_none); break;
   case 1: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red); break;
   case 2: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green); break;
+  case 3: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x); break;
   }
 
   QString infoText1, infoText2;
@@ -640,10 +642,12 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   infoText2 = lp.getDebugLongText2().cStr();
 
   p.save();
-  configFont(p, "Inter", 34, "Regular");
-  p.setPen(QColor(0xff, 0xff, 0xff, 200));
-  p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
-  p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
+  if (s->show_debug) {
+      configFont(p, "Inter", 34, "Regular");
+      p.setPen(QColor(0xff, 0xff, 0xff, 200));
+      p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
+      p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
+  }
 
   auto car_state = sm["carState"].getCarState();
   float steer_angle =  car_state.getSteeringAngleDeg();

@@ -351,17 +351,13 @@ class CruiseHelper:
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
 
-    if dRel==0 and self.dRelValidCount > 0:
-      self.dRelValidCount -= 1
-      if self.dRelValidCount == 0:
-        if 2 < self.dRelValid < 20 and abs(CS.steeringAngleDeg)>15: #이전레이더가 20이하이면... 핸들을 15도이상꺾었을때...
-          self.radarAlarmCount = 2000
-          v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
-        self.dRelValid = 0
-    elif dRel > 0 and self.dRelValidCount < 10:
-      self.dRelValidCount += 1
-      if self.dRelValidCount > 5:
-        self.dRelValid = dRel
+    self.dRelValidCount = self.dRelValidCount - 1 if dRel==0 else self.dRelValidCount + 1
+    self.dRelValidCount = clip(self.dRelValidCount, -1, 10)
+    self.dRelValid = self.dRelValid if 0 < self.dRelValidCount < 10 else dRel
+
+    if self.dRelValidCount == 0 and dRel == 0 and self.dRelValid < 20 and abs(CS.steeringAngleDeg)>10: #레이더가 없고, 이전레이더가 20M이내, 핸들이 10도이상조향상태이면.
+      self.radarAlarmCount = 2000
+      #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
 
     if self.longActiveUser>0:
       if xState != self.xState and xState == XState.softHold:

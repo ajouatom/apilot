@@ -244,7 +244,7 @@ class LongitudinalMpc:
     self.lo_timer = 0 
     self.v_cruise = 0.
     self.xStopFilter = StreamingMovingAverage(3)  #11
-    self.xStopFilter2 = StreamingMovingAverage(7) #3
+    self.xStopFilter2 = StreamingMovingAverage(15) #3
     self.buttonStopDist = 0
     self.applyCruiseGap = 1.
 
@@ -444,7 +444,7 @@ class LongitudinalMpc:
       self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
     else:
       self.applyCruiseGap = controls.longCruiseGap
-      cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.2, 1.45])
+      cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
 
     self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio * (2.0 - mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
 
@@ -505,12 +505,14 @@ class LongitudinalMpc:
           
         model_x = self.xStop
 
-        self.trafficState = 1 if self.stopSignCount*DT_MDL > 0.3 else 2 if self.startSignCount*DT_MDL > 0.3 else self.trafficState #0 
+        self.trafficState = 1 if self.stopSignCount*DT_MDL > 0.3 else 2 if self.startSignCount*DT_MDL > 0.3 else 0 
+        if self.e2ePaused:
+          self.trafficState = 3
 
         # SOFT_HOLD: 기능
         if carstate.brakePressed and v_ego < 0.1:  
           self.softHoldTimer += 1
-          if self.softHoldTimer*DT_MDL >= 1.0: 
+          if self.softHoldTimer*DT_MDL >= 0.7: 
             self.xState = XState.softHold
             self.e2ePaused = False
         else:
@@ -525,6 +527,7 @@ class LongitudinalMpc:
             self.xState = XState.lead
           elif startSign == 1:  # 출발신호
             self.xState = XState.e2eCruise
+            self.e2ePaused = True #출발신호가 나오면 이때부터 신호무시하자... 출발후 정지하는 경우가 생김..
           if carstate.gasPressed: # or cruiseButtonCounterDiff>0:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = XState.e2eCruise
             self.e2ePaused = True
