@@ -505,9 +505,9 @@ class LongitudinalMpc:
           
         model_x = self.xStop
 
-        self.trafficState = 1 if self.stopSignCount*DT_MDL > 0.3 else 2 if self.startSignCount*DT_MDL > 0.3 else 0 
+        self.trafficState = 1 if self.stopSignCount*DT_MDL > 0.3 else 2 if self.startSignCount*DT_MDL > 0.3 else 0
         if self.e2ePaused:
-          self.trafficState = 3
+          self.trafficState += 100  # 이렇게하면.... 이벤트발생이 안됨...
 
         # SOFT_HOLD: 기능
         if carstate.brakePressed and v_ego < 0.1:  
@@ -538,7 +538,7 @@ class LongitudinalMpc:
             self.xState = XState.e2eCruise
             self.e2ePaused = True
           if cruiseButtonCounterDiff > 0:
-            self.xState = XState.e2eStop if self.trafficState == 1 else XState.e2eCruise
+            self.xState = XState.e2eStop if stopSign == 1 else XState.e2eCruise
             self.e2ePaused = False
         #E2E_CRUISE: 주행상태.
         else:
@@ -657,7 +657,6 @@ class LongitudinalMpc:
         self.source = 'lead1'
 
     self.v_cruise = v_cruise
-    self.trafficState = self.trafficState if not self.e2ePaused else 0
 
   def run(self):
     # t0 = sec_since_boot()

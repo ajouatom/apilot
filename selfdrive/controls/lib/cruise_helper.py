@@ -76,7 +76,7 @@ class CruiseHelper:
 
     self.update_params_count = 0
 
-    self.longCruiseGap = int(Params().get("PrevCruiseGap"))
+    self.longCruiseGap = 4 #int(Params().get("PrevCruiseGap"))
 
     self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
@@ -351,25 +351,27 @@ class CruiseHelper:
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
 
+    dRelValid = self.dRelValid
     self.dRelValidCount = self.dRelValidCount - 1 if dRel==0 else self.dRelValidCount + 1
-    self.dRelValidCount = clip(self.dRelValidCount, -1, 10)
-    self.dRelValid = self.dRelValid if 0 < self.dRelValidCount < 10 else dRel
+    self.dRelValidCount = clip(self.dRelValidCount, 0, 20)
+    self.dRelValid = dRel if self.dRelValidCount in [0, 20] else self.dRelValid
 
-    if self.dRelValidCount == 0 and dRel == 0 and self.dRelValid < 20 and abs(CS.steeringAngleDeg)>10: #레이더가 없고, 이전레이더가 20M이내, 핸들이 10도이상조향상태이면.
+    if self.dRelValid == 0 and 2 < dRelValid < 20 and abs(CS.steeringAngleDeg)>15 and self.radarAlarmCount == 0: #레이더가 없고, 이전레이더가 20M이내, 핸들이 15도이상조향상태이면.
       self.radarAlarmCount = 2000
       #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
 
+    trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
     if self.longActiveUser>0:
       if xState != self.xState and xState == XState.softHold:
         controls.events.add(EventName.autoHold)
-      if xState == XState.softHold and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2:
+      if xState == XState.softHold and self.trafficState != 2 and trafficState == 2:
         if (frame - self.trafficSignedFrame)*DT_CTRL > 20.0: # 신호인식 불량시 시끄러워, 알리고 20초가 지나면 알리자.
           controls.events.add(EventName.trafficSignChanged)
           self.trafficSignedFrame = frame
         #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
-      elif xState == XState.e2eCruise and self.trafficState != 2 and controls.sm['longitudinalPlan'].trafficState == 2 and CS.vEgo < 0.1:
+      elif xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
         controls.events.add(EventName.trafficSignGreen)
-    self.trafficState = controls.sm['longitudinalPlan'].trafficState
+    self.trafficState = trafficState
     self.dRel = dRel
     self.vRel = vRel
     self.radarAlarmCount = self.radarAlarmCount - 1 if self.radarAlarmCount > 0 else 0

@@ -9,7 +9,7 @@ from selfdrive.car import STD_CARGO_KG, create_button_event, scale_tire_stiffnes
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.disable_ecu import disable_ecu
 from common.params import Params
-from selfdrive.car.hyundai.cruise_helper import enable_radar_tracks
+from selfdrive.controls.lib.cruise_helper import enable_radar_tracks
 
 Ecu = car.CarParams.Ecu
 ButtonType = car.CarState.ButtonEvent.Type

@@ -630,11 +630,16 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   int TRsign_y = 550;
 
   p.setOpacity(0.8);
-  switch (lp.getTrafficState()) {
-  case 0: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_none); break;
-  case 1: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red); break;
-  case 2: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green); break;
-  case 3: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x); break;
+  if (lp.getTrafficState() >= 100) {
+      p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x);
+  }
+  else {
+      switch (lp.getTrafficState() % 100) {
+      case 0: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_none); break;
+      case 1: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red); break;
+      case 2: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green); break;
+      case 3: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x); break;
+      }
   }
 
   QString infoText1, infoText2;

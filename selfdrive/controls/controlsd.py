@@ -29,7 +29,7 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
 from system.hardware import HARDWARE
 from selfdrive.manager.process_config import managed_processes
-from selfdrive.car.hyundai.cruise_helper import CruiseHelper
+from selfdrive.controls.lib.cruise_helper import CruiseHelper
 
 GearShifter = car.CarState.GearShifter
 
