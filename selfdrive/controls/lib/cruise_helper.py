@@ -63,7 +63,6 @@ class CruiseHelper:
     self.dRel = 0
     self.vRel = 0
     self.dRelValidCount = 0
-    self.dRelValid = 0
     self.trafficState = 0
     self.xState = XState.cruise
 
@@ -269,19 +268,20 @@ class CruiseHelper:
 
           LongPressed = False
           ButtonCnt = 0
-      if ButtonCnt == 30:
+      if ButtonCnt > 30:
         LongPressed = True
         V_CRUISE_DELTA = V_CRUISE_DELTA_KM if metric else V_CRUISE_DELTA_MI
         if ButtonPrev == ButtonType.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.accelCruise
-          ButtonCnt = 0
+          ButtonCnt %= 30
         elif ButtonPrev == ButtonType.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - -v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.decelCruise
-          ButtonCnt = 0
+          ButtonCnt %= 30
         elif ButtonPrev == ButtonType.gapAdjustCruise:
           button_type = ButtonType.gapAdjustCruise
+          ButtonCnt = 0
     v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
@@ -350,16 +350,17 @@ class CruiseHelper:
     dRel, vRel = self.get_lead_rel(controls)
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
-
-    dRelValid = self.dRelValid
-    self.dRelValidCount = self.dRelValidCount - 1 if dRel==0 else self.dRelValidCount + 1
-    self.dRelValidCount = clip(self.dRelValidCount, 0, 20)
-    self.dRelValid = dRel if self.dRelValidCount in [0, 20] else self.dRelValid
-
-    if self.dRelValid == 0 and 2 < dRelValid < 20 and abs(CS.steeringAngleDeg)>15 and self.radarAlarmCount == 0: #레이더가 없고, 이전레이더가 20M이내, 핸들이 15도이상조향상태이면.
-      self.radarAlarmCount = 2000
-      #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
-
+    
+    if 2 < dRel < 20:
+      self.dRelValidCount += 1
+    elif dRel != 0 or self.dRelValidCount < 50 or abs(CS.steeringAngleDeg)<30:
+      self.dRelValidCount = 0
+    else:
+      self.dRelValidCount = 0
+      if self.radarAlarmCount == 0:
+        self.radarAlarmCount = 2000
+        #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
+    
     trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
     if self.longActiveUser>0:
       if xState != self.xState and xState == XState.softHold:

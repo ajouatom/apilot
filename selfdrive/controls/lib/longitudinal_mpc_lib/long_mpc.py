@@ -245,6 +245,7 @@ class LongitudinalMpc:
     self.v_cruise = 0.
     self.xStopFilter = StreamingMovingAverage(3)  #11
     self.xStopFilter2 = StreamingMovingAverage(15) #3
+    self.vFilter = StreamingMovingAverage(7)
     self.buttonStopDist = 0
     self.applyCruiseGap = 1.
 
@@ -480,14 +481,15 @@ class LongitudinalMpc:
         self.e2ePaused = False
       if self.e2ePaused and cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
         self.e2ePaused = False
-      if v_ego_kph > 50.0 or self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 40.0 and abs(y[-1])<3.0)):
+      if v_ego_kph > 50.0 or self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
         self.e2ePaused = False
 
       if controls.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
 
         #1단계: 모델값을 이용한 신호감지
-        startSign = v[-1] > 5.0 or v[-1] > (v[0]+2)
-        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((v[-1] < 3.0) or (v[-1] < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        model_v = self.vFilter.process(v[-1])
+        startSign = model_v > 5.0 or model_v > (v[0]+2)
+        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 3.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
 
         self.startSignCount = self.startSignCount + 1 if startSign else 0
         self.stopSignCount = self.stopSignCount + 1 if stopSign else 0
