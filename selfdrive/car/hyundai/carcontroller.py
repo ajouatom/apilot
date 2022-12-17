@@ -54,6 +54,8 @@ class CarController:
     self.accel_last = 0
     self.apply_steer_last = 0
     self.car_fingerprint = CP.carFingerprint
+    self.send_lfa_mfa = True if self.car_fingerprint in FEATURES["send_lfa_mfa"] else False
+    self.send_lfa_mfa_lkas = True if self.car_fingerprint in FEATURES["send_lfa_mfa"] and self.car_fingerprint not in [CAR.HYUNDAI_GENESIS] else False
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
     self.jerkUpperLowerLimit = 12.0       
@@ -185,7 +187,7 @@ class CarController:
                 can_sends.append(hyundaicanfd.create_buttons(self.packer, self.CP, CS.buttons_counter+1, Buttons.RES_ACCEL))
               self.last_button_frame = self.frame
     else:
-      can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, apply_steer, lat_active,
+      can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, self.send_lfa_mfa_lkas, apply_steer, lat_active,
                                                 torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
                                                 left_lane_warning, right_lane_warning))
@@ -238,7 +240,7 @@ class CarController:
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 
       # 20 Hz LFA MFA message
-      if self.frame % 5 == 0 and self.car_fingerprint in FEATURES["send_lfa_mfa"]:
+      if self.frame % 5 == 0 and self.send_lfa_mfa:
       #if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,
       #                                                    CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
       #                                                    CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,

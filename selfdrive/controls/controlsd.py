@@ -199,7 +199,7 @@ class Controls:
     self.cruiseButtonCounter = 0
     self.v_future = 100
     self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
-    self.powerOnTimer = 0
+    self.autoEngageCounter = 200
     self.right_lane_visible = False
     self.left_lane_visible = False
 
@@ -569,9 +569,10 @@ class Controls:
     # DISABLED
     elif self.state == State.disabled:
       autoEngage = False
-      self.powerOnTimer = self.powerOnTimer + 1 if self.powerOnTimer < 100000 else 100000
-      ## 시간지연 넣어봐야 LKAS에러는 오히려 더 많이남... 3초지연을 다시 즉시로 수정함.. 대신판다에서 violation이 나오면 forwarding하는 방법으로 임시조치..
-      if self.powerOnTimer > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+      ## 오토인게이지 조건시, 시간지연....
+      if self.autoEngageCounter > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+        self.autoEngageCounter -= 1
+      elif self.autoEngageCounter == 0 and self.enableAutoEngage:
         autoEngage = True
       if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):

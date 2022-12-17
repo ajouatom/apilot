@@ -6,7 +6,7 @@ from selfdrive.car.hyundai.values import FEATURES
 
 hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 
-def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
+def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, steer_req,
                   torque_fault, lkas11, sys_warning, sys_state, enabled,
                   left_lane, right_lane,
                   left_lane_depart, right_lane_depart):
@@ -20,7 +20,7 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   values["CF_Lkas_ToiFlt"] = torque_fault  # seems to allow actuation on CR_Lkas_StrToqReq
   values["CF_Lkas_MsgCount"] = frame % 0x10
 
-  if car_fingerprint in FEATURES["send_lfa_mfa"] and car_fingerprint not in [CAR.HYUNDAI_GENESIS]:
+  if send_lfa_mfa:
   #if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
   #                       CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_SELTOS, CAR.ELANTRA_2021, CAR.GENESIS_G70_2020,
   #                       CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022,
