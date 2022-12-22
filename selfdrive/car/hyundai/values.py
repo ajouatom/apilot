@@ -16,7 +16,7 @@ class CarControllerParams:
   ACCEL_MIN = -4.0 #-3.5 # m/s
   ACCEL_MAX = 2.0 # m/s
 
-  def __init__(self, CP):
+  def __init__(self, CP, vEgoRaw=100.):
     self.STEER_DELTA_UP = 3
     self.STEER_DELTA_DOWN = 7
     self.STEER_DRIVER_ALLOWANCE = 50
@@ -25,12 +25,12 @@ class CarControllerParams:
     self.STEER_THRESHOLD = 150
 
     if CP.carFingerprint in CANFD_CAR:
-      self.STEER_MAX = 270
-      self.STEER_DRIVER_ALLOWANCE = 250
+      self.STEER_MAX = 384 if vEgoRaw < 11. else 330
+      self.STEER_DRIVER_ALLOWANCE = 350
       self.STEER_DRIVER_MULTIPLIER = 2
-      self.STEER_THRESHOLD = 250
-      self.STEER_DELTA_UP = 2
-      self.STEER_DELTA_DOWN = 3
+      self.STEER_THRESHOLD = 350
+      self.STEER_DELTA_UP = 10 if vEgoRaw < 11. else 2
+      self.STEER_DELTA_DOWN = 10 if vEgoRaw < 11. else 3
 
     # To determine the limit for your car, find the maximum value that the stock LKAS will request.
     # If the max stock LKAS request is <384, add your car to this list.
@@ -50,6 +50,11 @@ class CarControllerParams:
     # Default for most HKG
     else:
       self.STEER_MAX = 409
+      #self.STEER_MAX = 409 if vEgoRaw < 11. else 384
+      #self.STEER_DRIVER_ALLOWANCE = 350
+      #self.STEER_THRESHOLD = 350
+      self.STEER_DELTA_UP = 8 if vEgoRaw < 11. else 2
+      self.STEER_DELTA_DOWN = 8 if vEgoRaw < 11. else 3
 
 
 class HyundaiFlags(IntFlag):
@@ -125,6 +130,7 @@ class CAR:
   KIA_EV6 = "KIA EV6 2022"
 
   # Genesis
+  GENESIS_GV60_EV_1ST_GEN = "GENESIS GV60 ELECTRIC 1ST GEN"
   GENESIS_G70 = "GENESIS G70 2018"
   GENESIS_G70_2020 = "GENESIS G70 2020"
   GENESIS_GV70_1ST_GEN = "GENESIS GV70 1ST GEN"
@@ -153,7 +159,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.ELANTRA: [
     HyundaiCarInfo("Hyundai Elantra 2017-19", min_enable_speed=19 * CV.MPH_TO_MS, harness=Harness.hyundai_b),
     HyundaiCarInfo("Hyundai Elantra GT 2017-19", harness=Harness.hyundai_e),
-    HyundaiCarInfo("Hyundai i30 2019", harness=Harness.hyundai_e),
+    HyundaiCarInfo("Hyundai i30 2017-19", harness=Harness.hyundai_e),
   ],
   CAR.ELANTRA_2021: HyundaiCarInfo("Hyundai Elantra 2021-22", video_link="https://youtu.be/_EdYQtV52-c", harness=Harness.hyundai_k),
   CAR.ELANTRA_HEV_2021: HyundaiCarInfo("Hyundai Elantra Hybrid 2021-23", video_link="https://youtu.be/_EdYQtV52-c", harness=Harness.hyundai_k),
@@ -185,6 +191,7 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.VELOSTER: HyundaiCarInfo("Hyundai Veloster 2019-20", min_enable_speed=5. * CV.MPH_TO_MS, harness=Harness.hyundai_e),
   CAR.SONATA_HYBRID: HyundaiCarInfo("Hyundai Sonata Hybrid 2020-22", "All", harness=Harness.hyundai_a),
   CAR.IONIQ_5: [
+    HyundaiCarInfo("Hyundai Ioniq 5 (Southeast Asia only) 2022-23", "All", harness=Harness.hyundai_q),
     HyundaiCarInfo("Hyundai Ioniq 5 (without HDA II) 2022-23", "Highway Driving Assist", harness=Harness.hyundai_k),
     HyundaiCarInfo("Hyundai Ioniq 5 (with HDA II) 2022-23", "Highway Driving Assist II", harness=Harness.hyundai_q),
   ],
@@ -228,11 +235,13 @@ CAR_INFO: Dict[str, Optional[Union[HyundaiCarInfo, List[HyundaiCarInfo]]]] = {
   CAR.KIA_STINGER_2022: HyundaiCarInfo("Kia Stinger 2022", "All", harness=Harness.hyundai_k),
   CAR.KIA_CEED: HyundaiCarInfo("Kia Ceed 2019", harness=Harness.hyundai_e),
   CAR.KIA_EV6: [
+    HyundaiCarInfo("Kia EV6 (Southeast Asia only) 2022-23", "All", harness=Harness.hyundai_p),
     HyundaiCarInfo("Kia EV6 (without HDA II) 2022", "Highway Driving Assist", harness=Harness.hyundai_l),
     HyundaiCarInfo("Kia EV6 (with HDA II) 2022", "Highway Driving Assist II", harness=Harness.hyundai_p)
   ],
 
   # Genesis
+  CAR.GENESIS_GV60_EV_1ST_GEN: HyundaiCarInfo("Genesis GV60 2023", "All", harness=Harness.hyundai_k),
   CAR.GENESIS_G70: HyundaiCarInfo("Genesis G70 2018-19", "All", harness=Harness.hyundai_f),
   CAR.GENESIS_G70_2020: HyundaiCarInfo("Genesis G70 2020", "All", harness=Harness.hyundai_f),
   CAR.GENESIS_GV70_1ST_GEN: HyundaiCarInfo("Genesis GV70 2022-23", "All", harness=Harness.hyundai_l),
@@ -1372,18 +1381,23 @@ FW_VERSIONS = {
   CAR.ELANTRA: {
     (Ecu.fwdCamera, 0x7c4, None): [
       b'\xf1\x00PD  LKAS AT USA LHD 1.01 1.01 95740-G3100 A54',
+      b'\xf1\x00PD  LKAS AT KOR LHD 1.00 1.02 95740-G3000 A51',
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xf1\x006U2V0_C2\x00\x006U2VA051\x00\x00DPD0H16NS0e\x0e\xcd\x8e',
+      b'\xf1\x006U2U0_C2\x00\x006U2T0051\x00\x00DPD0D16KS0u\xce\x1fk',
     ],
     (Ecu.eps, 0x7d4, None): [
       b'\xf1\x00PD  MDPS C 1.00 1.04 56310/G3300 4PDDC104',
+      b'\xf1\x00PD  MDPS C 1.00 1.00 56310G3300\x00 4PDDC100',
     ],
     (Ecu.abs, 0x7d1, None): [
       b'\xf1\x00PD ESC \x0b 104\x18\t\x03 58920-G3350',
+      b'\xf1\x00PD ESC \t 104\x18\t\x03 58920-G3350',
     ],
     (Ecu.fwdRadar, 0x7d0, None): [
       b'\xf1\x00PD__ SCC F-CUP      1.00 1.00 96400-G3300         ',
+      b'\xf1\x00PD__ SCC FNCUP      1.01 1.00 96400-G3000         ',
     ],
   },
   CAR.ELANTRA_2021: {
@@ -1540,6 +1554,7 @@ FW_VERSIONS = {
       b'\xf1\x00CV1 MFC  AT USA LHD 1.00 1.06 99210-CV000 220328',
       b'\xf1\x00CV1 MFC  AT EUR LHD 1.00 1.05 99210-CV000 211027',
       b'\xf1\x00CV1 MFC  AT EUR LHD 1.00 1.06 99210-CV000 220328',
+      b'\xf1\x00CV1 MFC  AT EUR RHD 1.00 1.00 99210-CV100 220630',
     ],
   },
   CAR.IONIQ_5: {
@@ -1551,6 +1566,7 @@ FW_VERSIONS = {
       b'\xf1\x00NE1 MFC  AT USA LHD 1.00 1.02 99211-GI010 211206',
       b'\xf1\x00NE1 MFC  AT EUR LHD 1.00 1.06 99211-GI000 210813',
       b'\xf1\x00NE1 MFC  AT USA LHD 1.00 1.05 99211-GI010 220614',
+      b'\xf1\x00NE1 MFC  AT EUR RHD 1.00 1.01 99211-GI010 211007',
     ],
   },
   CAR.TUCSON_4TH_GEN: {
@@ -1605,6 +1621,14 @@ FW_VERSIONS = {
       b'\xf1\x00JK1_ SCC FHCUP      1.00 1.02 99110-AR000         ',
     ],
   },
+  CAR.GENESIS_GV60_EV_1ST_GEN: {
+    (Ecu.fwdCamera, 0x7c4, None): [
+      b'\xf1\x00JW1 MFC  AT USA LHD 1.00 1.02 99211-CU100 211215',
+    ],
+    (Ecu.fwdRadar, 0x7d0, None): [
+      b'\xf1\x00JW1_ RDR -----      1.00 1.00 99110-CU000         ',
+    ],
+  },
 }
 
 CHECKSUM = {
@@ -1629,7 +1653,7 @@ FEATURES = {
 
 }
 
-CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN, CAR.KIA_SPORTAGE_HYBRID_5TH_GEN, CAR.SANTA_CRUZ_1ST_GEN, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN}
+CANFD_CAR = {CAR.KIA_EV6, CAR.IONIQ_5, CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN, CAR.KIA_SPORTAGE_HYBRID_5TH_GEN, CAR.SANTA_CRUZ_1ST_GEN, CAR.KIA_SPORTAGE_5TH_GEN, CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.GENESIS_GV60_EV_1ST_GEN}
 
 # The radar does SCC on these cars when HDA I, rather than the camera
 CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN}
@@ -1638,7 +1662,7 @@ CANFD_RADAR_SCC_CAR = {CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN}
 CAMERA_SCC_CAR = {CAR.KONA_EV_2022, }
 
 HYBRID_CAR = {CAR.IONIQ_PHEV, CAR.ELANTRA_HEV_2021, CAR.KIA_NIRO_PHEV, CAR.KIA_NIRO_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.IONIQ, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022, CAR.IONIQ_PHEV_2019, CAR.TUCSON_HYBRID_4TH_GEN, CAR.KIA_SPORTAGE_HYBRID_5TH_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN, CAR.GRANDEUR_IG_HEV, CAR.GRANDEUR_IG_FL_HEV, CAR.K7_HEV}  # these cars use a different gas signal
-EV_CAR = {CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.KIA_NIRO_EV, CAR.KONA_EV_2022, CAR.KIA_EV6, CAR.IONIQ_5, CAR.NEXO}
+EV_CAR = {CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.KONA_EV, CAR.KIA_NIRO_EV, CAR.KONA_EV_2022, CAR.KIA_EV6, CAR.IONIQ_5, CAR.GENESIS_GV60_EV_1ST_GEN, CAR.NEXO}
 
 # these cars require a special panda safety mode due to missing counters and checksums in the messages
 LEGACY_SAFETY_MODE_CAR = {CAR.HYUNDAI_GENESIS, CAR.IONIQ_EV_2020, CAR.IONIQ_EV_LTD, CAR.IONIQ_PHEV, CAR.IONIQ, CAR.KIA_SORENTO, CAR.SONATA_LF, CAR.KIA_OPTIMA_G4, CAR.KIA_OPTIMA_G4_FL, CAR.VELOSTER, CAR.KIA_STINGER, CAR.GENESIS_G70, CAR.GENESIS_G80, CAR.KIA_CEED, CAR.ELANTRA, CAR.IONIQ_HEV_2022, 
@@ -1708,6 +1732,7 @@ DBC = {
   CAR.K7_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.GENESIS_GV70_1ST_GEN: dbc_dict('hyundai_canfd', None),
   CAR.KIA_SORENTO_PHEV_4TH_GEN: dbc_dict('hyundai_canfd', None),
+  CAR.GENESIS_GV60_EV_1ST_GEN: dbc_dict('hyundai_canfd', None),
 }
 
 

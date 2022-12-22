@@ -77,7 +77,7 @@ class LongitudinalPlanner:
       self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
     
   @staticmethod
-  def parse_model(model_msg, model_error):
+  def parse_model(model_msg, model_error, v_ego):
     if (len(model_msg.position.x) == 33 and
        len(model_msg.velocity.x) == 33 and
        len(model_msg.acceleration.x) == 33):
@@ -92,6 +92,10 @@ class LongitudinalPlanner:
       a = np.zeros(len(T_IDXS_MPC))
       j = np.zeros(len(T_IDXS_MPC))
       y = np.zeros(len(T_IDXS_MPC))
+    max_lat_accel = interp(v_ego, [5, 10, 20], [1.5, 2.0, 3.0])
+    curvatures = np.interp(T_IDXS_MPC, T_IDXS, model_msg.orientationRate.z) / np.clip(v, 0.3, 100.0)
+    max_v = np.sqrt(max_lat_accel / (np.abs(curvatures) + 1e-3)) - 2.0
+    v = np.minimum(max_v, v)
     return x, v, a, j, y
 
   def update(self, sm):
@@ -163,7 +167,7 @@ class LongitudinalPlanner:
     #self.mpc.set_weights(prev_accel_constraint)
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error)
+    x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error, v_ego)
 
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise_sol, x, v, a, j, y, prev_accel_constraint)
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 import os
 from tinygrad.llops.ops_gpu import GPUBuffer, CL, CLProgram, CLBuffer
-from tinygrad.ops import ProcessingOps, ReduceOps, UnaryOps, BinaryOps
+from tinygrad.ops import ProcessingOps, ReduceOps, UnaryOps, BinaryOps, MovementOps
 from tinygrad.helpers import prod, ConvArgs
 from typing import List, Tuple, Optional, Dict, Set
 import numpy as np
@@ -137,7 +137,7 @@ class OpenCLBuffer(GPUBuffer):
     UnaryOps.LOG: "native_log(A)" if NATIVE_EXPLOG else "log(A)",
     UnaryOps.RECIPROCAL: "native_recip(A)" if NATIVE_EXPLOG else "((float)1.0/A)",
     BinaryOps.ADD: "(A+B)", BinaryOps.SUB: "(A-B)", BinaryOps.MUL: "(A*B)", BinaryOps.DIV: "(A/B)", BinaryOps.POW: "pow(A,B)", BinaryOps.CMPEQ: "(A==B)",
-    ReduceOps.SUM: "(acc + A)", ReduceOps.MAX: "max(A, acc)"
+    ReduceOps.SUM: "(acc + A)", ReduceOps.MAX: "max(A, acc)", MovementOps.RESHAPE: "(A)"
   }
   def __init__(self, shape, hostbuf:Optional[OpenCLBuffer]=None, backing:Optional[np.ndarray]=None):
     self._image = hostbuf._image if hostbuf is not None else None
@@ -211,7 +211,7 @@ class OpenCLBuffer(GPUBuffer):
   SUPPORTS_PADDING = True
   def processing_op(x, op:ProcessingOps, w:GPUBuffer, C:ConvArgs):
     assert op == ProcessingOps.CONV, f"{op} isn't supported"
-    return type(x)(C.out_shape)._processing_op([("input", x.contiguous_op()), ("weight", w.contiguous_op())], "acc", C)
+    return type(x)(C.out_shape)._processing_op([("input", x.contiguous()), ("weight", w.contiguous())], "acc", C)
 
   def contiguous_view_constant_fold(x, name:str, reduce:Optional[int]=None) -> Tuple[str, Optional[str], str]:
     # this will only be for convs, for reduce we have to fall back to cl
@@ -231,10 +231,10 @@ class OpenCLBuffer(GPUBuffer):
     #ewtypes.append(f"read_only image2d_t {name}_g")
     return super().contiguous_view_constant_fold(name, reduce)
 
-  def _processing_op(ret, bufs: List[Tuple[str, OpenCLBuffer]]=[], code:str="acc", C=None, op=ReduceOps.SUM, reduce_shape=None, earlybufs:Set[str]=set(), earlycode:str="acc"):
+  def _processing_op(ret, bufs: List[Tuple[str, OpenCLBuffer]]=[], code:str="acc", C=None, op=ReduceOps.SUM, reduce_shape=None, earlybufs:Set[str]=set(), earlycode:str="acc", op_estimate=0):
     if C is None or earlycode != "acc":
       # TODO: handle an opencl conv without the conv part
-      return super()._processing_op(bufs, code, C, op, reduce_shape, earlybufs, earlycode)
+      return super()._processing_op(bufs, code, C, op, reduce_shape, earlybufs, earlycode, op_estimate)
     assert earlycode == "acc"
 
     x = [x for x in bufs if x[0] == "input"][0][1]
@@ -261,7 +261,7 @@ class OpenCLBuffer(GPUBuffer):
     # fix widths
     replacements["get_image_width(output)"] = f"({ret._image.shape[0]})"
 
-    x, w = x.contiguous_op(), w.contiguous_op()
+    x, w = x.contiguous(), w.contiguous()
     options = []
     if C.bs > 1:
       options.append("-DBATCH")

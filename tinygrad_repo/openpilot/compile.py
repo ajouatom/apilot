@@ -1,30 +1,23 @@
 #!/usr/bin/env python3
-from ast import Assert
-import pathlib, sys
+import os, time, io, pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-from collections import defaultdict
-import pyopencl as cl
-
-import os
-import time
-import io
 
 os.environ['OPT'] = '99'
 if os.getenv("GPU", None) is None:
   os.environ['OPENCL'] = '1'
 
+ALLOWED_KERNEL_COUNT = int(os.getenv("ALLOWED_KERNEL_COUNT", 0))
 DEBUGCL = int(os.getenv("DEBUGCL", 0))
 
 import onnx
 import numpy as np
 
-import tinygrad.ops as ops
+import tinygrad.graph as graph
 
-from tinygrad.llops.ops_gpu import CL, CLProgram, CLBuffer
+from tinygrad.llops.ops_gpu import CL
 from extra.utils import fetch
 from extra.onnx import get_run_onnx
 from tinygrad.tensor import Tensor
-from tinygrad.helpers import prod
 
 OPENPILOT_MODEL = "https://github.com/commaai/openpilot/raw/6c5693e965b9c63f8678f52b9e9b5abe35f23feb/selfdrive/modeld/models/supercombo.onnx"
 
@@ -35,6 +28,8 @@ def get_random_input_tensors(input_shapes):
     "big_input_imgs": np.random.randn(*(1, 12, 128, 256))*256,
     "desire": np.zeros((1,100, 8)),
     "traffic_convention": np.array([[1., 0.]]),
+    "driving_style": np.zeros((1,12)),
+    "nav_features": np.random.rand(*(1,64)),
     #"features_buffer": np.random.randn(*(1, 99, 128))
     "features_buffer": np.random.randn(*input_shapes['features_buffer'])
     #"initial_state": np.zeros((1, 768))
@@ -62,8 +57,8 @@ def get_random_input_tensors(input_shapes):
 
 def compile(dat, output_fn):
   Tensor.no_grad = True
-  using_graph = ops.GRAPH
-  ops.GRAPH = False
+  using_graph = graph.GRAPH
+  graph.GRAPH = False
 
   onnx_model = onnx.load(io.BytesIO(dat))
   run_onnx = get_run_onnx(onnx_model)
@@ -98,11 +93,12 @@ def compile(dat, output_fn):
 
   # note, since CL.CACHE is enabled, it doesn't actually run the kernels
   CL.CACHE = []
-  if using_graph: ops.GRAPH = True
+  if using_graph: graph.GRAPH = True
   CL.kernel_count = -1
   tinygrad_out.realize()
-  ops.GRAPH = False
+  graph.GRAPH = False
   print("kernel count:", len(CL.CACHE))
+  assert len(CL.CACHE) <= ALLOWED_KERNEL_COUNT or ALLOWED_KERNEL_COUNT == 0, "too many kernels!"
 
   from extra.thneed import Thneed
   t = Thneed(CL.CACHE, {k:inputs[k].lazydata.realized.cl for k in inputs.keys()})
