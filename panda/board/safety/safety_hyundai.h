@@ -17,7 +17,8 @@
   .has_steer_req_tolerance = true, \
 }
 
-const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(409, 3, 7);
+//const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(409, 3, 7);
+const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(409, 10, 10);
 const SteeringLimits HYUNDAI_STEERING_LIMITS_ALT = HYUNDAI_LIMITS(270, 2, 3);
 
 const LongitudinalLimits HYUNDAI_LONG_LIMITS = {
