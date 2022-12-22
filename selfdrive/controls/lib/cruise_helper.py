@@ -351,15 +351,15 @@ class CruiseHelper:
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     leadCarSpeed = v_ego_kph + vRel*CV.MS_TO_KPH
     
-    if 2 < dRel < 20:
-      self.dRelValidCount += 1
-    elif dRel != 0 or self.dRelValidCount < 50 or abs(CS.steeringAngleDeg)<30:
-      self.dRelValidCount = 0
-    else:
-      self.dRelValidCount = 0
-      if self.radarAlarmCount == 0:
-        self.radarAlarmCount = 2000
-        #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
+    #if 2 < dRel < 20:
+    #  self.dRelValidCount += 1
+    #elif dRel != 0 or self.dRelValidCount < 50 or abs(CS.steeringAngleDeg)<30:
+    #  self.dRelValidCount = 0
+    #else:
+    #  self.dRelValidCount = 0
+    #  if self.radarAlarmCount == 0:
+    #    self.radarAlarmCount = 2000
+    #    #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
     
     trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
     if self.longActiveUser>0:
