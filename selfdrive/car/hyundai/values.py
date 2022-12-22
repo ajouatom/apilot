@@ -53,8 +53,8 @@ class CarControllerParams:
       #self.STEER_MAX = 409 if vEgoRaw < 11. else 384
       #self.STEER_DRIVER_ALLOWANCE = 350
       #self.STEER_THRESHOLD = 350
-      self.STEER_DELTA_UP = 10 if vEgoRaw < 11. else 2
-      self.STEER_DELTA_DOWN = 10 if vEgoRaw < 11. else 3
+      self.STEER_DELTA_UP = 8 if vEgoRaw < 11. else 2
+      self.STEER_DELTA_DOWN = 8 if vEgoRaw < 11. else 3
 
 
 class HyundaiFlags(IntFlag):
