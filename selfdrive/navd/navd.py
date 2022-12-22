@@ -220,6 +220,7 @@ class RouteEngine:
       self.pm.send('navInstruction', msg)
       return
 
+    msg.msgValid = True
     step = self.route[self.step_idx]
     geometry = self.route_geometry[self.step_idx]
     along_geometry = distance_along_geometry(geometry, self.last_position)
