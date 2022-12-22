@@ -244,6 +244,8 @@ class Controls:
         self.state = State.enabled
 
   def handle_nav_lane_changes(self, CS):
+    if not self.sm['navInstruction'].msgValid:
+      return
     if self.sm.updated['modelV2']:
       for i in range(4):
         self.laneline_filters[i].update(self.sm['modelV2'].laneLineProbs[i])

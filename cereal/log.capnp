@@ -1974,6 +1974,8 @@ struct NavInstruction {
   speedLimit @10 :Float32; # m/s
   speedLimitSign @11 :SpeedLimitSign;
 
+  msgValid @12 : Bool;
+
   struct Lane {
     directions @0 :List(Direction);
     active @1 :Bool;
