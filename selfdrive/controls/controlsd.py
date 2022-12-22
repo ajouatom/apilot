@@ -88,7 +88,7 @@ class Controls:
     self.params = Params()
     self.sm = sm
     if self.sm is None:
-      ignore = ['testJoystick']
+      ignore = ['testJoystick', 'navInstruction']
       if SIMULATION:
         ignore += ['driverCameraState', 'managerState']
       if self.params.get_bool('WideCameraOnly'):
@@ -96,7 +96,7 @@ class Controls:
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
                                      'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters', 'testJoystick', 'navInstruction', 'roadLimitSpeed'] + self.camera_packets,
-                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan', 'testJoystick', 'navInstruction'])
+                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan', 'testJoystick'])
 
     if CI is None:
       # wait for one pandaState and one CAN packet
