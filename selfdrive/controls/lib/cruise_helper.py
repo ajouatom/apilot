@@ -102,6 +102,7 @@ class CruiseHelper:
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
     self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
     self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
+    self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -145,6 +146,8 @@ class CruiseHelper:
         #self.myDrivingMode = int(Params().get("InitMyDrivingMode")) #초기에 한번만 읽어옴...
         self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
         self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
+      elif self.update_params_count == 12:
+        self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
 
   @staticmethod
   def get_lead(sm):
@@ -439,7 +442,9 @@ class CruiseHelper:
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
-        if v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
+        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
+          self.cruise_control(controls, CS, -2)
+        elif v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
           v_cruise_kph = v_ego_kph_set
           self.v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
         if xState == XState.softHold: #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
