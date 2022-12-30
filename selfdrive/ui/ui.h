@@ -89,6 +89,11 @@ const QColor bg_colors [] = {
   [STATUS_CRUISE_STOP] = QColor(0x00, 0x64, 0xC8, 0x96),
 };
 
+typedef struct {
+  QPointF v[TRAJECTORY_SIZE * 2];
+  int cnt;
+} line_vertices_data;
+
 typedef struct UIScene {
   mat3 view_from_calib;
   cereal::PandaState::PandaType pandaType;
@@ -96,9 +101,10 @@ typedef struct UIScene {
   // modelV2
   float lane_line_probs[4];
   float road_edge_stds[2];
-  QPolygonF track_vertices;
-  QPolygonF lane_line_vertices[4];
-  QPolygonF road_edge_vertices[2];
+  line_vertices_data track_vertices;
+  line_vertices_data lane_line_vertices[4];
+  line_vertices_data road_edge_vertices[2];
+  line_vertices_data lane_barrier_vertices[2];
 
   // lead
   QPointF lead_vertices[2];

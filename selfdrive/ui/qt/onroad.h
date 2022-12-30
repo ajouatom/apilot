@@ -32,6 +32,8 @@ private:
 // container window for the NVG UI
 class AnnotatedCameraWidget : public CameraWidget {
   Q_OBJECT
+  Q_PROPERTY(bool left_blindspot MEMBER left_blindspot);
+  Q_PROPERTY(bool right_blindspot MEMBER right_blindspot);
 
 public:
   explicit AnnotatedCameraWidget(VisionStreamType type, QWidget* parent = 0);
@@ -43,6 +45,8 @@ private:
   bool v_ego_cluster_seen = false;
   int skip_frame_count = 0;
   bool wide_cam_requested = false;
+  bool left_blindspot = false;
+  bool right_blindspot = false;
 protected:
   void paintGL() override;
   void initializeGL() override;
