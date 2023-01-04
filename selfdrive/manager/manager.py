@@ -81,6 +81,7 @@ def manager_init() -> None:
     ("TrafficStopAccel", "80"),     
     ("TrafficStopModelSpeed", "0"),         
     ("CruiseButtonMode", "0"),      
+    ("GapButtonMode", "0"),      
     ("InitMyDrivingMode", "3"),      
     ("MySafeModeFactor", "80"),      
     ("LiveSteerRatioApply", "100"),      

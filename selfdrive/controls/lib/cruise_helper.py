@@ -98,6 +98,7 @@ class CruiseHelper:
     #self.accelLimitConfusedModel = int(Params().get("AccelLimitConfusedModel"))
     self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
     self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
+    self.gapButtonMode = int(Params().get("GapButtonMode"))
     self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
     self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
@@ -148,6 +149,7 @@ class CruiseHelper:
         self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
       elif self.update_params_count == 12:
         self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
+        self.gapButtonMode = int(Params().get("GapButtonMode"))
 
   @staticmethod
   def get_lead(sm):
@@ -222,7 +224,7 @@ class CruiseHelper:
     return curve_speed_ms
 
   def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
-    if controls.enabled:
+    if controls.enabled and self.longCruiseGap != 5:
       if active_mode > 0 and controls.CC.longEnabled:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
@@ -268,7 +270,13 @@ class CruiseHelper:
             v_cruise_kph -= button_speed_dn_diff if metric else button_speed_dn_diff * CV.MPH_TO_KPH
             button_type = ButtonType.decelCruise
           elif not LongPressed and b.type == ButtonType.gapAdjustCruise:
-            self.longCruiseGap = 1 if self.longCruiseGap == 4 else self.longCruiseGap + 1
+            if self.gapButtonMode == 0:
+              self.longCruiseGap = 1 if self.longCruiseGap == 4 else self.longCruiseGap + 1
+            elif self.gapButtonMode == 1:
+              self.longCruiseGap = 1 if self.longCruiseGap == 5 else self.longCruiseGap + 1
+            elif self.gapButtonMode == 2:
+              self.longCruiseGap = 4 if self.longCruiseGap == 5 else self.longCruiseGap + 1
+
             #Params().put("PrevCruiseGap", str(self.longCruiseGap))
 
           LongPressed = False

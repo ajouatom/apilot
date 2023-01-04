@@ -772,6 +772,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("MyEcoModeFactor", "드라이브모드:연비가속비율(80%)", "일반모드대비 가속비율을 지정합니다.", "../assets/offroad/icon_road.png", 50, 95, 5));
     toggleLayout->addWidget(new CValueControl("MySafeModeFactor", "드라이브모드:안전비율(80%)", "가속도, 정지거리, 감속율, 차간거리를 평소보다 안전하게 유지합니다.", "../assets/offroad/icon_road.png", 50, 90, 10));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "크루즈버튼작동모드", "0:일반속도제어,1:사용자속도제어1, 2:사용자속도제어2, 3:사용자속도제어3, 4:사용자속도제어4", "../assets/offroad/icon_road.png", 0, 4, 1));
+    toggleLayout->addWidget(new CValueControl("GapButtonMode", "크루즈갭버튼작동모드", "0:1,2,3,4(오토),1:1,2,3,4(오토),5(크루즈OFF),2:4(오토),5(크루즈OFF)", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("PrevCruiseGap", "크루즈갭 :초기값(4)", "4: 자동", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀 크루즈ON 사용", "엑셀밟으면 크루즈를 켭니다. 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", this));
