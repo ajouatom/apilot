@@ -224,15 +224,15 @@ class CruiseHelper:
     return curve_speed_ms
 
   def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
-    if controls.enabled and self.longCruiseGap != 5:
-      if active_mode > 0 and controls.CC.longEnabled:
+    if controls.enabled:
+      if active_mode > 0 and controls.CC.longEnabled and self.longCruiseGap != 5:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
         if self.longControlActiveSound >= 2 and self.longActiveUser != active_mode:
           controls.events.add(EventName.cruiseResume)
         self.longActiveUser = active_mode
         self.userCruisePaused = False
-      else:
+      elif active_mode <= 0:
         if self.longActiveUser != active_mode and self.longControlActiveSound >= 2:
           #controls.events.add(EventName.cruisePaused)
           pass
