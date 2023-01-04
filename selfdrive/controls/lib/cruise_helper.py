@@ -225,7 +225,7 @@ class CruiseHelper:
 
   def cruise_control(self, controls, CS, active_mode=0):  #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
     if controls.enabled:
-      if active_mode > 0 and controls.CC.longEnabled and self.longCruiseGap != 5:
+      if active_mode > 0 and controls.CC.longEnabled:
         if self.longActiveUser <= 0:
           controls.LoC.reset(v_pid=CS.vEgo)
         if self.longControlActiveSound >= 2 and self.longActiveUser != active_mode:
@@ -450,7 +450,7 @@ class CruiseHelper:
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
-        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
+        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas and self.longCruiseGap != 5: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
           self.cruise_control(controls, CS, -2)
         elif v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
           v_cruise_kph = v_ego_kph_set
@@ -460,7 +460,7 @@ class CruiseHelper:
         elif xState in [XState.e2eStop, XState.e2eCruise] and v_ego_kph_set < v_cruise_kph and controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: # 모델이 감속을 지시하고 엑셀을 밟으면 속도를 빠르게 하면 안됨.
           v_cruise_kph = v_ego_kph_set
           pass
-      elif not CS.gasPressed and self.gasPressedCount > 2: #엑셀을 밟았다가 떼면..
+      elif not CS.gasPressed and self.gasPressedCount > 2 and self.longCruiseGap != 5: #엑셀을 밟았다가 떼면..
         if False: #CS.myDrivingMode == 2: 관성모드 없앰..
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
@@ -484,7 +484,7 @@ class CruiseHelper:
             if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0:  #1초이내에 Gas페달을 잡았다가 놓으면...
               v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
 
-      elif not CS.brakePressed and self.preBrakePressed:
+      elif not CS.brakePressed and self.preBrakePressed and self.longCruiseGap != 5:
         if v_ego_kph < 5.0 and xState == XState.softHold:
           self.cruise_control(controls, CS, 3)
         elif self.autoResumeFromBrakeRelease: # 브레이크 해제에 대한 크루즈 ON
