@@ -484,10 +484,10 @@ class CruiseHelper:
             if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0:  #1초이내에 Gas페달을 잡았다가 놓으면...
               v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
 
-      elif not CS.brakePressed and self.preBrakePressed and self.longCruiseGap != 5:
+      elif not CS.brakePressed and self.preBrakePressed:
         if v_ego_kph < 5.0 and xState == XState.softHold:
           self.cruise_control(controls, CS, 3)
-        elif self.autoResumeFromBrakeRelease: # 브레이크 해제에 대한 크루즈 ON
+        elif self.autoResumeFromBrakeRelease and self.longCruiseGap != 5: # 브레이크 해제에 대한 크루즈 ON
           if resume_cond and v_ego_kph > 1.0 and self.autoResumeFromBrakeReleaseDist < dRel and self.autoResumeFromBrakeReleaseDist > 0:
             v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
             self.cruise_control(controls, CS, 3)
