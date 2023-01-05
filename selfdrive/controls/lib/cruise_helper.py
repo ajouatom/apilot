@@ -450,7 +450,7 @@ class CruiseHelper:
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
-        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas and self.longCruiseGap != 5: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
+        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
           self.cruise_control(controls, CS, -2)
         elif v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeed:
           v_cruise_kph = v_ego_kph_set
