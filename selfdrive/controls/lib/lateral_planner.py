@@ -33,6 +33,7 @@ class LateralPlanner:
     self.readParams = 0
     self.use_lanelines = Params().get_bool('UseLanelines')
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
+    self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
@@ -61,6 +62,7 @@ class LateralPlanner:
       self.readParams = 100
       self.use_lanelines = Params().get_bool('UseLanelines')
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
+      self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
       self.steeringRateCost = float(int(Params().get("SteeringRateCost", encoding="utf8")))
     # clip speed , lateral planning is not possible at 0 speed
     self.v_ego = max(MIN_SPEED, sm['carState'].vEgo)
@@ -90,7 +92,7 @@ class LateralPlanner:
 
     d_path_xyz[:, 1] += self.pathOffset #ntune_common_get('pathOffset')
 
-    self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
+    self.lat_mpc.set_weights(PATH_COST * self.pathCostApply, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
                              self.steeringRateCost)
 
