@@ -101,7 +101,7 @@ def manager_init() -> None:
     ("KeepEngage", "1"),
     ("UseLanelines", "0"),    
     ("PathOffset", "0"),  
-    ("PathCostApply", "0"),
+    ("PathCostApply", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
     ("SteeringRateCost", "800"),       
