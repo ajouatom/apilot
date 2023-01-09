@@ -92,9 +92,11 @@ class LateralPlanner:
 
     d_path_xyz[:, 1] += self.pathOffset #ntune_common_get('pathOffset')
 
-    self.lat_mpc.set_weights(PATH_COST * self.pathCostApply, LATERAL_MOTION_COST,
+    pathCost = interp(self.v_ego, [2., 10.], [PATH_COST, PATH_COST * self.pathCostApply])
+    steeringRateCost = interp(self.v_ego, [2., 10.], [self.steeringRateCost, self.steeringRateCost/3.])
+    self.lat_mpc.set_weights(pathCost, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
-                             self.steeringRateCost)
+                             steeringRateCost)
 
     y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
     heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
