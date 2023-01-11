@@ -3,6 +3,6 @@
   "params": [
     { "group": "Tuning",  "name": "XEgoObstacleCost",   "title": "XEgoObstacle",    "descr": "XEgo설정",    "min": 0,   "max": 500,   "default": 150,   "unit": 1 },
     { "group": "Tuning",  "name": "JEgoCost",           "title": "JEgoCost",        "descr": "JEgo설정",    "min": 0,   "max": 500,   "default": 5,     "unit": 1 },
-    { "group": "Cruise",  "name": "CruiseButtonMode",   "title": "JEgoCost",        "descr": "JEgo설정",    "min": 0,   "max": 500,   "default": 5,     "unit": 1 }
+    { "group": "Cruise",  "name": "CruiseButtonMode",   "title": "크루즈버튼보드",  "descr": "0:노말모드,1:무엇?",    "min": 0,   "max": 500,   "default": 5,     "unit": 1 }
   ]
 }
