@@ -110,6 +110,16 @@
       "max": 120,
       "default": 5,
       "unit": 1
+    },
+    {
+      "group": "조향",
+      "name": "AutoCurveSpeedFactor",
+      "title": "모델커브속도조절비율(100%)",
+      "descr": "커브속도조절(커브속도 조절 2일때 적용)",
+      "min": 50,
+      "max": 150,
+      "default": 1,
+      "unit": 1
     }
   ]
 }
