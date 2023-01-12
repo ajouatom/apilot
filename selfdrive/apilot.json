@@ -54,7 +54,7 @@
     {
       "group": "주행설정",
       "name": "MyEcoModeFactor",
-      "title": "드라이브모드:연비가속비율(80%)",
+      "title": "연비가속비율(80%)",
       "descr": "일반모드대비 가속비율을 지정합니다.",
       "min": 40,
       "max": 95,
@@ -64,12 +64,53 @@
     {
       "group": "주행설정",
       "name": "MySafeModeFactor",
-      "title": "드라이브모드:안전비율(80%)",
+      "title": "안전비율(80%)",
       "descr": "가속도, 정지거리, 감속율, 차간거리를 평소보다 안전하게 유지합니다.",
       "min": 40,
       "max": 90,
       "default": 80,
       "unit": 5
+    },
+
+    {
+      "group": "주행튜닝",
+      "name": "JerkUpperLowerLimit",
+      "title": "JERK값 (8)",
+      "descr": "값이 커지면 가감속반응이 빨라집니다.",
+      "min": 5,
+      "max": 50,
+      "default": 8,
+      "unit": 1
+    },
+    {
+      "group": "주행튜닝",
+      "name": "LongitudinalTuningKf",
+      "title": "FF게인(110%)",
+      "descr": "가감속 엑셀의 FF를 올려 반응을 빠르게 합니다.",
+      "min": 100,
+      "max": 130,
+      "default": 100,
+      "unit": 1
+    }
+    {
+      "group": "주행튜닝",
+      "name": "AChangeCost",
+      "title": "A_CHANGE_COST(150)",
+      "descr": "적으면 선행차에 대한 반응이 빨라집니다.",
+      "min": 20,
+      "max": 400,
+      "default": 150,
+      "unit": 10
+    }
+    {
+      "group": "주행튜닝",
+      "name": "TrafficStopAccel",
+      "title": "신호정지 감속율 (80%)",
+      "descr": "신호를 만나면 서서히 감속하여 정지합니다.",
+      "min": 10,
+      "max": 120,
+      "default": 5,
+      "unit": 1
     }
   ]
 }
