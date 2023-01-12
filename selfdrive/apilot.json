@@ -1,8 +1,75 @@
 {
   "apilot": 20220111,
   "params": [
-    { "group": "Tuning",  "name": "XEgoObstacleCost",   "title": "XEgoObstacle",    "descr": "XEgo설정",    "min": 0,   "max": 500,   "default": 150,   "unit": 1 },
-    { "group": "Tuning",  "name": "JEgoCost",           "title": "JEgoCost",        "descr": "JEgo설정",    "min": 0,   "max": 500,   "default": 5,     "unit": 1 },
-    { "group": "Cruise",  "name": "CruiseButtonMode",   "title": "크루즈버튼보드",  "descr": "0:노말모드,1:무엇?",    "min": 0,   "max": 500,   "default": 5,     "unit": 1 }
+    {
+      "group": "조향",
+      "name": "PathOffset",
+      "title": "차선치우침 좌우보정",
+      "descr": "(-)좌측,(+)우측",
+      "min": -200,
+      "max": 200,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "정지",
+      "name": "StopDistance",
+      "title": "정지거리(600cm)",
+      "descr": "선행차와 정지하는 거리를 입력합니다.",
+      "min": 200,
+      "max": 1000,
+      "default": 600,
+      "unit": 50
+    },
+    {
+      "group": "정지",
+      "name": "TrafficStopDistanceAdjust",
+      "title": "신호정지 위치조정(200cm)",
+      "descr": "+값으로 하면 정지선에 다가갑니다.",
+      "min": -1000,
+      "max": 1000,
+      "default": 200,
+      "unit": 10
+    },
+    {
+      "group": "조향",
+      "name": "LiveSteerRatioApply",
+      "title": "LiveSteerRatioApply(100%)",
+      "descr": "",
+      "min": 50,
+      "max": 110,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "조향",
+      "name": "SteeringRatioCost",
+      "title": "SteeringRateCost",
+      "descr": "",
+      "min": 10,
+      "max": 1000,
+      "default": 800,
+      "unit": 1
+    },
+    {
+      "group": "주행설정",
+      "name": "MyEcoModeFactor",
+      "title": "드라이브모드:연비가속비율(80%)",
+      "descr": "일반모드대비 가속비율을 지정합니다.",
+      "min": 40,
+      "max": 95,
+      "default": 80,
+      "unit": 1
+    },
+    {
+      "group": "주행설정",
+      "name": "MySafeModeFactor",
+      "title": "드라이브모드:안전비율(80%)",
+      "descr": "가속도, 정지거리, 감속율, 차간거리를 평소보다 안전하게 유지합니다.",
+      "min": 40,
+      "max": 90,
+      "default": 80,
+      "unit": 5
+    }
   ]
 }
