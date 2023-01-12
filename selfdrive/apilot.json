@@ -71,7 +71,6 @@
       "default": 80,
       "unit": 5
     },
-
     {
       "group": "林青譬醋",
       "name": "JerkUpperLowerLimit",
@@ -91,7 +90,7 @@
       "max": 130,
       "default": 100,
       "unit": 1
-    }
+    },
     {
       "group": "林青譬醋",
       "name": "AChangeCost",
@@ -101,7 +100,7 @@
       "max": 400,
       "default": 150,
       "unit": 10
-    }
+    },
     {
       "group": "林青譬醋",
       "name": "TrafficStopAccel",
