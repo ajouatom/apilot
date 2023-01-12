@@ -43,7 +43,7 @@
     },
     {
       "group": "Á¶Çâ",
-      "name": "SteeringRatioCost",
+      "name": "SteeringRateCost",
       "title": "SteeringRateCost",
       "descr": "",
       "min": 10,
