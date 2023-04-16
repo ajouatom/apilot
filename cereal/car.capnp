@@ -540,7 +540,6 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
-  mdpsBus @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

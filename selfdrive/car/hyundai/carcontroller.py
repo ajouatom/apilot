@@ -197,21 +197,7 @@ class CarController:
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, self.send_lfa_mfa_lkas, apply_steer, lat_active,
                                                 torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
-                                                left_lane_warning, right_lane_warning, 0))
-      if self.CP.mdpsBus > 0:
-        can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, self.send_lfa_mfa_lkas, apply_steer, lat_active,
-                                                  torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
-                                                  hud_control.leftLaneVisible, hud_control.rightLaneVisible,
-                                                  left_lane_warning, right_lane_warning, self.CP.mdpsBus))
-      
-
-      ##HW: 임시로 코드넣음.. 나중에  MDPS 저속(60kmh)개조 된것들은 넣어줘야함.
-      if self.frame % 2 == 0 and self.CP.mdpsBus>0:
-        enabled_speed = 60
-        clu11_speed = CS.clu11["CF_Clu_Vanz"]
-        if clu11_speed > enabled_speed:
-          enabled_speed = clu11_speed
-        can_sends.append(hyundaican.create_clu11_mdps(self.packer, self.frame, CS.clu11, Buttons.NONE, self.CP.carFingerprint, self.CP.mdpsBus, enabled_speed))
+                                                left_lane_warning, right_lane_warning))
 
       if not self.CP.openpilotLongitudinalControl:
         if CC.cruiseControl.cancel:
@@ -253,7 +239,7 @@ class CarController:
 
       CC.debugTextCC = "230206"
 
-      if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7) or self.CP.mdpsBus>0:
+      if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7):
         can_sends.append(hyundaican.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:

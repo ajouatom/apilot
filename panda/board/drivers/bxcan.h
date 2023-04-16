@@ -204,13 +204,7 @@ void can_rx(uint8_t can_number) {
       (void)memcpy(to_send.data, to_push.data, dlc_to_len[to_push.data_len_code]);
       can_set_checksum(&to_send);
 
-      if (bus_fwd_num > 9) {
-          can_send(&to_send, (bus_fwd_num / 10), true);
-          can_send(&to_send, (bus_fwd_num % 10), true);
-      }
-      else {
-          can_send(&to_send, bus_fwd_num, true);
-      }
+      can_send(&to_send, bus_fwd_num, true);
       can_health[can_number].total_fwd_cnt += 1U;
     }
 

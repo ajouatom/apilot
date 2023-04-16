@@ -114,7 +114,6 @@ uint32_t LKAS11_lastTxTime = 0;
 uint32_t LKAS11_maxTxDiffTime = 0;
 bool LKAS11_forwarding = true;
 uint32_t last_ts_mdps12_from_op = 0; // from neokii
-extern int mdpsConnectedBus;
 
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
@@ -223,15 +222,13 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
       }
       hyundai_common_cruise_state_check(cruise_engaged);
   }
-  if (valid) {
-      if (addr == 593) {
-          int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
-          // update array of samples
-          update_sample(&torque_driver, torque_driver_new);
-      }
-  }
 
   if (valid && (bus == 0)) {
+    if (addr == 593) {
+      int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
+      // update array of samples
+      update_sample(&torque_driver, torque_driver_new);
+    }
 
     // ACC steering wheel buttons
     if (addr == 1265) {
@@ -396,48 +393,30 @@ static int hyundai_fwd_hook(int bus_num, int addr) {
   }
   if (bus_num == 0) {
     bus_fwd = 2;
-    if (mdpsConnectedBus == 1) bus_fwd = 12; 
-    else if (mdpsConnectedBus == 3) bus_fwd = 32; 
-    if (addr == 593) {  // MDPS12 버스가 0번에 있음..
-        mdpsConnectedBus = 0;
-        if (now - last_ts_mdps12_from_op < 200000) {  // 일부차량은 mdps코드를 OP가 LKAS에 별도로 보내고 있으니, 보내지말자!
+
+    // from neokii
+    if (addr == 593) {
+        if (now - last_ts_mdps12_from_op < 200000) {
             bus_fwd = -1;
         }
     }
-    else if (addr == 1265) {  // CLU11, mdps개조한경우, 해당 mdps버스(1 or 3)에는 op가 보냄.
-        if (apilot_connected) bus_fwd = 2;
-    }
   }
-  else if (bus_num == 2) {
+  if (bus_num == 2) {
 
       //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
       int block_msg = is_lfahda_mfc_msg || is_scc_msg;
       block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS메시지에 불량이 있으면 TX를 안함.. 여기서 그냥 포워딩해버리자 => 시험..
 
-      // apilot이 연결되면: sccxx, lkas11는 op가 보냄.
       if (apilot_connected) {
-          if (!block_msg) { // 그외의 것은 foward하자..
-                bus_fwd = 0;
-                // mdps가 개조된경우에는 mdps에도 보내주자..: 안보내도 될듯하지만....
-                if (mdpsConnectedBus == 1) bus_fwd = 10; 
-                else if (mdpsConnectedBus == 3) bus_fwd = 30; 
+          if (!block_msg) {
+              bus_fwd = 0;
           }
       }
       else {
           bus_fwd = 0;
-          if (mdpsConnectedBus == 1) bus_fwd = 10; 
-          else if (mdpsConnectedBus == 3) bus_fwd = 30; 
           if (is_lkas11_msg) {
               LKAS11_lastTxTime = microsecond_timer_get();
               LKAS11_maxTxDiffTime = 0;
-          }
-      }
-  }
-  else if (bus_num == mdpsConnectedBus) {  // bus가 1또는 3인경우  (mdps버스가 개조된경우에만)
-      bus_fwd = 20; // 593, 688, 897코드 모두 캔버스로 실어보내자..
-      if (addr == 593) {
-          if (now - last_ts_mdps12_from_op < 200000) {  // 일부차량은 mdps코드를 OP가 LKAS에 별도로 보내고 있으니, 보내지말자!
-              bus_fwd = -1;
           }
       }
   }

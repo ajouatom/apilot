@@ -27,9 +27,6 @@ static int nooutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
   return false;
 }
 
-int mdpsConnectedBus = 0;
-int check_mdps_bus1 = 0;
-int check_mdps_bus3 = 0;
 static int default_fwd_hook(int bus_num, int addr) {
   UNUSED(bus_num);
   UNUSED(addr);
@@ -70,35 +67,14 @@ static int alloutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
 
 static int alloutput_fwd_hook(int bus_num, int addr) {
     int bus_fwd = -1;
-    int mdpsConnectedBus_prev = mdpsConnectedBus;
 
   if (alloutput_passthrough) {
-      if (bus_num == 0) {
-          bus_fwd = 2;
-          if (mdpsConnectedBus == 1) bus_fwd = 12;
-          if (mdpsConnectedBus == 3) bus_fwd = 32;
-      }
-      if (bus_num == 1) {
-          if (addr == 593) check_mdps_bus1 |= 0x01;
-          if (addr == 688) check_mdps_bus1 |= 0x02;
-          if (addr == 897) check_mdps_bus1 |= 0x04;
-          if(check_mdps_bus1 == 0x07) mdpsConnectedBus = 1;
-          bus_fwd = -1;
-          if (mdpsConnectedBus == 1) bus_fwd = 20;
-      }
-      if (bus_num == 2) {
-          bus_fwd = 0;
-          if (mdpsConnectedBus == 1) bus_fwd = 10;
-          if (mdpsConnectedBus == 3) bus_fwd = 30;
-      }
-      if (bus_num == 3) {
-          if (addr == 593) check_mdps_bus3 |= 0x01;
-          if (addr == 688) check_mdps_bus3 |= 0x02;
-          if (addr == 897) check_mdps_bus3 |= 0x04;
-          if(check_mdps_bus3 == 0x07) mdpsConnectedBus = 3;
-          if (mdpsConnectedBus == 3) bus_fwd = 20;
-      }
-      if(mdpsConnectedBus_prev != mdpsConnectedBus) {print("MDPS connected = "); puth(mdpsConnectedBus); print("\n");}
+    if (bus_num == 0) {
+      bus_fwd = 2;
+    }
+    if (bus_num == 2) {
+      bus_fwd = 0;
+    }
   }
 
   return bus_fwd;

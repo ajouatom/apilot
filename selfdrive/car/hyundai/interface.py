@@ -56,21 +56,6 @@ class CarInterface(CarInterfaceBase):
       if 0x38d in fingerprint[0] or 0x38d in fingerprint[2]:
         ret.flags |= HyundaiFlags.USE_FCA.value
 
-      ## MDPS연결된 bus찾기..
-      if 593 in fingerprint[0] and 688 in fingerprint[0] and 897 in fingerprint[0]:
-        ret.mdpsBus = 0    
-      elif 593 in fingerprint[3] and 688 in fingerprint[3] and 897 in fingerprint[3]:
-        ret.mdpsBus = 3
-      elif 593 in fingerprint[1] and 688 in fingerprint[1] and 897 in fingerprint[1]: # and len(fingerprint[1]) < 5:      
-        ret.mdpsBus = 1
-      else:
-        ret.mdpsBus = 0
-
-      print("MDPS bus = ", ret.mdpsBus)
-        
-      ## TODO: MDPS개조 관련된 차량은 minSteerSpeed를 수정해야함.
-      print("fingerprint[1] len = ", len(fingerprint[1]))
-
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerLimitTimer = 0.4
 
@@ -409,7 +394,7 @@ class CarInterface(CarInterfaceBase):
       disable_ecu(logcan, sendcan, bus=5, addr=0x7B1, com_cont_req=b'\x28\x83\x01')
 
   def _update(self, c):
-    ret = self.CS.update(self.cp, self.cp2, self.cp_cam)
+    ret = self.CS.update(self.cp, self.cp_cam)
 
     #if self.CS.CP.openpilotLongitudinalControl and self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
     if self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:

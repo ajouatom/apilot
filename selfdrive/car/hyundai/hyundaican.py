@@ -9,7 +9,7 @@ hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, steer_req,
                   torque_fault, lkas11, sys_warning, sys_state, enabled,
                   left_lane, right_lane,
-                  left_lane_depart, right_lane_depart, bus):
+                  left_lane_depart, right_lane_depart):
   values = lkas11
   values["CF_Lkas_LdwsSysState"] = sys_state
   values["CF_Lkas_SysWarning"] = 0 # ajouatom: 계기판에 안나오게함..   #3 if sys_warning else 0
@@ -64,7 +64,7 @@ def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, ste
     values["CF_Lkas_LdwsActivemode"] = 2
     #values["CF_Lkas_SysWarning"] = lkas11["CF_Lkas_SysWarning"] 
 
-  dat = packer.make_can_msg("LKAS11", bus, values)[2]
+  dat = packer.make_can_msg("LKAS11", 0, values)[2]
 
   if car_fingerprint in CHECKSUM["crc8"]:
     # CRC Checksum as seen on 2019 Hyundai Santa Fe
@@ -79,7 +79,7 @@ def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, ste
 
   values["CF_Lkas_Chksum"] = checksum
 
-  return packer.make_can_msg("LKAS11", bus, values)
+  return packer.make_can_msg("LKAS11", 0, values)
 
 
 def create_clu11(packer, frame, clu11, button, car_fingerprint):
@@ -331,12 +331,12 @@ def create_frt_radar_opt(packer):
   }
   return packer.make_can_msg("FRT_RADAR11", 0, frt_radar11_values)
 
-def create_clu11_mdps(packer, frame, clu11, button, car_fingerprint, bus, speed):
+def create_clu11_mdps(packer, frame, clu11, button, car_fingerprint, speed):
   values = clu11
   values["CF_Clu_CruiseSwState"] = button
   values["CF_Clu_AliveCnt1"] = frame % 0x10
   values["CF_Clu_Vanz"] = speed
-  return packer.make_can_msg("CLU11", bus, values)
+  return packer.make_can_msg("CLU11", 1, values)
 
 
 def create_mdps12(packer, frame, mdps12):

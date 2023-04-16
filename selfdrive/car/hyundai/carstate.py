@@ -52,13 +52,12 @@ class CarState(CarStateBase):
     self.params = CarControllerParams(CP)
     self.gear_shifter = GearShifter.drive # Gear_init for Nexo ?? unknown 21.02.23.LSW
 
-  def update(self, cp, cp2, cp_cam):
+  def update(self, cp, cp_cam):
     if self.CP.carFingerprint in CANFD_CAR:
       return self.update_canfd(cp, cp_cam)
 
     ret = car.CarState.new_message()
     cp_cruise = cp_cam if self.CP.sccBus == 2 or self.CP.carFingerprint in CAMERA_SCC_CAR else cp
-    cp_mdps = cp2 if self.CP.mdpsBus > 0 else cp
     self.is_metric = cp.vl["CLU11"]["CF_Clu_SPEED_UNIT"] == 0
     speed_conv = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
 
@@ -90,16 +89,16 @@ class CarState(CarStateBase):
 
     ret.vEgoCluster = self.cluster_speed * speed_conv
 
-    ret.steeringAngleDeg = cp_mdps.vl["SAS11"]["SAS_Angle"]
-    ret.steeringRateDeg = cp_mdps.vl["SAS11"]["SAS_Speed"]
+    ret.steeringAngleDeg = cp.vl["SAS11"]["SAS_Angle"]
+    ret.steeringRateDeg = cp.vl["SAS11"]["SAS_Speed"]
     ret.yawRate = cp.vl["ESP12"]["YAW_RATE"]
     ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(
       50, cp.vl["CGW1"]["CF_Gway_TurnSigLh"], cp.vl["CGW1"]["CF_Gway_TurnSigRh"])
-    ret.steeringTorque = cp_mdps.vl["MDPS12"]["CR_Mdps_StrColTq"]
-    ret.steeringTorqueEps = cp_mdps.vl["MDPS12"]["CR_Mdps_OutTq"]
+    ret.steeringTorque = cp.vl["MDPS12"]["CR_Mdps_StrColTq"]
+    ret.steeringTorqueEps = cp.vl["MDPS12"]["CR_Mdps_OutTq"]
     ret.steeringPressed = self.update_steering_pressed(abs(ret.steeringTorque) > self.params.STEER_THRESHOLD, 5)
-    #ret.steerFaultTemporary = cp_mdps.vl["MDPS12"]["CF_Mdps_ToiUnavail"] != 0 or cp_mdps.vl["MDPS12"]["CF_Mdps_ToiFlt"] != 0
-    if not ret.standstill and cp_mdps.vl["MDPS12"]["CF_Mdps_ToiUnavail"] != 0:
+    #ret.steerFaultTemporary = cp.vl["MDPS12"]["CF_Mdps_ToiUnavail"] != 0 or cp.vl["MDPS12"]["CF_Mdps_ToiFlt"] != 0
+    if not ret.standstill and cp.vl["MDPS12"]["CF_Mdps_ToiUnavail"] != 0:
       self.mdps_error_cnt += 1
     else:
       self.mdps_error_cnt = 0
@@ -228,11 +227,11 @@ class CarState(CarStateBase):
     # save the entire LKAS11 and CLU11
     self.lkas11 = copy.copy(cp_cam.vl["LKAS11"])
     self.clu11 = copy.copy(cp.vl["CLU11"])
-    self.steer_state = cp_mdps.vl["MDPS12"]["CF_Mdps_ToiActive"]  # 0 NOT ACTIVE, 1 ACTIVE
+    self.steer_state = cp.vl["MDPS12"]["CF_Mdps_ToiActive"]  # 0 NOT ACTIVE, 1 ACTIVE
     self.prev_cruise_buttons = self.cruise_buttons[-1]
     self.cruise_buttons.extend(cp.vl_all["CLU11"]["CF_Clu_CruiseSwState"])
     self.main_buttons.extend(cp.vl_all["CLU11"]["CF_Clu_CruiseSwMain"])
-    self.mdps12 = copy.copy(cp_mdps.vl["MDPS12"])
+    self.mdps12 = copy.copy(cp.vl["MDPS12"])
     tpms_unit = cp.vl["TPMS11"]["UNIT"] * 0.725 if int(cp.vl["TPMS11"]["UNIT"]) > 0 else 1.
     ret.tpms.fl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FL"]
     ret.tpms.fr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FR"]
@@ -389,6 +388,20 @@ class CarState(CarStateBase):
       ("ESC_Off_Step", "TCS15"),
       ("AVH_LAMP", "TCS15"),
 
+      ("CR_Mdps_StrColTq", "MDPS12"),
+      ("CF_Mdps_Def", "MDPS12"),
+      ("CF_Mdps_ToiActive", "MDPS12"),
+      ("CF_Mdps_ToiUnavail", "MDPS12"),
+      ("CF_Mdps_ToiFlt", "MDPS12"),
+      ("CF_Mdps_MsgCount2", "MDPS12"),
+      ("CF_Mdps_Chksum2", "MDPS12"),
+      ("CF_Mdps_SErr", "MDPS12"),
+      ("CR_Mdps_StrTq", "MDPS12"),
+      ("CF_Mdps_FailStat", "MDPS12"),
+      ("CR_Mdps_OutTq", "MDPS12"),
+
+      ("SAS_Angle", "SAS11"),
+      ("SAS_Speed", "SAS11"),
       ("UNIT", "TPMS11"),
       ("PRESSURE_FL", "TPMS11"),
       ("PRESSURE_FR", "TPMS11"),
@@ -401,6 +414,7 @@ class CarState(CarStateBase):
     ]
     checks = [
       # address, frequency
+      ("MDPS12", 50),
       ("TCS13", 50),
       ("TCS15", 10),
       ("CLU11", 50),
@@ -410,29 +424,9 @@ class CarState(CarStateBase):
       ("CGW2", 5),
       ("CGW4", 5),
       ("WHL_SPD11", 50),
+      ("SAS11", 100),
       ("TPMS11", 5),      
     ]
-    if CP.mdpsBus == 0:
-      signals += [
-        ("SAS_Angle", "SAS11"),
-        ("SAS_Speed", "SAS11"),
-
-        ("CR_Mdps_StrColTq", "MDPS12"),
-        ("CF_Mdps_Def", "MDPS12"),
-        ("CF_Mdps_ToiActive", "MDPS12"),
-        ("CF_Mdps_ToiUnavail", "MDPS12"),
-        ("CF_Mdps_ToiFlt", "MDPS12"),
-        ("CF_Mdps_MsgCount2", "MDPS12"),
-        ("CF_Mdps_Chksum2", "MDPS12"),
-        ("CF_Mdps_SErr", "MDPS12"),
-        ("CR_Mdps_StrTq", "MDPS12"),
-        ("CF_Mdps_FailStat", "MDPS12"),
-        ("CR_Mdps_OutTq", "MDPS12")
-      ]
-      checks += [
-        ("SAS11", 100),
-        ("MDPS12", 50)
-      ]
 
     if not CP.openpilotLongitudinalControl and CP.carFingerprint not in CAMERA_SCC_CAR:
       signals += [
@@ -501,32 +495,6 @@ class CarState(CarStateBase):
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0, enforce_checks=False)
 
-  @staticmethod
-  def get_can2_parser(CP):
-    signals = []
-    checks = []
-    if CP.mdpsBus > 0:
-      signals += [
-        ("SAS_Angle", "SAS11"),
-        ("SAS_Speed", "SAS11"),
-
-        ("CR_Mdps_StrColTq", "MDPS12"),
-        ("CF_Mdps_Def", "MDPS12"),
-        ("CF_Mdps_ToiActive", "MDPS12"),
-        ("CF_Mdps_ToiUnavail", "MDPS12"),
-        ("CF_Mdps_ToiFlt", "MDPS12"),
-        ("CF_Mdps_MsgCount2", "MDPS12"),
-        ("CF_Mdps_Chksum2", "MDPS12"),
-        ("CF_Mdps_SErr", "MDPS12"),
-        ("CR_Mdps_StrTq", "MDPS12"),
-        ("CF_Mdps_FailStat", "MDPS12"),
-        ("CR_Mdps_OutTq", "MDPS12")
-      ]
-      checks += [
-        ("SAS11", 100),
-        ("MDPS12", 50)
-      ]
-    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, CP.mdpsBus, enforce_checks=False)
 
   @staticmethod
   def get_cam_can_parser(CP):
