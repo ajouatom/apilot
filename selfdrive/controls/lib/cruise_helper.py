@@ -471,7 +471,7 @@ class CruiseHelper:
               if self.autoResumeFromBrakeReleaseTrafficSign:
                 longActiveUser = 3  
       # 주행
-      else:
+      elif resume_cond:
         if 0 < self.dRel:   # 전방에 차량이 있는경우
           if self.dRel > self.autoResumeFromBrakeReleaseDist: ## 설정값 이상의 거리에서만 작동함... 가까울때는 왜 안하게 했지? 
             longActiveUser = 3
@@ -485,39 +485,6 @@ class CruiseHelper:
             longActiveUser = 3
             v_cruise_kph = self.v_ego_kph_set
 
-    return longActiveUser, v_cruise_kph, v_cruise_kph_backup
-
-  # 1. 소프트홀드
-  # 2. 정지, 전방차량이 5km/h, 10M이내의 경우 : 선행차뒤에 정지하고 안전한 거리에서 브레이크를 떼면...
-  # 3. 전방차량X, 속도가 40키로 이상
-  # 4. 직진, 70키로 미만, 신호정지신호, 깜박이 OFF
-  # 5. 직진, 전방차량 20M(설정)이상, 깜박이 OFF
-  #########################
-  def check_brake_cruise_on_old(self, CS, v_cruise_kph):
-    longActiveUser = self.longActiveUser
-    resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
-    v_cruise_kph_backup = self.v_cruise_kph_backup
-
-    # 정지상태, 소프트홀드일때 크루즈 ON
-    if self.v_ego_kph < 5.0 and self.xState == XState.softHold and self.longCruiseGap != 5:
-      longActiveUser = 3
-    # 브레이크해제 켜지고, 크루즈갭이 5가 아닌경우에만 작동.
-    elif self.autoResumeFromBrakeRelease and self.longCruiseGap != 5: # 브레이크 해제에 대한 크루즈 ON
-      # 주행중, 전방차량이 20M(변수)이상이면
-      if resume_cond and self.v_ego_kph >= 3.0 and 0 < self.autoResumeFromBrakeReleaseDist < self.dRel and not self.blinker: #CS.rightBlinker == False:
-        v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
-        longActiveUser = 3
-      # 핸들5도미만, 70km/h미만, 신호정지신호, 깜박이 OFF
-      elif abs(CS.steeringAngleDeg) < 5.0 and self.v_ego_kph < 70.0 and self.trafficState == 1 and self.autoResumeFromBrakeReleaseTrafficSign and not self.blinker:
-        v_cruise_kph = self.v_ego_kph_set  
-        longActiveUser = 3
-      # 전방차량이 없고, 속도가 40km/h(변수) 이상인경우
-      elif self.dRel==0 and self.v_ego_kph >= self.autoResumeFromBrakeCarSpeed and self.autoResumeFromBrakeCarSpeed > 0:
-        v_cruise_kph = self.v_ego_kph_set
-        longActiveUser = 3
-      # 정지중, 전방차량이 10M이내인경우
-      elif self.v_ego_kph < 5.0 and 2 < self.dRel < 10 and self.autoResumeFromBrakeReleaseLeadCar:
-        longActiveUser = 3
     return longActiveUser, v_cruise_kph, v_cruise_kph_backup
 
   def button_control(self, enabled, controls, CS, v_cruise_kph, buttonEvents, metric):
