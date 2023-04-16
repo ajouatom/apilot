@@ -471,7 +471,7 @@ class CruiseHelper:
               if self.autoResumeFromBrakeReleaseTrafficSign:
                 longActiveUser = 3  
       # 주행
-      else:
+      elif resume_cond:
         if 0 < self.dRel:   # 전방에 차량이 있는경우
           if self.dRel > self.autoResumeFromBrakeReleaseDist: ## 설정값 이상의 거리에서만 작동함... 가까울때는 왜 안하게 했지? 
             longActiveUser = 3
