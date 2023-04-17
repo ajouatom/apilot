@@ -83,9 +83,12 @@ class LongControl:
     elif self.readParamCount == 10:
       self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) * 0.01
       self.longitudinalTuningKiV = float(int(Params().get("LongitudinalTuningKiV", encoding="utf8"))) * 0.001
-      self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
-      self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
-      self.pid._k_i = ([0, 2.0, 200], [self.longitudinalTuningKiV, 0.0, 0.0]) # 정지때만.... i를 적용해보자... 시험..
+
+      ## longcontrolTuning이 한개일때만 적용
+      if len(self.CP.longitudinalTuning.kpBP) == 1 and len(self.CP.longitudinalTuning.kiBP)==1:
+        self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
+        self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
+        self.pid._k_i = ([0, 2.0, 200], [self.longitudinalTuningKiV, 0.0, 0.0]) # 정지때만.... i를 적용해보자... 시험..
     elif self.readParamCount == 30:
       self.longitudinalActuatorDelayLowerBound = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) * 0.01
       self.longitudinalActuatorDelayUpperBound = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) * 0.01
