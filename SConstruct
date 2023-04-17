@@ -93,6 +93,7 @@ if arch == "larch64":
     "/usr/local/lib",
     "/usr/lib",
     "/system/vendor/lib64",
+    "#third_party/nanovg",
     f"#third_party/acados/{arch}/lib",
   ]
 
@@ -202,6 +203,7 @@ env = Environment(
     "#third_party/linux/include",
     "#third_party/snpe/include",
     "#third_party/mapbox-gl-native-qt/include",
+    "#third_party/nanovg",
     "#third_party/qrcode",
     "#third_party",
     "#cereal",

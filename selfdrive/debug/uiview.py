@@ -13,11 +13,17 @@ if __name__ == "__main__":
   for p in procs:
     managed_processes[p].start()
 
-  pm = messaging.PubMaster(['controlsState', 'deviceState', 'pandaStates', 'carParams'])
+  pm = messaging.PubMaster(['controlsState', 'deviceState', 'pandaStates', 'carParams', 'longitudinalPlan', 'carState', 'lateralPlan', 'carControl'])
 
-  msgs = {s: messaging.new_message(s) for s in ['controlsState', 'deviceState', 'carParams']}
+  msgs = {s: messaging.new_message(s) for s in ['controlsState', 'deviceState', 'carParams', 'longitudinalPlan', 'carState', 'lateralPlan', 'carControl']}
   msgs['deviceState'].deviceState.started = True
   msgs['carParams'].carParams.openpilotLongitudinalControl = True
+  msgs['longitudinalPlan'].longitudinalPlan.trafficState = 0
+  msgs['longitudinalPlan'].longitudinalPlan.xStop = 101
+  msgs['carState'].carState.vEgoCluster = 123
+  msgs['lateralPlan'].lateralPlan.desire = 1
+  msgs['lateralPlan'].lateralPlan.laneChangeDirection = 1
+  msgs['lateralPlan'].lateralPlan.desireEvent = 0
 
   msgs['pandaStates'] = messaging.new_message('pandaStates', 1)
   msgs['pandaStates'].pandaStates[0].ignitionLine = True
