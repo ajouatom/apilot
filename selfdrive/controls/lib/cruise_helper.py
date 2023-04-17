@@ -343,7 +343,7 @@ class CruiseHelper:
     if v_cruise_kph < roadSpeed:
       v_cruise_kph = roadSpeed
     else:
-      for speed in range (40, 150, 10):
+      for speed in range (40, MAX_SET_SPEED_KPH, 10):
         if v_cruise_kph < speed:
           v_cruise_kph = speed
           break
