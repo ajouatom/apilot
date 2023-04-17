@@ -126,6 +126,8 @@ protected:
   QPixmap ic_speed_bg;
   QPixmap ic_traffic_green;
   QPixmap ic_traffic_red;
+  QPixmap ic_tire;
+  QPixmap ic_road_speed;
 
   int m_fps = 0;
   FirstOrderFilter apilot_filter_x;
