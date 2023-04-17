@@ -379,6 +379,8 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_speed_bg = QPixmap("../assets/images/speed_bg.png");
   ic_traffic_green = QPixmap("../assets/images/traffic_green.png");
   ic_traffic_red = QPixmap("../assets/images/traffic_red.png");
+  ic_tire = QPixmap("../assets/images/img_tire.png");
+  ic_road_speed = QPixmap("../assets/images/road_speed.png");
 
 
 }
@@ -2215,18 +2217,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             }
         }
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
-            QRect rect(bx - 70, by - 80, 140, 170);
-            painter.setBrush(QBrush(Qt::white));
-            painter.drawRoundedRect(rect, 16, 16);
-            int padding = 10;
-            rect.adjust(padding, padding, -padding, -padding);
-            painter.setBrush(Qt::NoBrush);
-            painter.setPen(QPen(Qt::black, padding));
-            painter.drawRoundedRect(rect, 8, 8);
-
+            painter.drawPixmap(bx - 60, by - 70, 120, 150, ic_road_speed);
             str.sprintf("%d", roadLimitSpeed);
-            configFont(painter, "Inter", 35, "Bold");
-            drawTextWithColor(painter, bx, by - 10, "LIMIT", blackColor);
             configFont(painter, "Inter", 50, "Bold");
             drawTextWithColor(painter, bx, by + 50, str, blackColor);
         }
@@ -2245,6 +2237,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
       fr = 28;
       rl = 32;
       rr = 44;
+      s->show_dm_info = 0;
 #endif
       configFont(painter, "Inter", 38, "Bold");
 
@@ -2252,19 +2245,22 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
       QRect rcFont = fm.boundingRect("9");
 
       if (s->show_dm_info < 1) {
-          bx = 80;
-          by = height() - 60;
+          int sx = 100;
+          int sy = 220;
+          bx = 110;
+          by = height() - 100;
           painter.setPen(QPen(Qt::white, 3));
-          painter.drawLine(bx, by - 40, bx, by + 40);
-          painter.drawLine(bx-50, by, bx+50, by);
+          painter.drawPixmap(bx - sx / 2, by - sy / 2, sx, sy, ic_tire);
+          //painter.drawLine(bx, by - 40, bx, by + 40);
+          //painter.drawLine(bx-50, by, bx+50, by);
           QColor tpmsColor = get_tpms_color(fl);
-          drawTextWithColor(painter, bx-40, by-20, get_tpms_text(fl), tpmsColor);
+          drawTextWithColor(painter, bx-80, by-50, get_tpms_text(fl), tpmsColor);
           tpmsColor = get_tpms_color(fr);
-          drawTextWithColor(painter, bx+40, by-20, get_tpms_text(fr), tpmsColor);
+          drawTextWithColor(painter, bx+80, by-50, get_tpms_text(fr), tpmsColor);
           tpmsColor = get_tpms_color(rl);
-          drawTextWithColor(painter, bx-40, by+45, get_tpms_text(rl), tpmsColor);
+          drawTextWithColor(painter, bx-80, by+75, get_tpms_text(rl), tpmsColor);
           tpmsColor = get_tpms_color(rr);
-          drawTextWithColor(painter, bx+40, by+45, get_tpms_text(rr), tpmsColor);
+          drawTextWithColor(painter, bx+80, by+75, get_tpms_text(rr), tpmsColor);
       }
       else {
           int center_x = bx - 30;
