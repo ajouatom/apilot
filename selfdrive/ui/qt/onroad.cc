@@ -2183,11 +2183,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
             drawTextWithColor(painter, bx + 250, by - 50, str, color);
         }
-        if (enabled && curveSpeed > 0 && curveSpeed < 200) {
-            configFont(painter, "Inter", 50, "Bold");
-            str.sprintf("%d", (int)(curveSpeed + 0.5));
-            color = QColor(255, 255, 0, 255);
-            drawTextWithColor(painter, bx + 140, by + 110, str, color);
+        if (false) {
+            if (enabled && curveSpeed > 0 && curveSpeed < 200) {
+                configFont(painter, "Inter", 50, "Bold");
+                str.sprintf("%d", (int)(curveSpeed + 0.5));
+                color = QColor(255, 255, 0, 255);
+                drawTextWithColor(painter, bx + 140, by + 110, str, color);
+            }
         }
 
 #ifdef __TEST
