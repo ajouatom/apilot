@@ -242,7 +242,7 @@ class CruiseHelper:
     vRel = lead.vRel if lead is not None else 0
     return dRel, vRel
 
-  def update_cruise_buttons(self, enabled, buttonEvents, v_cruise_kph, metric):
+  def update_cruise_buttons(self, enabled, controls, buttonEvents, v_cruise_kph, metric):
     global ButtonCnt, LongPressed, ButtonPrev
 
     button_speed_up_diff = 1
@@ -268,8 +268,11 @@ class CruiseHelper:
               self.longCruiseGap = 1 if self.longCruiseGap == 4 else self.longCruiseGap + 1
             elif self.gapButtonMode == 1:
               self.longCruiseGap = 1 if self.longCruiseGap == 5 else self.longCruiseGap + 1
+              if self.longCruiseGap == 5:
+                controls.events.add(EventName.audioRefuse)
             elif self.gapButtonMode == 2:
               self.longCruiseGap = 4 if self.longCruiseGap == 5 else self.longCruiseGap + 1
+              controls.events.add(EventName.audioPrompt if self.longCruiseGap == 4 else EventName.audioRefuse)
             elif self.gapButtonMode == 3:
               self.longCruiseGap = 5
 
@@ -490,7 +493,7 @@ class CruiseHelper:
   def button_control(self, enabled, controls, CS, v_cruise_kph, buttonEvents, metric):
     longActiveUser = self.longActiveUser
     v_cruise_kph_backup = self.v_cruise_kph_backup
-    button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, buttonEvents, v_cruise_kph, metric)
+    button,buttonLong,buttonSpeed = self.update_cruise_buttons(enabled, controls, buttonEvents, v_cruise_kph, metric)
 
     ##### Cruise Button 처리...
     if buttonLong:
@@ -542,6 +545,7 @@ class CruiseHelper:
             if self.cruiseButtonMode==2:
               self.userCruisePaused = True
               longActiveUser = -1
+              controls.events.add(EventName.audioPrompt)
             else:
               v_cruise_kph = buttonSpeed
               self.v_cruise_kph_backup = v_cruise_kph
