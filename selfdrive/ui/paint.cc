@@ -1,4 +1,4 @@
-#include "selfdrive/ui/paint.h"
+ï»¿#include "selfdrive/ui/paint.h"
 
 #include <cassert>
 #include <cmath>
@@ -19,14 +19,6 @@
 #include <nanovg_gl.h>
 #include <nanovg_gl_utils.h>
 
-#if 0
-#include "selfdrive/common/util.h"
-#include "selfdrive/hardware/hw.h"
-#include "selfdrive/ui/ui.h"
-#include <time.h> // opkr
-#include "selfdrive/ui/dashcam.h"
-#endif
-
 #define COLOR_BLACK nvgRGBA(0, 0, 0, 255)
 #define COLOR_BLACK_ALPHA(x) nvgRGBA(0, 0, 0, x)
 #define COLOR_WHITE nvgRGBA(255, 255, 255, 255)
@@ -45,7 +37,7 @@
 #define COLOR_YELLOW_ALPHA(x) nvgRGBA(218, 202, 37, x)
 #define COLOR_GREY nvgRGBA(191, 191, 191, 1)
 
-#define BOLD "Inter-Bold"//"sans-bold"
+#define BOLD "KaiGenGothicKR-Bold"//"Inter-Bold"//"sans-bold"
 
 #if 0
 static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
@@ -60,7 +52,7 @@ static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
 #endif
 static void ui_draw_text(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name) {
     nvgFontFace(s->vg, font_name);
-    nvgFontSize(s->vg, size*1.1);
+    nvgFontSize(s->vg, size);
     nvgFillColor(s->vg, color);
     nvgText(s->vg, x, y+5, string, NULL);
 }
@@ -232,7 +224,7 @@ void drawLeadApilot(const UIState* s) {
     //bool is_radar = s->scene.lead_radar[0];
     bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
-    bool    uiDrawPathEnd = s->show_path_end;   // path³¡¿¡ Ç¥½Ã¸¦ ³ÖÀ»°ÇÁö..
+    bool    uiDrawPathEnd = s->show_path_end;   // pathëì— í‘œì‹œë¥¼ ë„£ì„ê±´ì§€..
     NVGcolor color;
 
 #ifndef __TEST
@@ -246,7 +238,7 @@ void drawLeadApilot(const UIState* s) {
     int longActiveUser = controls_state.getLongActiveUser();
     int longActiveUserReady = controls_state.getLongActiveUserReady();
 
-    // PathÀÇ ³¡À§Ä¡¸¦ °è»ê ¹× Ç¥½Ã
+    // Pathì˜ ëìœ„ì¹˜ë¥¼ ê³„ì‚° ë° í‘œì‹œ
     int     track_vertices_len = scene.track_vertices.length();
     int path_x = s->fb_w / 2;
     int path_y = s->fb_h - 400;
@@ -271,7 +263,7 @@ void drawLeadApilot(const UIState* s) {
             }
         }
     }
-    // °ú³áÀ» Ç¥½ÃÇÒ À§Ä¡¸¦ °è»ê
+    // ê³¼ë…ì„ í‘œì‹œí•  ìœ„ì¹˜ë¥¼ ê³„ì‚°
     int icon_size = 256;
 #ifdef __TEST
     const int d_rel = 0;
@@ -297,8 +289,8 @@ void drawLeadApilot(const UIState* s) {
     filter_y = filter_y * 0.98 + y * 0.02;
     x = filter_x;
     y = filter_y;
-    // ½ÅÈ£µî(traffic)±×¸®±â.
-    // ½ÅÈ£µî³»ºÎ¿¡´Â ·¹ÀÌ´õ°Å¸®, ºñÁ¯°Å¸®, Á¤Áö°Å¸®, ½ÅÈ£´ë±â Ç¥½ÃÇÔ.
+    // ì‹ í˜¸ë“±(traffic)ê·¸ë¦¬ê¸°.
+    // ì‹ í˜¸ë“±ë‚´ë¶€ì—ëŠ” ë ˆì´ë”ê±°ë¦¬, ë¹„ì ¼ê±°ë¦¬, ì •ì§€ê±°ë¦¬, ì‹ í˜¸ëŒ€ê¸° í‘œì‹œí•¨.
     int circle_size = 160;
     NVGcolor bgColor = nvgRGBA(0, 0, 0, 166);
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
@@ -324,7 +316,7 @@ void drawLeadApilot(const UIState* s) {
     bool brake_valid = car_state.getBrakeLights();
     bool bsd_l = car_state.getLeftBlindspot();
     bool bsd_r = car_state.getRightBlindspot();
-    // Â÷·Îº¯°æ/ÀÚµ¿ÅÏ Ç¥½Ã
+    // ì°¨ë¡œë³€ê²½/ìë™í„´ í‘œì‹œ
     bool showDistInfo = true;
     bool showBg = (disp_dist > 0.0) ? true : false;
     auto lateralPlan = sm["lateralPlan"].getLateralPlan();
@@ -384,9 +376,9 @@ void drawLeadApilot(const UIState* s) {
         showBg = true;
         showDistInfo = false;
     }
-    if (true) {
+    if (s->show_steer_mode == 2) {  // í•¸ë“¤í‘œì‹œê°€ ì—†ëŠ”ê²½ìš°ë§Œ í‘œì‹œ, í•¸ë“¤í‘œì‹œëª¨ë“œì¸ê²½ìš°, í•¸ë“¤ì•„ì´ì½˜ìœ¼ë¡œ í‘œì‹œë¨.
         int trafficMode = 0;
-        if (longActiveUser <= 0) trafficMode = 0;  // Å©·çÁî°¡ ²¨Á®ÀÖÀ¸¸é... ½ÅÈ£µîÀ» ¸ğµÎ ²¨¹ö·Á?
+        if (longActiveUser <= 0) trafficMode = 0;  // í¬ë£¨ì¦ˆê°€ êº¼ì ¸ìˆìœ¼ë©´... ì‹ í˜¸ë“±ì„ ëª¨ë‘ êº¼ë²„ë ¤?
         else if (trafficState >= 100) trafficMode = 3; // yellow
         else {
             switch (lp.getTrafficState() % 100) {
@@ -399,7 +391,7 @@ void drawLeadApilot(const UIState* s) {
                 break;
             case 2: trafficMode = 2;
                 if (s->show_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
-                break; // green // Ç¥½Ã¾ÈÇÔ.
+                break; // green // í‘œì‹œì•ˆí•¨.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
         }
@@ -414,7 +406,7 @@ void drawLeadApilot(const UIState* s) {
         if (traffic < 100) { leftBlinker = true; }
         else { rightBlinker = true; }
 #endif
-        // steer handle ±×¸®±â..
+        // steer handle ê·¸ë¦¬ê¸°..
         float steer_angle = car_state.getSteeringAngleDeg();
 #ifdef __TEST
         static float steer_ang = 0.0;
@@ -422,7 +414,7 @@ void drawLeadApilot(const UIState* s) {
         steer_angle = steer_ang;
 #endif
         if (s->show_steer_mode == 1) {
-            if (uiDrawSteeringRotate) {      // ½Ã°£ÀÌ ¸¹ÀÌ(3msec)°É·Á 3¹ø¿¡ ÇÑ¹ø¾¿¸¸ ±×¸®ÀÚ..
+            if (uiDrawSteeringRotate) {      // ì‹œê°„ì´ ë§ì´(3msec)ê±¸ë ¤ 3ë²ˆì— í•œë²ˆì”©ë§Œ ê·¸ë¦¬ì..
                 switch (trafficMode) {
                 case 0: ui_draw_circle_image_rotation(s, x, y, icon_size / 2., "ic_steer_momo", nvgRGBA(0, 0, 0, 0), 0.7f, steer_angle); break;
                 case 1: ui_draw_circle_image_rotation(s, x, y, icon_size / 2., "ic_steer_red", nvgRGBA(0, 0, 0, 0), 0.7f, steer_angle); break;
@@ -434,7 +426,7 @@ void drawLeadApilot(const UIState* s) {
             bgColor = nvgRGBA(0, 0, 0, 160);
         }
         else if (s->show_steer_mode == 0) {            
-            if (uiDrawSteeringRotate) {      // ½Ã°£ÀÌ ¸¹ÀÌ(3msec)°É·Á 3¹ø¿¡ ÇÑ¹ø¾¿¸¸ ±×¸®ÀÚ..
+            if (uiDrawSteeringRotate) {      
                 ui_draw_circle_image_rotation(s, x, y, icon_size / 2., "ic_steer_momo", nvgRGBA(0, 0, 0, 0), 0.7f, steer_angle);
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
@@ -447,14 +439,6 @@ void drawLeadApilot(const UIState* s) {
         }
         else {
             showBg = false;
-            /*
-            switch (trafficMode) {
-            case 0: bgColor = blackColor(90); break;
-            case 1: bgColor = redColor(160); break;
-            case 2: bgColor = greenColor(160); break;
-            case 3: bgColor = yellowColor(160); break;
-            }
-            */
         }
         if (showBg) {
             nvgBeginPath(s->vg);
@@ -465,7 +449,7 @@ void drawLeadApilot(const UIState* s) {
         }
 
 
-        // Â÷·Îº¯°æ, ÅÏ Ç¥½Ã~
+        // ì°¨ë¡œë³€ê²½, í„´ í‘œì‹œ~
         if (true) {            
             if (desireStateTurnLeft > 0.5) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_turn_l", 1.0f);
             else if (desireStateTurnRight > 0.5) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_turn_r", 1.0f);
@@ -491,12 +475,12 @@ void drawLeadApilot(const UIState* s) {
             }
 
         }
-        // blinker Ç¥½Ã~~
+        // blinker í‘œì‹œ~~
         if (true) {
             if (rightBlinker && blinkerOn) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_blinker_r", 1.0f);
             if (leftBlinker && blinkerOn) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_blinker_l", 1.0f);
         }
-        // BSD Ç¥½Ã
+        // BSD í‘œì‹œ
         if (true) {
             if (bsd_l) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_bsd_l", 1.0f);
             if (bsd_r) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_bsd_r", 1.0f);
@@ -548,7 +532,7 @@ void drawLeadApilot(const UIState* s) {
                     //drawTextWithColor(painter, x, y +120, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
                 }
                 else {
-                    sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "TRAFFIC ERROR" : "WAIT SIGN");
+                    sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "ì‹ í˜¸ì˜¤ë¥˜" : "ì‹ í˜¸ëŒ€ê¸°");
                     ui_draw_text(s, x, y + 120.0, str, 40, textColor, BOLD);
                 }
             }
@@ -559,7 +543,7 @@ void drawLeadApilot(const UIState* s) {
             ui_draw_text(s, x, y + 120.0, str, 45, textColor, BOLD);
         }
     }
-    // Å¸°ÙÁÂÃø : °¸Ç¥½Ã
+    // íƒ€ê²Ÿì¢Œì¸¡ : ê°­í‘œì‹œ
     int myDrivingMode = controls_state.getMyDrivingMode();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float gap = lp.getCruiseGap();
@@ -572,10 +556,10 @@ void drawLeadApilot(const UIState* s) {
     switch (myDrivingMode)
     {
     case 0: strcpy(strDrivingMode,"GAP"); break;
-    case 1: strcpy(strDrivingMode, "ECO"); break;// "¿¬ºñ"; break;
-    case 2: strcpy(strDrivingMode, "SAFE"); break;// "¾ÈÀü"; break;
-    case 3: strcpy(strDrivingMode, "NOR"); break;// "ÀÏ¹İ"; break;
-    case 4: strcpy(strDrivingMode, "SPD"); break;// "°í¼Ó"; break;
+    case 1: strcpy(strDrivingMode, "ì—°ë¹„"); break;// "ì—°ë¹„"; break;
+    case 2: strcpy(strDrivingMode, "ì•ˆì „"); break;// "ì•ˆì „"; break;
+    case 3: strcpy(strDrivingMode, "ì¼ë°˜"); break;// "ì¼ë°˜"; break;
+    case 4: strcpy(strDrivingMode, "ê³ ì†"); break;// "ê³ ì†"; break;
     }
 
     int dxGap = -128 - 10 - 40;
@@ -598,36 +582,36 @@ void drawLeadApilot(const UIState* s) {
         ui_fill_rect(s->vg, { x + dxGap, (int)(y + 5 + 64), 40, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
         ui_draw_text(s, x + dxGap + 20, y, "GAP", 25, COLOR_WHITE, BOLD);
     }
-    // °¸Á¤º¸Ç¥½Ã Áß¾ÓÀ§
+    // ê°­ì •ë³´í‘œì‹œ ì¤‘ì•™ìœ„
     if (true) {
         sprintf(str, "%d", gap1);
         ui_draw_text(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
 
     }
-    // Å¸°ÙÇÏ´Ü: ·ÕÄÁ»óÅÂÇ¥½Ã
+    // íƒ€ê²Ÿí•˜ë‹¨: ë¡±ì»¨ìƒíƒœí‘œì‹œ
     if (true) {
         auto xState = lp.getXState();
         if (brake_hold) sprintf(str, "AUTOHOLD");
         else if (longActiveUser > 0) {
-            if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) sprintf(str, "E2E STOP");
+            if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) sprintf(str, "ì‹ í˜¸ê°ì§€");
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) sprintf(str, "SOFTHOLD");
             else if (xState == cereal::LongitudinalPlan::XState::LEAD) sprintf(str, "LEAD");
-            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) sprintf(str, (v_ego_kph < 80) ? "E2E CURISE" : "CRUISE");
-            else if (xState == cereal::LongitudinalPlan::XState::CRUISE) sprintf(str, "CRUISE");
+            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) sprintf(str, (v_ego_kph < 80) ? "E2Eì£¼í–‰" : "ì •ì†ì£¼í–‰");
+            else if (xState == cereal::LongitudinalPlan::XState::CRUISE) sprintf(str, "ì •ì†ì£¼í–‰");
             else sprintf(str, "UNKNOWN");
         }
         else {
             if (longActiveUserReady > 0) {
                 if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) sprintf(str, "SOFTHOLD");
-                else sprintf(str, "CRUISE READY");
+                else sprintf(str, "í¬ë£¨ì¦ˆëŒ€ê¸°");
             }
-            else sprintf(str, "MANUAL");
+            else sprintf(str, "ìˆ˜ë™ìš´ì „");
         }
         ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
         ui_draw_text(s, x, y + 175, str, 40, COLOR_WHITE, BOLD);
 
     }
-    // AccelÇ¥½Ã
+    // Accelí‘œì‹œ
     float accel = car_state.getAEgo();
     int dx = 128 + 10;
 #ifdef __TEST
@@ -638,11 +622,11 @@ void drawLeadApilot(const UIState* s) {
 #endif
     if (s->show_accel > 0) {
         ui_draw_rect(s->vg, { x + dx, y+5, 40, 128 }, COLOR_WHITE, 4, 0);
-        ui_fill_rect(s->vg, { x + dx, y + 64 + 5, 40, -(int)(std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64) }, (accel>=0.0)?COLOR_YELLOW:COLOR_RED, 0);
+        ui_fill_rect(s->vg, { x + dx + 2, y + 64 + 5, 36, -(int)(std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64) }, (accel>=0.0)?COLOR_YELLOW:COLOR_RED, 0);
         ui_draw_text(s, x + dx + 20, y + 160, "ACC", 25, COLOR_WHITE, BOLD);
     }
 
-    // RPMÇ¥½Ã
+    // RPMí‘œì‹œ
     float engineRpm = car_state.getEngineRpm();
     float motorRpm = car_state.getMotorRpm();
 #ifdef __TEST
@@ -657,11 +641,11 @@ void drawLeadApilot(const UIState* s) {
         //drawTextWithColor(p, width() - 350, 80, str, textColor);
         //painter.setPen(Qt::NoPen);
         ui_draw_rect(s->vg, { x + dx, y + 5, 40, 128 }, COLOR_WHITE, 4, 0);
-        ui_fill_rect(s->vg, { x + dx, y + 128 + 5, 40, -(int)(std::clamp((float)engineRpm>0.0?engineRpm:motorRpm, 0.0f, 4000.0f) / 4000. * 128.0) }, (engineRpm> 0.0) ? COLOR_BLUE : COLOR_GREEN, 0);
+        ui_fill_rect(s->vg, { x + dx + 2, y + 128 + 5, 36, -(int)(std::clamp((float)engineRpm>0.0?engineRpm:motorRpm, 0.0f, 4000.0f) / 4000. * 128.0) }, (engineRpm> 0.0) ? COLOR_BLUE : COLOR_GREEN, 0);
         ui_draw_text(s, x + dx + 20, y + 160, "RPM", 25, COLOR_WHITE, BOLD);
     }
 
-    // ¼ÓµµÇ¥½Ã
+    // ì†ë„í‘œì‹œ
     if (true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
         const auto car_params = sm["carParams"].getCarParams();
@@ -842,10 +826,10 @@ void drawLeadApilot(const UIState* s) {
             //drawText2(painter, center_x + marginX, center_y - marginY - rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
             //drawText2(painter, center_x - marginX, center_y + marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
             //drawText2(painter, center_x + marginX, center_y + marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
-            ui_draw_text(s, bx - 80, by - 50, get_tpms_text(fl), 38, get_tpms_color(fl), BOLD);
-            ui_draw_text(s, bx + 80, by - 50, get_tpms_text(fr), 38, get_tpms_color(fr), BOLD);
-            ui_draw_text(s, bx - 80, by + 75, get_tpms_text(rl), 38, get_tpms_color(rl), BOLD);
-            ui_draw_text(s, bx + 80, by + 75, get_tpms_text(rr), 38, get_tpms_color(rr), BOLD);
+            ui_draw_text(s, bx - 90, by - 55, get_tpms_text(fl), 38, get_tpms_color(fl), BOLD);
+            ui_draw_text(s, bx + 90, by - 55, get_tpms_text(fr), 38, get_tpms_color(fr), BOLD);
+            ui_draw_text(s, bx - 90, by + 80, get_tpms_text(rl), 38, get_tpms_color(rl), BOLD);
+            ui_draw_text(s, bx + 90, by + 80, get_tpms_text(rr), 38, get_tpms_color(rr), BOLD);
         }
 
     }
@@ -856,7 +840,7 @@ void drawLeadApilot(const UIState* s) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             disp = true;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 40 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 1);
             ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_GREEN, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
             if (s->show_radar_info == 2) {
@@ -867,7 +851,7 @@ void drawLeadApilot(const UIState* s) {
         for (auto const& vrd : s->scene.lead_vertices_oncoming) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 40 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 1);
             ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_RED, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
             if (s->show_radar_info == 2) {
@@ -879,14 +863,14 @@ void drawLeadApilot(const UIState* s) {
             for (auto const& vrd : s->scene.lead_vertices_stopped) {
                 auto [rx, ry, rd, rv, ry_rel] = vrd;
                 strcpy(str, "*");
-                wStr = 40;
+                wStr = 35;
                 if (true) {
                     ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_BLACK, 15);
                 }
             }
         }
     }
-    // ½Ã°£Ç¥½Ã
+    // ì‹œê°„í‘œì‹œ
     if (s->show_datetime) {
         time_t now = time(nullptr);
         struct tm* local = localtime(&now);
