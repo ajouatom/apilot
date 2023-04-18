@@ -310,8 +310,8 @@ void drawLeadApilot(const UIState* s) {
     bool radar_detected = false;
     float vision_dist = 0.0;
 #else
-    float radar_dist = radar_detected ? lead_radar.getDRel() : 0;
     bool radar_detected = lead_radar.getStatus() && lead_radar.getRadar();
+    float radar_dist = radar_detected ? lead_radar.getDRel() : 0;
     float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 0) : 0;
 #endif
     float disp_dist = (radar_detected) ? radar_dist : vision_dist;
