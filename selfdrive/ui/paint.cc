@@ -896,7 +896,7 @@ void drawLeadApilot(const UIState* s) {
             ui_draw_text(s, 170, 150, str, 100, COLOR_WHITE, BOLD);
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
-            strftime(str, sizeof(str), "%m-%m-%a", local);
+            strftime(str, sizeof(str), "%m-%d-%a", local);
             ui_draw_text(s, 170, 150+70, str, 60, COLOR_WHITE, BOLD);
         }
     }
