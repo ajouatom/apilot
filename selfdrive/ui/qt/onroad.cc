@@ -7,6 +7,7 @@
 #include <QMouseEvent>
 
 #include "selfdrive/common/timing.h"
+#include "selfdrive/ui/paint.h"
 #include "selfdrive/ui/qt/util.h"
 #ifdef ENABLE_MAPS
 #include "selfdrive/ui/qt/maps/map.h"
@@ -384,6 +385,7 @@ void AnnotatedCameraWidget::initializeGL() {
   qInfo() << "OpenGL renderer:" << QString((const char*)glGetString(GL_RENDERER));
   qInfo() << "OpenGL language version:" << QString((const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+  ui_nvg_init(uiState());
   prev_draw_t = millis_since_boot();
   setBackgroundColor(bg_colors[STATUS_DISENGAGED]);
 }
@@ -549,7 +551,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     }
     switch (s->show_mode) {
     case 0: drawHud(p, model); break;
-    default:drawHudApilot(p, model); break;
+    default: ui_draw(s, width(), height()); break;// drawHudApilot(p, model); break;
     }
 
 

@@ -27,6 +27,16 @@ typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
 // TODO: choose based on frame input size
 const float y_offset = Hardware::EON() ? 0.0 : 150.0;
 const float ZOOM = Hardware::EON() ? 2138.5 : 2912.8;
+typedef struct Rect {
+  int x, y, w, h;
+  int centerX() const { return x + w / 2; }
+  int centerY() const { return y + h / 2; }
+  int right() const { return x + w; }
+  int bottom() const { return y + h; }
+  bool ptInRect(int px, int py) const {
+    return px >= x && px < (x + w) && py >= y && py < (y + h);
+  }
+} Rect;
 
 const vec3 default_face_kpts_3d[] = {
   {-5.98, -51.20, 8.00}, {-17.64, -49.14, 8.00}, {-23.81, -46.40, 8.00}, {-29.98, -40.91, 8.00}, {-32.04, -37.49, 8.00},
@@ -157,6 +167,8 @@ public:
   };
 
   int fb_w = 0, fb_h = 0;
+  NVGcontext *vg;
+  std::map<std::string, int> images;
 
   std::unique_ptr<SubMaster> sm;
 
