@@ -657,7 +657,7 @@ void drawLeadApilot(const UIState* s) {
         //drawTextWithColor(p, width() - 350, 80, str, textColor);
         //painter.setPen(Qt::NoPen);
         ui_draw_rect(s->vg, { x + dx, y + 5, 40, 128 }, COLOR_WHITE, 4, 0);
-        ui_fill_rect(s->vg, { x + dx, y + 128 + 5, 40, -(int)(std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0) }, (engineRpm> 0.0) ? COLOR_BLUE : COLOR_GREEN, 0);
+        ui_fill_rect(s->vg, { x + dx, y + 128 + 5, 40, -(int)(std::clamp((float)engineRpm>0.0?engineRpm:motorRpm, 0.0f, 4000.0f) / 4000. * 128.0) }, (engineRpm> 0.0) ? COLOR_BLUE : COLOR_GREEN, 0);
         ui_draw_text(s, x + dx + 20, y + 160, "RPM", 25, COLOR_WHITE, BOLD);
     }
 
