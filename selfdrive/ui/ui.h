@@ -10,6 +10,7 @@
 #include <QFuture>
 #include <QPolygonF>
 #include <QTransform>
+#include "nanovg.h"
 
 #include "cereal/messaging/messaging.h"
 #include "selfdrive/common/modeldata.h"
