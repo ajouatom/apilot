@@ -150,11 +150,7 @@ void update_model(UIState *s,
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(plan_position, max_distance);
-  update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, 1.22, 1.22, &scene.track_vertices, max_idx, false);
-  const auto long_plan = (*s->sm)["longitudinalPlan"].getLongitudinalPlan();
-  max_idx = get_path_length_idx(plan_position, long_plan.getXObstacle());
-  //max_idx = get_path_length_idx(plan_position, 30.0);
-  update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, 1.22, 1.22, &scene.track_vertices_cruise, max_idx, false);
+  update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
 }
 
 void update_dmonitoring(UIState *s, const cereal::DriverState::Reader &driverstate, float dm_fade_state) {
@@ -305,6 +301,10 @@ void ui_update_params(UIState *s) {
   case 50:
       s->show_dm_info = std::atoi(params.get("ShowDmInfo").c_str());;
       s->show_radar_info = std::atoi(params.get("ShowRadarInfo").c_str());;
+      s->show_z_offset = std::atof(params.get("ShowZOffset").c_str()) / 100.;
+      break;
+  case 60:
+      s->show_path_mode = std::atoi(params.get("ShowPathMode").c_str());;
       break;
   }
  }
