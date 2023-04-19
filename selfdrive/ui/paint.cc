@@ -591,11 +591,11 @@ void drawLeadApilot(const UIState* s) {
         else if (_gap < 300) gap = 3;
         else gap = 4;
 #endif
+        ui_fill_rect(s->vg, { x + dxGap - 2, (int)(y + 5 + 64), 36, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
         ui_draw_rect(s->vg, { x + dxGap, y + 5, 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 1 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 2 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 3 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
-        ui_fill_rect(s->vg, { x + dxGap - 2, (int)(y + 5 + 64), 36, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
         ui_draw_text(s, x + dxGap + 20, y, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
