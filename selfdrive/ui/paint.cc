@@ -376,7 +376,7 @@ void drawLeadApilot(const UIState* s) {
         showBg = true;
         showDistInfo = false;
     }
-    if (s->show_steer_mode == 2) {  // 핸들표시가 없는경우만 표시, 핸들표시모드인경우, 핸들아이콘으로 표시됨.
+    if (true) {  // 핸들표시가 없는경우만 표시, 핸들표시모드인경우, 핸들아이콘으로 표시됨.
         int trafficMode = 0;
         if (longActiveUser <= 0) trafficMode = 0;  // 크루즈가 꺼져있으면... 신호등을 모두 꺼버려?
         else if (trafficState >= 100) trafficMode = 3; // yellow
@@ -386,11 +386,11 @@ void drawLeadApilot(const UIState* s) {
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                if (s->show_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f);
+                if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f);
                 showBg = true;
                 break;
             case 2: trafficMode = 2;
-                if (s->show_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+                if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
                 break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
@@ -719,8 +719,12 @@ void drawLeadApilot(const UIState* s) {
             a = std::max(a, 60);
             //color = QColor(255, a, a, 255);
         }
+        sccBus = activeNDA = radar_tracks = true;
         if (s->show_conn_info) {
-            ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
+            //ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
+            if (sccBus) ui_draw_image(s, { 30, 20, 120, 54 }, "ic_scc2", 1.0f);
+            if (activeNDA) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
+            if (radar_tracks) ui_draw_image(s, { 30 + 135 * 2, 20, 240, 54 }, "ic_radartracks", 1.0f);
         }
 
         int bx = x;
@@ -747,7 +751,7 @@ void drawLeadApilot(const UIState* s) {
             ui_draw_text(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD);
         }
         if (true) {
-            if (enabled && curveSpeed > 0 && curveSpeed < 200) {
+            if (enabled && curveSpeed > 0 && curveSpeed < 150) {
                 sprintf(str, "%d", (int)(curveSpeed + 0.5));
                 ui_draw_text(s, bx + 140, by + 110, str, 50, COLOR_YELLOW, BOLD);
             }
@@ -769,7 +773,7 @@ void drawLeadApilot(const UIState* s) {
             nvgFillColor(s->vg, COLOR_WHITE);
             nvgFill(s->vg);
             sprintf(str, "%d", limit_speed);
-            ui_draw_text(s, bx, by + 30, str, 60, COLOR_BLACK, BOLD);
+            ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD);
             if (left_dist > 0) {
                 if (left_dist < 1000) sprintf(str, "%d m", left_dist);
                 else  sprintf(str, "%.1f km", left_dist / 1000.f);
@@ -877,11 +881,11 @@ void drawLeadApilot(const UIState* s) {
 
         if (s->show_datetime == 1 || s->show_datetime == 2) {
             strftime(str, sizeof(str), "%H:%M", local);
-            ui_draw_text(s, 170, 150, str, 100, COLOR_WHITE, BOLD);
+            ui_draw_text(s, 170, 170, str, 100, COLOR_WHITE, BOLD);
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
             strftime(str, sizeof(str), "%m-%d-%a", local);
-            ui_draw_text(s, 170, 150+70, str, 60, COLOR_WHITE, BOLD);
+            ui_draw_text(s, 170, 170+70, str, 60, COLOR_WHITE, BOLD);
         }
     }
     v_ego_kph = v_ego_kph;
@@ -961,6 +965,10 @@ void ui_nvg_init(UIState *s) {
   {"ic_traffic_red", "../assets/images/traffic_red.png"},
   {"ic_tire", "../assets/images/img_tire.png"},
   {"ic_road_speed", "../assets/images/road_speed.png"},
+  {"ic_nda", "../assets/images/img_nda.png"},
+  {"ic_navi","../assets/images/img_navi.png"},
+  {"ic_scc2", "../assets/images/img_scc2.png"},
+  {"ic_radartracks", "../assets/images/img_radartracks.png"},
 
   };
   for (auto [name, file] : images) {

@@ -644,7 +644,18 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     }
     switch (s->show_mode) {
     case 0: drawHud(p, model); break;
-    default: ui_draw(s, width(), height()); break;// drawHudApilot(p, model); break;
+    default: 
+        ui_draw(s, width(), height()); 
+        if (s->show_device_stat) drawDeviceState(p);
+        //drawTurnSignals(p);
+        //drawGpsStatus(p);
+#ifdef __TEST
+        drawDebugText(p);
+#else
+        if (s->show_debug) drawDebugText(p);
+#endif
+
+        break;// drawHudApilot(p, model); break;
     }
 
 
