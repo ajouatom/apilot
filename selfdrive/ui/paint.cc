@@ -51,7 +51,7 @@ static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
 }
 #endif
 static void ui_draw_text(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name, float borderWidth=3.0, float shadowOffset=0.0) {
-    y += 5;
+    y += 6;
     nvgFontFace(s->vg, font_name);
     nvgFontSize(s->vg, size);
     if (borderWidth > 0.0) {
@@ -214,14 +214,19 @@ void drawLaneLines(const UIState* s) {
         painter.drawPolygon(scene.track_vertices);
 #else
         NVGpaint track_bg;
-        float torque_scale = 0.0;
+        float torque_scale = 200.0;
         int red_lvl = fmin(255, torque_scale);
         int green_lvl = fmin(255, 255 - torque_scale);
 
         track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
             nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
-
         ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
+        torque_scale = 0.0;
+        red_lvl = fmin(255, torque_scale);
+        green_lvl = fmin(255, 255 - torque_scale);
+        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
+            nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
+        ui_draw_line(s, scene.track_vertices_cruise, nullptr, &track_bg);
 #endif
     }
 }
@@ -241,7 +246,6 @@ void drawLeadApilot(const UIState* s) {
     bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
     bool    uiDrawPathEnd = s->show_path_end;   // path끝에 표시를 넣을건지..
-    NVGcolor color;
 
 #ifndef __TEST
     if (!sm.alive("controlsState") || !sm.alive("radarState") || !sm.alive("carControl")) return;
@@ -255,7 +259,7 @@ void drawLeadApilot(const UIState* s) {
     int longActiveUserReady = controls_state.getLongActiveUserReady();
 
     // Path의 끝위치를 계산 및 표시
-    int     track_vertices_len = scene.track_vertices.length();
+    int     track_vertices_len = scene.track_vertices_cruise.length();
     int path_x = s->fb_w / 2;
     int path_y = s->fb_h - 400;
     int path_width = 160;
@@ -264,18 +268,14 @@ void drawLeadApilot(const UIState* s) {
     //float path_bwidth = path_width;
     {
         if (track_vertices_len >= 10) {
-            path_width = scene.track_vertices[track_vertices_len / 2].x() - scene.track_vertices[track_vertices_len / 2 - 1].x();
-            path_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
-            path_y = scene.track_vertices[track_vertices_len / 2].y();
+            path_width = scene.track_vertices_cruise[track_vertices_len / 2].x() - scene.track_vertices_cruise[track_vertices_len / 2 - 1].x();
+            path_x = (scene.track_vertices_cruise[track_vertices_len / 2].x() + scene.track_vertices_cruise[track_vertices_len / 2 - 1].x()) / 2.;
+            path_y = scene.track_vertices_cruise[track_vertices_len / 2].y();
             //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
-            path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
+            path_bx = (scene.track_vertices_cruise[0].x() + scene.track_vertices_cruise[track_vertices_len - 1].x()) / 2.;
             //path_by = scene.track_vertices[0].y();
             if (uiDrawPathEnd) {
-                color = COLOR_RED;
-                nvgBeginPath(s->vg);
-                nvgMoveTo(s->vg, path_x - path_width / 2., path_y);
-                nvgLineTo(s->vg, path_x + path_width / 2., path_y);
-                nvgClosePath(s->vg);                
+                ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -20}, COLOR_RED, 5);
             }
         }
     }
@@ -591,7 +591,7 @@ void drawLeadApilot(const UIState* s) {
         else if (_gap < 300) gap = 3;
         else gap = 4;
 #endif
-        ui_fill_rect(s->vg, { x + dxGap - 2, (int)(y + 5 + 64), 36, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
+        ui_fill_rect(s->vg, { x + dxGap - 2, (int)(y + 5 + 64), 38, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
         ui_draw_rect(s->vg, { x + dxGap, y + 5, 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 1 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 2 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
