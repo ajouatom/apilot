@@ -151,6 +151,10 @@ void update_model(UIState *s,
   }
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, 1.22, 1.22, &scene.track_vertices, max_idx, false);
+  const auto long_plan = (*s->sm)["longitudinalPlan"].getLongitudinalPlan();
+  max_idx = get_path_length_idx(plan_position, long_plan.getXObstacle());
+  //max_idx = get_path_length_idx(plan_position, 30.0);
+  update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, 1.22, 1.22, &scene.track_vertices_cruise, max_idx, false);
 }
 void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &driverstate, float dm_fade_state, bool is_rhd) {
   UIScene &scene = s->scene;
