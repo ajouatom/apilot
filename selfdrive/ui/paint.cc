@@ -90,6 +90,28 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
     }
     nvgFill(s->vg);
 }
+static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint) {
+
+    nvgBeginPath(s->vg);
+    nvgMoveTo(s->vg, x[0], y[0]);
+    for (int i = 1; i < size; i++) {
+        nvgLineTo(s->vg, x[i], y[i]);
+    }
+    nvgClosePath(s->vg);
+    if (color) {
+        nvgFillColor(s->vg, *color);
+    }
+    else if (paint) {
+        nvgFillPaint(s->vg, *paint);
+    }
+    nvgFill(s->vg);
+
+    nvgStrokeColor(s->vg, COLOR_WHITE);
+    nvgStrokeWidth(s->vg, 2);
+    nvgStroke(s->vg);
+
+}
+
 void ui_draw_image(const UIState* s, const Rect& r, const char* name, float alpha) {
     nvgBeginPath(s->vg);
     NVGpaint imgPaint = nvgImagePattern(s->vg, r.x, r.y, r.w, r.h, 0, s->images.at(name), alpha);
@@ -213,20 +235,47 @@ void drawLaneLines(const UIState* s) {
         painter.setBrush(bg);
         painter.drawPolygon(scene.track_vertices);
 #else
-        NVGpaint track_bg;
-        float torque_scale = 200.0;
-        int red_lvl = fmin(255, torque_scale);
-        int green_lvl = fmin(255, 255 - torque_scale);
+        if (s->show_path_mode == 0) {
+            NVGpaint track_bg;
+            float torque_scale = 0.0;
+            int red_lvl = fmin(255, torque_scale);
+            int green_lvl = fmin(255, 255 - torque_scale);
+            track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
+                nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
+            ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
+        }
+        else {
 
-        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
-            nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
-        ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
-        torque_scale = 0.0;
-        red_lvl = fmin(255, torque_scale);
-        green_lvl = fmin(255, 255 - torque_scale);
-        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
-            nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
-        ui_draw_line(s, scene.track_vertices_cruise, nullptr, &track_bg);
+            int     track_vertices_len = scene.track_vertices.length();
+            //color = nvgRGBA(0, 150, 0, 30);
+            int alpha = 200;
+            NVGcolor colors[7] = {
+                 COLOR_RED_ALPHA(alpha),
+                 nvgRGBA(255,153,0, alpha),
+                 COLOR_YELLOW_ALPHA(alpha),
+                 COLOR_GREEN_ALPHA(alpha),
+                 COLOR_BLUE_ALPHA(alpha),
+                 nvgRGBA(0,0,128, alpha),
+                 nvgRGBA(0x8b,0,0xff, alpha),
+            };
+
+            float   x[4], y[4];
+            for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
+                x[0] = scene.track_vertices[i].x();
+                y[0] = scene.track_vertices[i].y();
+                x[1] = scene.track_vertices[i + 1].x();
+                y[1] = scene.track_vertices[i + 1].y();
+                x[2] = scene.track_vertices[track_vertices_len - i - 2].x();
+                y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
+                x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
+                y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
+                if(s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr);
+                else ui_draw_line2(s, x, y, 4, &colors[4], nullptr);
+
+                if(i>2) color_n++;
+                if (color_n > 6) color_n = 0;
+            }
+        }
 #endif
     }
 }
@@ -259,7 +308,7 @@ void drawLeadApilot(const UIState* s) {
     int longActiveUserReady = controls_state.getLongActiveUserReady();
 
     // Path의 끝위치를 계산 및 표시
-    int     track_vertices_len = scene.track_vertices_cruise.length();
+    int     track_vertices_len = scene.track_vertices.length();
     int path_x = s->fb_w / 2;
     int path_y = s->fb_h - 400;
     int path_width = 160;
@@ -268,14 +317,14 @@ void drawLeadApilot(const UIState* s) {
     //float path_bwidth = path_width;
     {
         if (track_vertices_len >= 10) {
-            path_width = scene.track_vertices_cruise[track_vertices_len / 2].x() - scene.track_vertices_cruise[track_vertices_len / 2 - 1].x();
-            path_x = (scene.track_vertices_cruise[track_vertices_len / 2].x() + scene.track_vertices_cruise[track_vertices_len / 2 - 1].x()) / 2.;
-            path_y = scene.track_vertices_cruise[track_vertices_len / 2].y();
+            path_width = scene.track_vertices[track_vertices_len / 2].x() - scene.track_vertices[track_vertices_len / 2 - 1].x();
+            path_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
+            path_y = scene.track_vertices[track_vertices_len / 2].y();
             //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
-            path_bx = (scene.track_vertices_cruise[0].x() + scene.track_vertices_cruise[track_vertices_len - 1].x()) / 2.;
+            path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
             //path_by = scene.track_vertices[0].y();
             if (uiDrawPathEnd) {
-                ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -20}, COLOR_RED, 5);
+                ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10}, COLOR_RED, 5);
             }
         }
     }
@@ -908,6 +957,23 @@ void drawLeadApilot(const UIState* s) {
     brake_valid = brake_valid;
     longActiveUserReady = longActiveUserReady;
 }
+void drawDebugText(UIState* s) {
+    const SubMaster& sm = *(s->sm);
+    char  str[128];
+
+    int y = 150;
+
+    const int text_x = s->fb_w / 2 + 220;
+    const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
+
+    sprintf(str, "LT[%.0f]:%s (%.3f/%.3f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
+    ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    //p.drawText(text_x, y + 80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
+
+    //auto controls_state = sm["controlsState"].getControlsState();
+    //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
+    //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
+}
 
 void ui_draw(UIState *s, int w, int h) {
   // Update intrinsics matrix after possible wide camera toggle change
@@ -922,6 +988,8 @@ void ui_draw(UIState *s, int w, int h) {
   nvgScissor(s->vg, 0, 0, s->fb_w, s->fb_h);
   drawLaneLines(s);
   drawLeadApilot(s);
+  if (s->show_debug) drawDebugText(s);
+
   //ui_draw_vision(s);
   //dashcam(s);
     //param value

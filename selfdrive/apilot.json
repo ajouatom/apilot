@@ -692,6 +692,26 @@
       "unit": 1
     },
     {
+      "group": "화면",
+      "name": "ShowZOffset",
+      "title": "화면패스표시높이",
+      "descr": "크면 패스가 아래쪽에 표시됨.",
+      "min": -200,
+      "max": 200,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "화면",
+      "name": "ShowPathMode",
+      "title": "화면패스표시종류",
+      "descr": "",
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "시작",
       "name": "EnableAutoEngage",
       "title": "자동인게이지 사용",

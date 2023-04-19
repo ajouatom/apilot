@@ -57,6 +57,8 @@ def manager_init() -> None:
     ("ShowGapInfo", "1"),
     ("ShowDmInfo", "0"),
     ("ShowRadarInfo", "0"),
+    ("ShowZOffset", "122"),
+    ("ShowPathMode", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    

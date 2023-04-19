@@ -650,9 +650,9 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
         //drawTurnSignals(p);
         //drawGpsStatus(p);
 #ifdef __TEST
-        drawDebugText(p);
+        //drawDebugText(p);
 #else
-        if (s->show_debug) drawDebugText(p);
+        //if (s->show_debug) drawDebugText(p);
 #endif
 
         break;// drawHudApilot(p, model); break;

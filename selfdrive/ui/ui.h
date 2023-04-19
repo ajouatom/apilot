@@ -133,7 +133,6 @@ typedef struct UIScene {
   float lane_line_probs[4];
   float road_edge_stds[2];
   QPolygonF track_vertices;
-  QPolygonF track_vertices_cruise;
   QPolygonF lane_line_vertices[4];
   QPolygonF road_edge_vertices[2];
   QPolygonF lane_barrier_vertices[2];
@@ -198,6 +197,8 @@ public:
   int show_dm_info = -1;
   int show_radar_info = 0;
   int show_mode = 1;
+  float show_z_offset = 1.22;
+  int show_path_mode = 0;
 
 signals:
   void uiUpdate(const UIState &s);
