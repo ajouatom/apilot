@@ -226,6 +226,9 @@ class CruiseHelper:
         self.userCruisePaused = False
         if self.gapButtonMode == 3:
           self.longCruiseGap = 4
+        elif self.gapButtonMode == 2 and active_mode == 1:  #버튼모드2번, 사용자가 크루즈버튼을 누르면 자동4로 변경함.
+          self.longCruiseGap = 4
+
       elif active_mode <= 0:
         if self.longActiveUser != active_mode and self.longControlActiveSound >= 2:
           #controls.events.add(EventName.cruisePaused)

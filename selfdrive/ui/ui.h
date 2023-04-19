@@ -193,7 +193,7 @@ public:
   bool show_conn_info = true;
   int  show_lane_info = 2;
   bool show_blind_spot = true;
-  bool show_gap_info = true;
+  int show_gap_info = 1;
   int show_dm_info = -1;
   int show_radar_info = 0;
   int show_mode = 1;

@@ -579,9 +579,9 @@ void drawLeadApilot(const UIState* s) {
     }
 
     int dxGap = -128 - 10 - 40;
-    ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    if(s->show_gap_info >= 0) ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
     dxGap -= 60;
-    if (s->show_gap_info) {
+    if (s->show_gap_info > 0) {
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
@@ -599,7 +599,7 @@ void drawLeadApilot(const UIState* s) {
         ui_draw_text(s, x + dxGap + 20, y, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
-    if (true) {
+    if (s->show_gap_info >= 0) {
         sprintf(str, "%d", gap1);
         ui_draw_text(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
 

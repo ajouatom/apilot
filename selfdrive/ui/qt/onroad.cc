@@ -1940,7 +1940,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     float dxGap = -128 - 10 - 40;
     drawTextWithColor(painter, x + dxGap + 15, y + 120, strDrivingMode, textColor);
     dxGap -= 60;
-    if (s->show_gap_info) {
+    if (s->show_gap_info > 0) {
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
