@@ -821,7 +821,7 @@ void drawLeadApilot(const UIState* s) {
         if (s->show_dm_info < 1) {
             int sx = 100;
             int sy = 220;
-            bx = 110;
+            bx = 120;
             by = s->fb_h - 100;
             ui_draw_image(s, { bx - sx / 2, by - sy / 2, sx, sy }, "ic_tire", 1.0f);
             //QColor tpmsColor = get_tpms_color(fl);
