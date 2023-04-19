@@ -50,11 +50,27 @@ static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
   nvgText(s->vg, x, y, msg_buf, NULL);
 }
 #endif
-static void ui_draw_text(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name) {
+static void ui_draw_text(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name, float borderWidth=3.0, float shadowOffset=0.0) {
+    y += 4;
     nvgFontFace(s->vg, font_name);
     nvgFontSize(s->vg, size);
+    if (borderWidth > 0.0) {
+        NVGcolor borderColor = COLOR_BLACK;
+        nvgFillColor(s->vg, borderColor);
+        for (int i = 0; i < 360; i += 45) {
+            float angle = i * NVG_PI / 180.0f;
+            float offsetX = borderWidth * cos(angle);
+            float offsetY = borderWidth * sin(angle);
+            nvgText(s->vg, x + offsetX, y + offsetY, string, NULL);
+        }
+    }
+    if (shadowOffset != 0.0) {
+        NVGcolor shadowColor = COLOR_BLACK;
+        nvgFillColor(s->vg, shadowColor);
+        nvgText(s->vg, x + shadowOffset, y + shadowOffset, string, NULL);
+    }
     nvgFillColor(s->vg, color);
-    nvgText(s->vg, x, y+5, string, NULL);
+    nvgText(s->vg, x, y, string, NULL);
 }
 
 static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint) {
@@ -732,7 +748,7 @@ void drawLeadApilot(const UIState* s) {
 
         char speed[128];
         sprintf(speed, "%.0f", cur_speed);
-        ui_draw_text(s, bx, by + 50, speed, 120, COLOR_WHITE, BOLD);
+        ui_draw_text(s, bx, by + 50, speed, 120, COLOR_WHITE, BOLD, 3.0f, 8.0f);
         ui_draw_image(s, { bx - 100, by - 60, 350, 150 }, "ic_speed_bg", 1.0f);
 
         //color = QColor(255, 255, 255, 255);
@@ -773,7 +789,7 @@ void drawLeadApilot(const UIState* s) {
             nvgFillColor(s->vg, COLOR_WHITE);
             nvgFill(s->vg);
             sprintf(str, "%d", limit_speed);
-            ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD);
+            ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
             if (left_dist > 0) {
                 if (left_dist < 1000) sprintf(str, "%d m", left_dist);
                 else  sprintf(str, "%.1f km", left_dist / 1000.f);
@@ -783,7 +799,7 @@ void drawLeadApilot(const UIState* s) {
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
             ui_draw_image(s, { bx - 60, by - 70, 120, 150 }, "ic_road_speed", 1.0f);
             sprintf(str, "%d", roadLimitSpeed);
-            ui_draw_text(s, bx, by + 55, str, 50, COLOR_BLACK, BOLD);
+            ui_draw_text(s, bx, by + 55, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
         }
     }
     // Tpms...
@@ -881,11 +897,11 @@ void drawLeadApilot(const UIState* s) {
 
         if (s->show_datetime == 1 || s->show_datetime == 2) {
             strftime(str, sizeof(str), "%H:%M", local);
-            ui_draw_text(s, 170, 170, str, 100, COLOR_WHITE, BOLD);
+            ui_draw_text(s, 170, 170, str, 100, COLOR_WHITE, BOLD, 3.0f, 8.0f);
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
             strftime(str, sizeof(str), "%m-%d-%a", local);
-            ui_draw_text(s, 170, 170+70, str, 60, COLOR_WHITE, BOLD);
+            ui_draw_text(s, 170, 170+70, str, 60, COLOR_WHITE, BOLD, 3.0f, 8.0f);
         }
     }
     v_ego_kph = v_ego_kph;
