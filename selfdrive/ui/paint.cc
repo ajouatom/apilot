@@ -51,7 +51,7 @@ static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
 }
 #endif
 static void ui_draw_text(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name, float borderWidth=3.0, float shadowOffset=0.0) {
-    y += 4;
+    y += 5;
     nvgFontFace(s->vg, font_name);
     nvgFontSize(s->vg, size);
     if (borderWidth > 0.0) {
