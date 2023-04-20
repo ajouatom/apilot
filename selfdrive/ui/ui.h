@@ -199,6 +199,7 @@ public:
   int show_mode = 1;
   float show_z_offset = 1.22;
   int show_path_mode = 0;
+  int show_path_color = 14;
 
 signals:
   void uiUpdate(const UIState &s);

@@ -702,6 +702,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowRadarInfo", "화면:레이더감지정보", "0:안함,1:표시함", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowZOffset", "화면:패스높이조정(170)", "올리면 아래로 표시됨", "../assets/offroad/icon_shell.png", -300, 300, 10));
   toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드", "", "../assets/offroad/icon_shell.png", 0, 4, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColor", "화면:패스표시색상", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
 
 }
 

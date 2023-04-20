@@ -62,6 +62,7 @@ def manager_init() -> None:
     ("ShowRadarInfo", "0"),
     ("ShowZOffset", "122"),
     ("ShowPathMode", "0"),
+    ("ShowPathColor", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    

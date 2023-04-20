@@ -330,6 +330,7 @@ void ui_update_params(UIState *s) {
       break;
   case 60:
       s->show_path_mode = std::atoi(params.get("ShowPathMode").c_str());;
+      s->show_path_color = std::atoi(params.get("ShowPathColor").c_str());;
       break;
   }
  }
