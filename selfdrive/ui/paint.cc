@@ -90,7 +90,7 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
     }
     nvgFill(s->vg);
 }
-static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=2.0) {
+static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
 
     nvgBeginPath(s->vg);
     nvgMoveTo(s->vg, x[0], y[0]);
@@ -337,8 +337,8 @@ void drawLeadApilot(const UIState* s) {
 
     if (true) {
         NVGpaint track_bg;
-        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h - 500,
-            nvgRGBA(50, 50, 50, 250), nvgRGBA(50, 50, 50, 0));
+        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h-50, s->fb_w, s->fb_h - 350,
+            nvgRGBA(0, 0, 0, 250), nvgRGBA(0, 0, 0, 0));
         float x[4], y[4];
         x[0] = 0.0;
         y[0] = s->fb_h;
@@ -348,7 +348,7 @@ void drawLeadApilot(const UIState* s) {
         y[2] = s->fb_h - 500;
         x[3] = s->fb_w;
         y[3] = s->fb_h;
-        ui_draw_line2(s, x, y, 4, nullptr, &track_bg, false);
+        ui_draw_line2(s, x, y, 4, nullptr, &track_bg, 0.0);
     }
 
 
