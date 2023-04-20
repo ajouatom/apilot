@@ -107,6 +107,29 @@ void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
   }
   *pvd = left_points + right_points;
 }
+template <class T>
+float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> y_list, bool extrapolate)
+{
+    std::vector<T> xData(x_list);
+    std::vector<T> yData(y_list);
+    int size = xData.size();
+
+    int i = 0;
+    if (x >= xData[size - 2]) {
+        i = size - 2;
+    }
+    else {
+        while (x > xData[i + 1]) i++;
+    }
+    T xL = xData[i], yL = yData[i], xR = xData[i + 1], yR = yData[i + 1];
+    if (!extrapolate) {
+        if (x < xL) yR = yL;
+        if (x > xR) yL = yR;
+    }
+
+    T dydx = (yR - yL) / (xR - xL);
+    return yL + dydx * (x - xL);
+}
 
 void update_model(UIState *s, 
                   const cereal::ModelDataV2::Reader &model,
@@ -125,7 +148,7 @@ void update_model(UIState *s,
   int max_idx = get_path_length_idx(lane_lines[0], max_distance);
   for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
     scene.lane_line_probs[i] = lane_line_probs[i];
-    update_line_data(s, lane_lines[i], 0.02 * scene.lane_line_probs[i] * 3.5, 0, 0, &scene.lane_line_vertices[i], max_idx);
+    update_line_data(s, lane_lines[i], 0.07, 0.0, 0.0, &scene.lane_line_vertices[i], max_idx);
   }
   
   // lane barriers for blind spot
@@ -139,7 +162,7 @@ void update_model(UIState *s,
   const auto road_edge_stds = model.getRoadEdgeStds();
   for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
     scene.road_edge_stds[i] = road_edge_stds[i];
-    update_line_data(s, road_edges[i], 0.025 * 6.0, 0, 0, &scene.road_edge_vertices[i], max_idx);
+    update_line_data(s, road_edges[i], 0.15, 0.0, 0.0, &scene.road_edge_vertices[i], max_idx);
   }
 
   // update path
@@ -150,7 +173,9 @@ void update_model(UIState *s,
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(plan_position, max_distance);
-  update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 0.9, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
+  float width = interp<float>(s->show_z_offset, { -3.0f, 0.0f, 3.0f }, { 2.0f, 0.1f, 2.0f }, false);
+  if (lp.getUseLaneLines()) width *= 0.7;
+  update_line_data(s, plan_position, width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
 }
 
 void update_dmonitoring(UIState *s, const cereal::DriverState::Reader &driverstate, float dm_fade_state) {

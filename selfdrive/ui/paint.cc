@@ -90,7 +90,7 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
     }
     nvgFill(s->vg);
 }
-static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint) {
+static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=2.0) {
 
     nvgBeginPath(s->vg);
     nvgMoveTo(s->vg, x[0], y[0]);
@@ -106,9 +106,11 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
     }
     nvgFill(s->vg);
 
-    nvgStrokeColor(s->vg, COLOR_WHITE);
-    nvgStrokeWidth(s->vg, 2);
-    nvgStroke(s->vg);
+    if (stroke > 0.0) {
+        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeWidth(s->vg, stroke);
+        nvgStroke(s->vg);
+    }
 
 }
 
@@ -188,7 +190,8 @@ void drawLaneLines(const UIState* s) {
     // lanelines
     if (s->show_lane_info > 0) {
         for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
-            color = nvgRGBAf(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i] * 2.0, 0.5, 1.0));
+            //color = nvgRGBAf(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i] * 2.0, 0.5, 1.0));
+            color = nvgRGBAf(1.0, 1.0, 1.0, (scene.lane_line_probs[i]>0.3)?1.0:0.0);
             ui_draw_line(s, scene.lane_line_vertices[i], &color, nullptr);
         }
     }
@@ -201,7 +204,8 @@ void drawLaneLines(const UIState* s) {
     // road edges
     if (s->show_lane_info > 1) {
         for (int i = 0; i < std::size(scene.road_edge_vertices); ++i) {
-            color = nvgRGBAf(1.0, 0.0, 1.0, std::clamp<float>(3.0 - scene.road_edge_stds[i], 0.0, 1.0));
+            //color = nvgRGBAf(1.0, 0.0, 1.0, std::clamp<float>(3.0 - scene.road_edge_stds[i], 0.0, 1.0));
+            color = nvgRGBAf(1.0, 0.0, 1.0, (scene.road_edge_stds[i]<2.0)?1.0:0.0);
             ui_draw_line(s, scene.road_edge_vertices[i], &color, nullptr);
         }
     }
@@ -248,7 +252,7 @@ void drawLaneLines(const UIState* s) {
 
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
-            int alpha = 200;
+            int alpha = 120;
             NVGcolor colors[7] = {
                  COLOR_RED_ALPHA(alpha),
                  nvgRGBA(255,153,0, alpha),
@@ -259,21 +263,45 @@ void drawLaneLines(const UIState* s) {
                  nvgRGBA(0x8b,0,0xff, alpha),
             };
 
-            float   x[4], y[4];
-            for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
-                x[0] = scene.track_vertices[i].x();
-                y[0] = scene.track_vertices[i].y();
-                x[1] = scene.track_vertices[i + 1].x();
-                y[1] = scene.track_vertices[i + 1].y();
-                x[2] = scene.track_vertices[track_vertices_len - i - 2].x();
-                y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
-                x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
-                y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
-                if(s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr);
-                else ui_draw_line2(s, x, y, 4, &colors[4], nullptr);
+            if (s->show_path_mode == 1 || s->show_path_mode == 2) {
+                float   x[4], y[4];
+                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
+                    x[0] = scene.track_vertices[i].x();
+                    y[0] = scene.track_vertices[i].y();
+                    x[1] = scene.track_vertices[i + 1].x();
+                    y[1] = scene.track_vertices[i + 1].y();
+                    x[2] = scene.track_vertices[track_vertices_len - i - 2].x();
+                    y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
+                    x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
+                    y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
+                    if (s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr);
+                    else ui_draw_line2(s, x, y, 4, &colors[4], nullptr);
 
-                if(i>2) color_n++;
-                if (color_n > 6) color_n = 0;
+                    if (i > 1) color_n++;
+                    if (color_n > 6) color_n = 0;
+                }
+            }
+            else {
+                float   x[6], y[6];
+                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
+                    x[0] = scene.track_vertices[i].x();
+                    y[0] = scene.track_vertices[i].y();
+                    x[1] = scene.track_vertices[i + 1].x();
+                    y[1] = scene.track_vertices[i + 1].y();
+                    x[2] = (scene.track_vertices[i + 2].x() + scene.track_vertices[track_vertices_len - i - 3].x()) / 2;
+                    y[2] = (scene.track_vertices[i + 2].y() + scene.track_vertices[track_vertices_len - i - 3].y()) / 2;
+                    x[3] = scene.track_vertices[track_vertices_len - i - 2].x();
+                    y[3] = scene.track_vertices[track_vertices_len - i - 2].y();
+                    x[4] = scene.track_vertices[track_vertices_len - i - 1].x();
+                    y[4] = scene.track_vertices[track_vertices_len - i - 1].y();
+                    x[5] = (x[1] + x[3]) / 2;
+                    y[5] = (y[1] + y[3]) / 2;
+                    if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr);
+                    else ui_draw_line2(s, x, y, 6, &colors[4], nullptr);
+
+                    if (i > 1) color_n++;
+                    if (color_n > 6) color_n = 0;
+                }
             }
         }
 #endif
@@ -306,6 +334,23 @@ void drawLeadApilot(const UIState* s) {
     auto car_state = sm["carState"].getCarState();
     int longActiveUser = controls_state.getLongActiveUser();
     int longActiveUserReady = controls_state.getLongActiveUserReady();
+
+    if (true) {
+        NVGpaint track_bg;
+        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h - 500,
+            nvgRGBA(50, 50, 50, 250), nvgRGBA(50, 50, 50, 0));
+        float x[4], y[4];
+        x[0] = 0.0;
+        y[0] = s->fb_h;
+        x[1] = 0.0;
+        y[1] = s->fb_h - 500;
+        x[2] = s->fb_w;
+        y[2] = s->fb_h - 500;
+        x[3] = s->fb_w;
+        y[3] = s->fb_h;
+        ui_draw_line2(s, x, y, 4, nullptr, &track_bg, false);
+    }
+
 
     // Path의 끝위치를 계산 및 표시
     int     track_vertices_len = scene.track_vertices.length();
@@ -584,7 +629,7 @@ void drawLeadApilot(const UIState* s) {
                 ui_draw_text(s, path_x, radar_y, str, 40, textColor, BOLD);
             }
         }
-        ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 0.7f);
+        ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
