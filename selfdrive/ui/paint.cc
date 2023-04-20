@@ -832,7 +832,6 @@ void drawLeadApilot(const UIState* s) {
             a = std::max(a, 60);
             //color = QColor(255, a, a, 255);
         }
-        sccBus = activeNDA = radar_tracks = true;
         if (s->show_conn_info) {
             //ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
             if (sccBus) ui_draw_image(s, { 30, 20, 120, 54 }, "ic_scc2", 1.0f);
