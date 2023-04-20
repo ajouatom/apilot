@@ -636,8 +636,8 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowGapInfo", "화면:GAP정보", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", -1, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowDmInfo", "화면:DM정보", "0:안함,1:사용함,-1:MODEL사용안함", "../assets/offroad/icon_shell.png", -1, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowRadarInfo", "화면:레이더감지정보", "0:안함,1:표시함", "../assets/offroad/icon_shell.png", 0, 2, 1));
-  toggleLayout->addWidget(new CValueControl("ShowZOffset", "화면:패스높이조정", "올리면 아래로 표시됨", "../assets/offroad/icon_shell.png", -200, 200, 10));
-  toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드", "", "../assets/offroad/icon_shell.png", 0, 2, 1));
+  toggleLayout->addWidget(new CValueControl("ShowZOffset", "화면:패스높이조정(170)", "올리면 아래로 표시됨", "../assets/offroad/icon_shell.png", -300, 300, 10));
+  toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드", "", "../assets/offroad/icon_shell.png", 0, 4, 1));
 
 }
 
