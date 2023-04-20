@@ -167,14 +167,13 @@ void update_model(UIState *s,
 
   // update path
   auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
-  auto lp = (*s->sm)["lateralPlan"].getLateralPlan();
   if (lead_one.getStatus()) {
     const float lead_d = lead_one.getDRel() * 2.;
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(plan_position, max_distance);
   float width = interp<float>(s->show_z_offset, { -3.0f, 0.0f, 3.0f }, { 2.0f, 0.1f, 2.0f }, false);
-  if (lp.getUseLaneLines()) width *= 0.7;
+  width *= s->show_path_width;
   update_line_data(s, plan_position, width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
 }
 
@@ -331,6 +330,11 @@ void ui_update_params(UIState *s) {
   case 60:
       s->show_path_mode = std::atoi(params.get("ShowPathMode").c_str());;
       s->show_path_color = std::atoi(params.get("ShowPathColor").c_str());;
+      s->show_path_mode_lane = std::atoi(params.get("ShowPathModeLane").c_str());;
+      break;
+  case 70:
+      s->show_path_color_lane = std::atoi(params.get("ShowPathColorLane").c_str());;
+      s->show_path_width = std::atof(params.get("ShowPathWidth").c_str()) / 100.;
       break;
   }
  }

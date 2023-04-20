@@ -265,8 +265,12 @@ void drawLaneLines(const UIState* s) {
                  COLOR_WHITE_ALPHA(alpha),
                  COLOR_BLACK_ALPHA(alpha),
             };
+            auto lp = sm["lateralPlan"].getLateralPlan();
 
-            if (s->show_path_mode == 1 || s->show_path_mode == 2) {
+            int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
+            int show_path_color = (lp.getUseLaneLines())?s->show_path_color_lane : s->show_path_color;
+
+            if (show_path_mode == 1 || show_path_mode == 2) {
                 float   x[4], y[4];
                 for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
                     x[0] = scene.track_vertices[i].x();
@@ -277,8 +281,8 @@ void drawLaneLines(const UIState* s) {
                     y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
                     x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
                     y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
-                    if (s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
-                    else ui_draw_line2(s, x, y, 4, &colors[s->show_path_color%10], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
+                    if (show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                    else ui_draw_line2(s, x, y, 4, &colors[show_path_color%10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
@@ -299,8 +303,8 @@ void drawLaneLines(const UIState* s) {
                     y[4] = scene.track_vertices[track_vertices_len - i - 1].y();
                     x[5] = (x[1] + x[3]) / 2;
                     y[5] = (y[1] + y[3]) / 2;
-                    if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (s->show_path_color>=10)?2.0:0.0);
-                    else ui_draw_line2(s, x, y, 6, &colors[s->show_path_color % 10], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
+                    if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color>=10)?2.0:0.0);
+                    else ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;

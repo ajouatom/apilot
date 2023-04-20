@@ -703,6 +703,9 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowZOffset", "화면:패스높이조정(170)", "올리면 아래로 표시됨", "../assets/offroad/icon_shell.png", -300, 300, 10));
   toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드", "", "../assets/offroad/icon_shell.png", 0, 4, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathColor", "화면:패스표시색상", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "화면:패스표시모드,레인모드", "", "../assets/offroad/icon_shell.png", 0, 4, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColorLane", "화면:패스표시색상,레인모드", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathWidth", "화면:패스표시폭", "", "../assets/offroad/icon_shell.png", 10, 200, 10));
 
 }
 
