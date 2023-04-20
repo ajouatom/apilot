@@ -722,6 +722,36 @@
       "unit": 1
     },
     {
+      "group": "화면",
+      "name": "ShowPathModeLane",
+      "title": "화면패스표시종류,레인모드",
+      "descr": "",
+      "min": 0,
+      "max": 4,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "화면",
+      "name": "ShowPathColorLane",
+      "title": "화면패스색상,레인모드",
+      "descr": "",
+      "min": 0,
+      "max": 19,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "화면",
+      "name": "ShowPathWidth",
+      "title": "화면패스폭(100%)",
+      "descr": "",
+      "min": 10,
+      "max": 200,
+      "default": 100,
+      "unit": 10
+    },
+    {
       "group": "시작",
       "name": "EnableAutoEngage",
       "title": "자동인게이지 사용",
