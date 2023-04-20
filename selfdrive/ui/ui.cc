@@ -82,31 +82,6 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
       }
   }
 }
-
-void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
-                      float y_off, float z_off_left, float z_off_right, QPolygonF *pvd, int max_idx, bool allow_invert=true) { 
-  const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
-  QPolygonF left_points, right_points;
-  left_points.reserve(max_idx + 1);
-  right_points.reserve(max_idx + 1);
-
-  for (int i = 0; i <= max_idx; i++) {
-    // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
-    if (line_x[i] < 0) continue;
-    QPointF left, right;
-    bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off, line_z[i] + z_off_left, &left);
-    bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off, line_z[i] + z_off_right, &right);
-    if (l && r) {
-      // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
-      if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
-        continue;
-      }
-      left_points.push_back(left);
-      right_points.push_front(right);
-    }
-  }
-  *pvd = left_points + right_points;
-}
 template <class T>
 float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> y_list, bool extrapolate)
 {
@@ -131,6 +106,61 @@ float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> 
     return yL + dydx * (x - xL);
 }
 
+void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
+                      float y_off, float z_off_left, float z_off_right, QPolygonF *pvd, int max_idx, bool allow_invert=true, float y_shift=0.0) { 
+  const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+  QPolygonF left_points, right_points;
+  left_points.reserve(max_idx + 1);
+  right_points.reserve(max_idx + 1);
+
+  //printf("%.1f,%.1f,%.1f\n", line_x[0], line_y[0], line_z[0]);
+
+  for (int i = 0; i <= max_idx; i++) {
+    // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
+    if (line_x[i] < 0) continue;
+    QPointF left, right;
+    bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off + y_shift, line_z[i] + z_off_left, &left);
+    bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off + y_shift, line_z[i] + z_off_right, &right);
+    if (l && r) {
+      // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+      if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+        continue;
+      }
+      left_points.push_back(left);
+      right_points.push_front(right);
+    }
+  }
+  *pvd = left_points + right_points;
+}
+void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
+    float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, int max_idx, bool allow_invert = true) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+    QPolygonF left_points, right_points;
+    left_points.reserve(max_idx + 1);
+    right_points.reserve(max_idx + 1);
+
+    for (int i = 0; i <= max_idx; i++) {
+        // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
+        if (line_x[i] < 0) continue;
+        float z_off = interp<float>((float)i, { 0.0f, (float)max_idx }, { z_off_start, z_off_end }, false);
+        float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
+        y_off *= width_apply;
+
+        QPointF left, right;
+        bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off, line_z[i] + z_off, &left);
+        bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off, line_z[i] + z_off, &right);
+        if (l && r) {
+            // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+            if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+                continue;
+            }
+            left_points.push_back(left);
+            right_points.push_front(right);
+        }
+    }
+    *pvd = left_points + right_points;
+}
+
 void update_model(UIState *s, 
                   const cereal::ModelDataV2::Reader &model,
                   const cereal::UiPlan::Reader &plan) {
@@ -152,11 +182,17 @@ void update_model(UIState *s,
   }
   
   // lane barriers for blind spot
+#if 0
   int max_distance_barrier =  40;
   int max_idx_barrier = std::min(max_idx, get_path_length_idx(lane_lines[0], max_distance_barrier));
   update_line_data(s, lane_lines[1], 0, -0.05, -0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false);
   update_line_data(s, lane_lines[2], 0, -0.05, -0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
-  
+#else
+  int max_idx_barrier = get_path_length_idx(plan_position, 40.0);
+  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // 차선폭을 알면 좋겠지만...
+  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false, 1.7);
+#endif
+
   // update road edges
   const auto road_edges = model.getRoadEdges();
   const auto road_edge_stds = model.getRoadEdgeStds();
@@ -172,9 +208,7 @@ void update_model(UIState *s,
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
   max_idx = get_path_length_idx(plan_position, max_distance);
-  float width = interp<float>(s->show_z_offset, { -3.0f, 0.0f, 3.0f }, { 2.0f, 0.1f, 2.0f }, false);
-  width *= s->show_path_width;
-  update_line_data(s, plan_position, width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
+  update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
 }
 
 void update_dmonitoring(UIState *s, const cereal::DriverState::Reader &driverstate, float dm_fade_state) {
