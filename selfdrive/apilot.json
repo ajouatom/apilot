@@ -712,6 +712,16 @@
       "unit": 1
     },
     {
+      "group": "화면",
+      "name": "ShowPathColor",
+      "title": "화면패스색상",
+      "descr": "",
+      "min": 0,
+      "max": 19,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "시작",
       "name": "EnableAutoEngage",
       "title": "자동인게이지 사용",

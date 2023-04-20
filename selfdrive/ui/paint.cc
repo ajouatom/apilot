@@ -253,7 +253,7 @@ void drawLaneLines(const UIState* s) {
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
             int alpha = 120;
-            NVGcolor colors[7] = {
+            NVGcolor colors[10] = {
                  COLOR_RED_ALPHA(alpha),
                  nvgRGBA(255,153,0, alpha),
                  COLOR_YELLOW_ALPHA(alpha),
@@ -261,6 +261,9 @@ void drawLaneLines(const UIState* s) {
                  COLOR_BLUE_ALPHA(alpha),
                  nvgRGBA(0,0,128, alpha),
                  nvgRGBA(0x8b,0,0xff, alpha),
+                 COLOR_OCHRE_ALPHA(alpha),
+                 COLOR_WHITE_ALPHA(alpha),
+                 COLOR_BLACK_ALPHA(alpha),
             };
 
             if (s->show_path_mode == 1 || s->show_path_mode == 2) {
@@ -274,8 +277,8 @@ void drawLaneLines(const UIState* s) {
                     y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
                     x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
                     y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
-                    if (s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr);
-                    else ui_draw_line2(s, x, y, 4, &colors[4], nullptr);
+                    if (s->show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
+                    else ui_draw_line2(s, x, y, 4, &colors[s->show_path_color%10], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
@@ -296,8 +299,8 @@ void drawLaneLines(const UIState* s) {
                     y[4] = scene.track_vertices[track_vertices_len - i - 1].y();
                     x[5] = (x[1] + x[3]) / 2;
                     y[5] = (y[1] + y[3]) / 2;
-                    if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr);
-                    else ui_draw_line2(s, x, y, 6, &colors[4], nullptr);
+                    if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (s->show_path_color>=10)?2.0:0.0);
+                    else ui_draw_line2(s, x, y, 6, &colors[s->show_path_color % 10], nullptr, (s->show_path_color >= 10) ? 2.0 : 0.0);
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
