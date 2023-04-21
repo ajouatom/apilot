@@ -1050,12 +1050,13 @@ void drawLeadApilot(const UIState* s) {
     longActiveUserReady = longActiveUserReady;
 }
 void drawDebugText(UIState* s) {
+    if (s->fb_w < 1200) return;
     const SubMaster& sm = *(s->sm);
     char  str[128];
 
     int y = 150;
 
-    const int text_x = s->fb_w / 2 + 220;
+    const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
 
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
