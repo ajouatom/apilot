@@ -105,7 +105,25 @@ float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> 
     T dydx = (yR - yL) / (xR - xL);
     return yL + dydx * (x - xL);
 }
+template <class T>
+float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrapolate)
+{
+    int i = 0;
+    if (x >= x_list[size - 2]) {
+        i = size - 2;
+    }
+    else {
+        while (x > x_list[i + 1]) i++;
+    }
+    T xL = x_list[i], yL = y_list[i], xR = x_list[i + 1], yR = y_list[i + 1];
+    if (!extrapolate) {
+        if (x < xL) yR = yL;
+        if (x > xR) yL = yR;
+    }
 
+    T dydx = (yR - yL) / (xR - xL);
+    return yL + dydx * (x - xL);
+}
 void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
                       float y_off, float z_off_left, float z_off_right, QPolygonF *pvd, int max_idx, bool allow_invert=true, float y_shift=0.0) { 
   const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
@@ -149,6 +167,45 @@ void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
         QPointF left, right;
         bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off, line_z[i] + z_off, &left);
         bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off, line_z[i] + z_off, &right);
+        if (l && r) {
+            // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+            if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+                continue;
+            }
+            left_points.push_back(left);
+            right_points.push_front(right);
+        }
+    }
+    *pvd = left_points + right_points;
+}
+void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& line,
+    float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, float max_dist, bool allow_invert = true) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+    QPolygonF left_points, right_points;
+    left_points.reserve(20+1);
+    right_points.reserve(20+1);
+    float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    for (int i = 0; i < 33; i++) {
+        idxs[i] = (float)i;
+        line_xs[i] = line_x[i];
+        line_ys[i] = line_y[i];
+        line_zs[i] = line_z[i];
+    }
+
+    float dist_dt = 2.0;
+    for (float dist = 1.0; dist < max_dist; dist += dist_dt) {
+        dist_dt += (dist/10.);
+        float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
+        float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
+        y_off *= width_apply;
+        float  idx = interp<float>(dist, line_xs, idxs, 33, false);
+        if (idx >= 33) break;
+        float line_y1 = interp<float>(idx, idxs, line_ys, 33, false);
+        float line_z1 = interp<float>(idx, idxs, line_zs, 33, false);
+
+        QPointF left, right;
+        bool l = calib_frame_to_full_frame(s, dist, line_y1 - y_off, line_z1 + z_off, &left);
+        bool r = calib_frame_to_full_frame(s, dist, line_y1 + y_off, line_z1 + z_off, &right);
         if (l && r) {
             // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
             if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
@@ -207,8 +264,12 @@ void update_model(UIState *s,
     const float lead_d = lead_one.getDRel() * 2.;
     max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
   }
+#if 0
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
+#else
+  update_line_data_dist(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_distance, false);
+#endif
 }
 
 void update_dmonitoring(UIState *s, const cereal::DriverState::Reader &driverstate, float dm_fade_state) {

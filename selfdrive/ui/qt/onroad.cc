@@ -564,7 +564,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
   printf("elapsed = %.2f\n", cur_draw_t - start_draw_t);
 #endif
   auto now = millis_since_boot();
-  if (now - last_update_params > 1) {
+  if (now - last_update_params > 0) {
       last_update_params = now;
       ui_update_params(uiState());
   }
