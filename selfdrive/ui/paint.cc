@@ -323,7 +323,16 @@ void drawLaneLines(const UIState* s) {
                     x[5] = (x[1] + x[3]) / 2;
                     y[5] = (y[1] + y[3]) / 2;
 
-                    if ((pathDrawSeq * 2 == i && pathDrawMode<500) || (pathDrawSeq * 2!=i && pathDrawMode>500)) {
+                    int draw = false;
+                    if (pathDrawMode < 500) {
+                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 5) * 2 == i))  draw = true;
+                    }
+                    else {
+                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 5) * 2 == i));
+                        else draw = true;                    
+                    }
+
+                    if (draw) {
                         if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
                         else ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
                     }
