@@ -113,6 +113,36 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
     }
 
 }
+static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, bool right) {
+    int index = vd.length();
+
+    float x[4], y[4];
+    for (int i = 0; i < index/2 - 1; i += 2) {
+
+        if (right) {
+            x[0] = vd[i + 0].x();
+            y[0] = vd[i + 0].y();
+            x[1] = vd[i + 1].x();
+            y[1] = vd[i + 1].y();
+            x[2] = vd[index - i - 3].x();
+            y[2] = vd[index - i - 3].y();
+            x[3] = vd[index - i - 2].x();
+            y[3] = vd[index - i - 2].y();
+        }
+        else {
+            x[0] = vd[i + 1].x();
+            y[0] = vd[i + 1].y();
+            x[1] = vd[i + 2].x();
+            y[1] = vd[i + 2].y();
+            x[2] = vd[index - i - 2].x();
+            y[2] = vd[index - i - 2].y();
+            x[3] = vd[index - i - 1].x();
+            y[3] = vd[index - i - 1].y();
+        }
+        ui_draw_line2(s, x, y, 4, color, nullptr, 0.0);
+    }
+
+}
 
 void ui_draw_image(const UIState* s, const Rect& r, const char* name, float alpha) {
     nvgBeginPath(s->vg);
@@ -200,11 +230,11 @@ void drawLaneLines(const UIState* s) {
     }
     if (s->show_blind_spot) {
 #ifdef __TEST
-        left_blindspot = true;
+        left_blindspot = right_blindspot  = true;
 #endif
         color = nvgRGBA(255, 215, 0, 150);
-        if (left_blindspot) ui_draw_line(s, scene.lane_barrier_vertices[0], &color, nullptr);
-        if (right_blindspot) ui_draw_line(s, scene.lane_barrier_vertices[1], &color, nullptr);
+        if (left_blindspot) ui_draw_bsd(s, scene.lane_barrier_vertices[0], &color, false); // ui_draw_line(s, scene.lane_barrier_vertices[0], &color, nullptr);
+        if (right_blindspot) ui_draw_bsd(s, scene.lane_barrier_vertices[1], &color, true); // ui_draw_line(s, scene.lane_barrier_vertices[1], &color, nullptr);
     }
 
     // road edges

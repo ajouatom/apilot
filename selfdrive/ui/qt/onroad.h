@@ -109,33 +109,8 @@ protected:
   QPixmap ic_turn_signal_l;
   QPixmap ic_turn_signal_r;
   QPixmap ic_satellite;
-  QPixmap ic_radar;
-  QPixmap ic_radar_vision;
-  QPixmap ic_radar_no;
-  QPixmap ic_steer_momo;
-  QPixmap ic_steer_red;
-  QPixmap ic_steer_green;
-  QPixmap ic_steer_yellow;
-  QPixmap ic_lane_change_l;
-  QPixmap ic_lane_change_r;
-  QPixmap ic_lane_change_inhibit;
-  QPixmap ic_lane_change_steer;
-  QPixmap ic_bsd_l;
-  QPixmap ic_bsd_r;
-  QPixmap ic_turn_l;
-  QPixmap ic_turn_r;
-  QPixmap ic_blinker_l;
-  QPixmap ic_blinker_r;
-  QPixmap ic_speed_bg;
-  QPixmap ic_traffic_green;
-  QPixmap ic_traffic_red;
-  QPixmap ic_tire;
-  QPixmap ic_road_speed;
 
   int m_fps = 0;
-  FirstOrderFilter apilot_filter_x;
-  FirstOrderFilter apilot_filter_y;
-
   QMap<QString, QPixmap> ic_oil_com;
 
   void drawMaxSpeed(QPainter &p);
@@ -148,9 +123,6 @@ protected:
   void drawDebugText(QPainter &p);
   void drawDriverState(QPainter &painter, const UIState *s);
   void drawHud(QPainter& p, const cereal::ModelDataV2::Reader& model);
-  void drawHudApilot(QPainter& p, const cereal::ModelDataV2::Reader& model);
-  void drawLeadApilot(QPainter& p, const cereal::ModelDataV2::Reader& model);
-
 };
 
 // container for all onroad widgets
