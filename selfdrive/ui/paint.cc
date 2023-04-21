@@ -325,10 +325,10 @@ void drawLaneLines(const UIState* s) {
 
                     int draw = false;
                     if (pathDrawMode < 500) {
-                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 5) * 2 == i))  draw = true;
+                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 4) * 2 == i))  draw = true;
                     }
                     else {
-                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 5) * 2 == i));
+                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 4) * 2 == i));
                         else draw = true;                    
                     }
 
