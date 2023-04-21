@@ -275,6 +275,23 @@ void drawLaneLines(const UIState* s) {
 
             int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
             int show_path_color = (lp.getUseLaneLines())?s->show_path_color_lane : s->show_path_color;
+            auto    car_state = sm["carState"].getCarState();
+            float   accel = car_state.getAEgo();
+            float   v_ego = car_state.getVEgoCluster();
+            float   v_ego_kph = v_ego * MS_TO_KPH;
+#ifdef __TEST
+            v_ego_kph = 20.0;
+#endif
+            float   seq = (1.0 * v_ego_kph / 120.0);
+            if (seq < 0.5) seq = 0.5;
+            if (accel > -0.5) {
+                pathDrawSeq += seq;
+                if (pathDrawSeq > track_vertices_len / 4) pathDrawSeq = 0.0;
+            }
+            else {
+                pathDrawSeq -= seq;
+                if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4.;
+            }
 
             if (show_path_mode == 1 || show_path_mode == 2) {
                 float   x[4], y[4];
@@ -287,8 +304,15 @@ void drawLaneLines(const UIState* s) {
                     y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
                     x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
                     y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
-                    if (show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                    else ui_draw_line2(s, x, y, 4, &colors[show_path_color%10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+
+                    int draw = false;
+                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 5) * 2 == i))  draw = true;
+                    if (track_vertices_len / 2 < 10) draw = true;
+
+                    if (draw) {
+                        if (show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                        else ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                    }
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
@@ -296,24 +320,6 @@ void drawLaneLines(const UIState* s) {
             }
             else {
                 float   x[6], y[6];
-                auto    car_state = sm["carState"].getCarState();
-                float   accel = car_state.getAEgo();
-                float   v_ego = car_state.getVEgoCluster();
-                float   v_ego_kph = v_ego * MS_TO_KPH;
-#ifdef __TEST
-                v_ego_kph = 20.0;
-#endif
-                float   seq = (1.0 * v_ego_kph / 120.0);
-                if (seq < 0.5) seq = 0.5;
-                if (accel > -0.5) {
-                    pathDrawSeq += seq;
-                    if (pathDrawSeq > track_vertices_len / 4) pathDrawSeq = 0.0;
-                }
-                else {
-                    pathDrawSeq -= seq;
-                    if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4.;
-                }
-
                 for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
                     x[0] = scene.track_vertices[i].x();
                     y[0] = scene.track_vertices[i].y();
@@ -375,7 +381,7 @@ void drawLeadApilot(const UIState* s) {
 
     if (s->show_mode == 2) {
         NVGpaint track_bg;
-        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h-50, s->fb_w, s->fb_h - 350,
+        track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h - 50, s->fb_w, s->fb_h - 350,
             nvgRGBA(0, 0, 0, 250), nvgRGBA(0, 0, 0, 0));
         float x[4], y[4];
         x[0] = 0.0;
@@ -386,6 +392,21 @@ void drawLeadApilot(const UIState* s) {
         y[2] = s->fb_h - 500;
         x[3] = s->fb_w;
         y[3] = s->fb_h;
+        ui_draw_line2(s, x, y, 4, nullptr, &track_bg, 0.0);
+    }
+    else if (s->show_mode == 3) {
+        NVGpaint track_bg;
+        track_bg = nvgLinearGradient(s->vg, 0, 0, 0, 150,
+            nvgRGBA(0, 0, 0, 250), nvgRGBA(0, 0, 0, 0));
+        float x[4], y[4];
+        x[0] = 0.0;
+        y[0] = 0;
+        x[1] = 0.0;
+        y[1] = 500;
+        x[2] = s->fb_w;
+        y[2] = 500;
+        x[3] = s->fb_w;
+        y[3] = 0;
         ui_draw_line2(s, x, y, 4, nullptr, &track_bg, 0.0);
     }
 
