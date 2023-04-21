@@ -565,9 +565,9 @@
       "group": "화면",
       "name": "ShowHudMode",
       "title": "화면표시모드",
-      "descr": "0:일반,1:APilot,2:APilot하단고정",
+      "descr": "0:일반,1:APilot,2:하단고정,3:상단고정",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 1,
       "unit": 1
     },

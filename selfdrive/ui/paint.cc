@@ -179,8 +179,7 @@ static const char *get_tpms_text(float tpms) {
 
 void drawLaneLines(const UIState* s) {
 
-    static int pathDrawMode = 0;
-    static int pathDrawSeq = 0;
+    static float pathDrawSeq = 0;
 
 
     const UIScene& scene = s->scene;
@@ -299,14 +298,20 @@ void drawLaneLines(const UIState* s) {
                 float   x[6], y[6];
                 auto    car_state = sm["carState"].getCarState();
                 float   accel = car_state.getAEgo();
-                if (pathDrawMode++ > 1000) pathDrawMode = 0;
-                if (accel > -0.3) {
-                    pathDrawSeq += 1;
-                    if (pathDrawSeq > track_vertices_len / 4) pathDrawSeq = 0;
+                float   v_ego = car_state.getVEgoCluster();
+                float   v_ego_kph = v_ego * MS_TO_KPH;
+#ifdef __TEST
+                v_ego_kph = 20.0;
+#endif
+                float   seq = (1.0 * v_ego_kph / 120.0);
+                if (seq < 0.5) seq = 0.5;
+                if (accel > -0.5) {
+                    pathDrawSeq += seq;
+                    if (pathDrawSeq > track_vertices_len / 4) pathDrawSeq = 0.0;
                 }
                 else {
-                    pathDrawSeq -= 1;
-                    if (pathDrawSeq < 0) pathDrawSeq = track_vertices_len / 4;
+                    pathDrawSeq -= seq;
+                    if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4.;
                 }
 
                 for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
@@ -324,13 +329,8 @@ void drawLaneLines(const UIState* s) {
                     y[5] = (y[1] + y[3]) / 2;
 
                     int draw = false;
-                    if (pathDrawMode < 500) {
-                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 4) * 2 == i))  draw = true;
-                    }
-                    else {
-                        if (pathDrawSeq * 2 == i || ((pathDrawSeq + 4) * 2 == i));
-                        else draw = true;                    
-                    }
+                    if ((int)(pathDrawSeq+0.5) * 2 == i || (((int)(pathDrawSeq+0.5) + 5) * 2 == i))  draw = true;
+                    if (track_vertices_len / 2 < 10) draw = true;
 
                     if (draw) {
                         if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
@@ -373,7 +373,7 @@ void drawLeadApilot(const UIState* s) {
     int longActiveUser = controls_state.getLongActiveUser();
     int longActiveUserReady = controls_state.getLongActiveUserReady();
 
-    if (true) {
+    if (s->show_mode == 2) {
         NVGpaint track_bg;
         track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h-50, s->fb_w, s->fb_h - 350,
             nvgRGBA(0, 0, 0, 250), nvgRGBA(0, 0, 0, 0));
@@ -433,8 +433,9 @@ void drawLeadApilot(const UIState* s) {
         y = s->fb_h - 400;
         x = path_bx;
     }
-    filter_x = filter_x * 0.98 + x * 0.02;
-    filter_y = filter_y * 0.98 + y * 0.02;
+
+    filter_x = filter_x * 0.96 + x * 0.04;
+    filter_y = filter_y * 0.96 + y * 0.04;
     x = filter_x;
     y = filter_y;
     // 신호등(traffic)그리기.
@@ -525,6 +526,9 @@ void drawLeadApilot(const UIState* s) {
         showDistInfo = false;
     }
     if (true) {  // 핸들표시가 없는경우만 표시, 핸들표시모드인경우, 핸들아이콘으로 표시됨.
+#ifdef __TEST
+        if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+#endif
         int trafficMode = 0;
         if (longActiveUser <= 0) trafficMode = 0;  // 크루즈가 꺼져있으면... 신호등을 모두 꺼버려?
         else if (trafficState >= 100) trafficMode = 3; // yellow
@@ -649,22 +653,23 @@ void drawLeadApilot(const UIState* s) {
 #else
             float radar_rel_speed = lead_radar.getVRel();
 #endif
-            sprintf(str, "%.0f km/h", cur_speed + radar_rel_speed * 3.6);
+            sprintf(str, "%.1f km/h", cur_speed + radar_rel_speed * 3.6);
             if (radar_rel_speed < -0.1) bgColor = COLOR_RED;
             else bgColor = COLOR_GREEN;
 
             nvgFontSize(s->vg, 40);
-            if (s->show_steer_mode >= 2) {
-                int radar_y = (path_y > s->fb_h - 550) ? s->fb_h - 550 : path_y - 40;
-                ui_fill_rect(s->vg, { path_x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
+            if (s->show_steer_mode == 2) {
+                int radar_y = (y > s->fb_h - 550) ? s->fb_h - 550 : y - 40;
+                if (s->show_mode == 3) radar_y = y - 145;
+                ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
                 textColor = COLOR_WHITE;
-                ui_draw_text(s, path_x, radar_y, str, 40, textColor, BOLD);
+                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD);
             }
             else {
                 int radar_y = y - 140;
-                ui_fill_rect(s->vg, { path_x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
+                ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
                 textColor = COLOR_WHITE;
-                ui_draw_text(s, path_x, radar_y, str, 40, textColor, BOLD);
+                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD);
             }
         }
         ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
@@ -791,6 +796,11 @@ void drawLeadApilot(const UIState* s) {
         ui_draw_rect(s->vg, { x + dx, y + 5, 40, 128 }, COLOR_WHITE, 4, 0);
         ui_fill_rect(s->vg, { x + dx + 2, y + 128 + 5, 36, -(int)(std::clamp((float)engineRpm>0.0?engineRpm:motorRpm, 0.0f, 4000.0f) / 4000. * 128.0) }, (engineRpm> 0.0) ? COLOR_BLUE : COLOR_GREEN, 0);
         ui_draw_text(s, x + dx + 20, y + 160, "RPM", 25, COLOR_WHITE, BOLD);
+    }
+    if (s->show_mode == 3) {
+        y = -100;
+        if (s->fb_w < 1200) x = 650;
+        else x = 950;
     }
 
     // 속도표시
@@ -1048,7 +1058,7 @@ void drawDebugText(UIState* s) {
     const int text_x = s->fb_w / 2 + 220;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
 
-    sprintf(str, "LT[%.0f]:%s (%.3f/%.3f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
+    sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
     ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     //p.drawText(text_x, y + 80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
 

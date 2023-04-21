@@ -1649,11 +1649,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                if(s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_red);
+                if(s->show_mode >= 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_red);
                 showBg = true;
                 break;
             case 2: trafficMode = 2; 
-                if (s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
+                if (s->show_mode >= 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
                 break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
