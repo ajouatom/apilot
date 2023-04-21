@@ -113,6 +113,36 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
     }
 
 }
+static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, bool right) {
+    int index = vd.length();
+
+    float x[4], y[4];
+    for (int i = 0; i < index/2 - 1; i += 2) {
+
+        if (right) {
+            x[0] = vd[i + 0].x();
+            y[0] = vd[i + 0].y();
+            x[1] = vd[i + 1].x();
+            y[1] = vd[i + 1].y();
+            x[2] = vd[index - i - 3].x();
+            y[2] = vd[index - i - 3].y();
+            x[3] = vd[index - i - 2].x();
+            y[3] = vd[index - i - 2].y();
+        }
+        else {
+            x[0] = vd[i + 1].x();
+            y[0] = vd[i + 1].y();
+            x[1] = vd[i + 2].x();
+            y[1] = vd[i + 2].y();
+            x[2] = vd[index - i - 2].x();
+            y[2] = vd[index - i - 2].y();
+            x[3] = vd[index - i - 1].x();
+            y[3] = vd[index - i - 1].y();
+        }
+        ui_draw_line2(s, x, y, 4, color, nullptr, 0.0);
+    }
+
+}
 
 void ui_draw_image(const UIState* s, const Rect& r, const char* name, float alpha) {
     nvgBeginPath(s->vg);
@@ -200,11 +230,11 @@ void drawLaneLines(const UIState* s) {
     }
     if (s->show_blind_spot) {
 #ifdef __TEST
-        left_blindspot = true;
+        left_blindspot = right_blindspot  = true;
 #endif
         color = nvgRGBA(255, 215, 0, 150);
-        if (left_blindspot) ui_draw_line(s, scene.lane_barrier_vertices[0], &color, nullptr);
-        if (right_blindspot) ui_draw_line(s, scene.lane_barrier_vertices[1], &color, nullptr);
+        if (left_blindspot) ui_draw_bsd(s, scene.lane_barrier_vertices[0], &color, false); // ui_draw_line(s, scene.lane_barrier_vertices[0], &color, nullptr);
+        if (right_blindspot) ui_draw_bsd(s, scene.lane_barrier_vertices[1], &color, true); // ui_draw_line(s, scene.lane_barrier_vertices[1], &color, nullptr);
     }
 
     // road edges
@@ -737,9 +767,9 @@ void drawLeadApilot(const UIState* s) {
     }
 
     int dxGap = -128 - 10 - 40;
-    ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    if(s->show_gap_info >= 0) ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
     dxGap -= 60;
-    if (s->show_gap_info) {
+    if (s->show_gap_info > 0) {
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
@@ -757,7 +787,7 @@ void drawLeadApilot(const UIState* s) {
         ui_draw_text(s, x + dxGap + 20, y, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
-    if (true) {
+    if (s->show_gap_info >= 0) {
         sprintf(str, "%d", gap1);
         ui_draw_text(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
 
@@ -1071,12 +1101,13 @@ void drawLeadApilot(const UIState* s) {
     longActiveUserReady = longActiveUserReady;
 }
 void drawDebugText(UIState* s) {
+    if (s->fb_w < 1200) return;
     const SubMaster& sm = *(s->sm);
     char  str[128];
 
     int y = 150;
 
-    const int text_x = s->fb_w / 2 + 220;
+    const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
 
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
