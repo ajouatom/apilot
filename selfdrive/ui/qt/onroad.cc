@@ -661,7 +661,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 #endif
 
   auto now = millis_since_boot();
-  if (now - last_update_params > 1) {
+  if (now - last_update_params > 0) {
       last_update_params = now;
       ui_update_params(uiState());
   }

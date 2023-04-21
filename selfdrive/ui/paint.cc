@@ -130,14 +130,14 @@ static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, 
             y[3] = vd[index - i - 2].y();
         }
         else {
-            x[0] = vd[i + 1].x();
-            y[0] = vd[i + 1].y();
-            x[1] = vd[i + 2].x();
-            y[1] = vd[i + 2].y();
-            x[2] = vd[index - i - 2].x();
-            y[2] = vd[index - i - 2].y();
-            x[3] = vd[index - i - 1].x();
-            y[3] = vd[index - i - 1].y();
+            x[0] = vd[i + 0].x();
+            y[0] = vd[i + 0].y();
+            x[1] = vd[i + 1].x();
+            y[1] = vd[i + 1].y();
+            x[2] = vd[index - i - 3].x();
+            y[2] = vd[index - i - 3].y();
+            x[3] = vd[index - i - 2].x();
+            y[3] = vd[index - i - 2].y();
         }
         ui_draw_line2(s, x, y, 4, color, nullptr, 0.0);
     }
@@ -322,9 +322,10 @@ void drawLaneLines(const UIState* s) {
                 pathDrawSeq -= seq;
                 if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4.;
             }
+            float   x[6], y[6];
 
-            if (show_path_mode == 1 || show_path_mode == 2) {
-                float   x[4], y[4];
+            switch (show_path_mode) {
+            case 1: case 2: case 5: case 6:
                 for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
                     x[0] = scene.track_vertices[i].x();
                     y[0] = scene.track_vertices[i].y();
@@ -336,20 +337,22 @@ void drawLaneLines(const UIState* s) {
                     y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
 
                     int draw = false;
-                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 5) * 2 == i))  draw = true;
+                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 4) * 2 == i))  draw = true;
                     if (track_vertices_len / 2 < 10) draw = true;
+                    if (show_path_mode == 5 || show_path_mode == 6) draw = true;
 
                     if (draw) {
-                        if (show_path_mode == 2) ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                        else ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                        switch (show_path_mode) {
+                        case 2: case 6: ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        default:        ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        }
                     }
 
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
                 }
-            }
-            else {
-                float   x[6], y[6];
+                break;
+            case 3: case 4: case 7: case 8:
                 for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
                     x[0] = scene.track_vertices[i].x();
                     y[0] = scene.track_vertices[i].y();
@@ -365,17 +368,21 @@ void drawLaneLines(const UIState* s) {
                     y[5] = (y[1] + y[3]) / 2;
 
                     int draw = false;
-                    if ((int)(pathDrawSeq+0.5) * 2 == i || (((int)(pathDrawSeq+0.5) + 5) * 2 == i))  draw = true;
+                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 4) * 2 == i))  draw = true;
                     if (track_vertices_len / 2 < 10) draw = true;
+                    if (show_path_mode == 7 || show_path_mode == 8) draw = true;
 
                     if (draw) {
-                        if (s->show_path_mode == 4) ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                        else ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                    }
+                        switch (show_path_mode) {
+                        case 4: case 8:     ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        default:            ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
 
+                        }
+                    }
                     if (i > 1) color_n++;
                     if (color_n > 6) color_n = 0;
                 }
+                break;
             }
         }
 #endif
@@ -712,15 +719,15 @@ void drawLeadApilot(const UIState* s) {
             if (s->show_steer_mode == 2) {
                 int radar_y = (y > s->fb_h - 550) ? s->fb_h - 550 : y - 40;
                 if (s->show_mode == 3) radar_y = y - 145;
-                ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
-                textColor = COLOR_WHITE;
-                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD);
+                //ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
+                //textColor = COLOR_WHITE;
+                ui_draw_text(s, x, radar_y, str, 40, bgColor, BOLD);
             }
             else {
                 int radar_y = y - 140;
-                ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
-                textColor = COLOR_WHITE;
-                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD);
+                //ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
+                //textColor = COLOR_WHITE;
+                ui_draw_text(s, x, radar_y, str, 40, bgColor, BOLD);
             }
         }
         ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
@@ -811,8 +818,8 @@ void drawLeadApilot(const UIState* s) {
             }
             else sprintf(str, "수동운전");
         }
-        ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
-        ui_draw_text(s, x, y + 175, str, 40, COLOR_WHITE, BOLD);
+        //ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
+        ui_draw_text(s, x, y + 175, str, 40, brake_valid ? COLOR_RED: COLOR_WHITE, BOLD);
 
     }
     // Accel표시
