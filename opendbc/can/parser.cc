@@ -124,6 +124,7 @@ CANParser::CANParser(int abus, const std::string& dbc_name,
       assert(false);
     }
 
+    state.name = msg->name;
     state.size = msg->size;
     assert(state.size <= 64);  // max signal size is 64 bytes
 
@@ -162,6 +163,7 @@ CANParser::CANParser(int abus, const std::string& dbc_name, bool ignore_checksum
 
   for (const auto& msg : dbc->msgs) {
     MessageState state = {
+      .name = msg.name,
       .address = msg.address,
       .size = msg.size,
       .ignore_checksum = ignore_checksum,
