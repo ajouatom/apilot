@@ -25,6 +25,7 @@ const std::tuple<AudibleAlert, QString, int> sound_list[] = {
   {AudibleAlert::TRAFFIC_ERROR, "audio_traffic_error.wav", 0},
   {AudibleAlert::BSD_WARNING, "audio_car_watchout.wav", 0},
   {AudibleAlert::LANE_CHANGE, "audio_lane_change.wav", 0},
+  {AudibleAlert::STOP_STOP, "audio_stopstop.wav", 0},
   {AudibleAlert::STOPPING, "audio_stopping.wav", 0},
   {AudibleAlert::AUTO_HOLD, "audio_auto_hold.wav", 0},
   {AudibleAlert::ENGAGE2, "audio_engage.wav", 0},

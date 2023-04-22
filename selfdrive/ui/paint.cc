@@ -338,7 +338,7 @@ void drawLaneLines(const UIState* s) {
 
                     int draw = false;
                     if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 12) draw = true;
+                    if (track_vertices_len / 2 < 8) draw = true;
                     if (show_path_mode == 5 || show_path_mode == 6) draw = true;
 
                     if (draw) {
@@ -369,7 +369,7 @@ void drawLaneLines(const UIState* s) {
 
                     int draw = false;
                     if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 12) draw = true;
+                    if (track_vertices_len / 2 < 8) draw = true;
                     if (show_path_mode == 7 || show_path_mode == 8) draw = true;
 
                     if (draw) {
@@ -459,13 +459,18 @@ void drawLeadApilot(const UIState* s) {
     {
         if (track_vertices_len >= 10) {
             path_width = scene.track_vertices[track_vertices_len / 2].x() - scene.track_vertices[track_vertices_len / 2 - 1].x();
-            path_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
-            path_y = scene.track_vertices[track_vertices_len / 2].y();
-            //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
-            path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
-            //path_by = scene.track_vertices[0].y();
-            if (uiDrawPathEnd) {
-                ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10}, COLOR_RED, 5);
+            int temp_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
+            int temp_y = scene.track_vertices[track_vertices_len / 2].y();
+            if (temp_x == 0 or temp_y == 0);
+            else {
+                path_x = temp_x;
+                path_y = temp_y;
+                //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
+                path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
+                //path_by = scene.track_vertices[0].y();
+                if (uiDrawPathEnd) {
+                    ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, COLOR_RED, 5);
+                }
             }
         }
     }
@@ -476,11 +481,9 @@ void drawLeadApilot(const UIState* s) {
 #else
     const int d_rel = lead_data.getX()[0];
 #endif
-    static int prev_x = 0;
-    static int prev_y = 0;
-    int x = prev_x;
-    int y = prev_y;
-    if (d_rel > 0) {
+    int x = path_x;
+    int y = path_y;
+    if (!no_radar) {
         x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
         y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
     }
@@ -502,8 +505,6 @@ void drawLeadApilot(const UIState* s) {
     filter_y = filter_y * 0.96 + y * 0.04;
     x = filter_x;
     y = filter_y;
-    prev_x = x;
-    prev_y = y;
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
     int circle_size = 160;

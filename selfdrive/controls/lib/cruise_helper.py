@@ -226,6 +226,9 @@ class CruiseHelper:
         self.userCruisePaused = False
         if self.gapButtonMode == 3:
           self.longCruiseGap = 4
+        elif self.gapButtonMode == 2 and active_mode == 1:  #버튼모드2번, 사용자가 크루즈버튼을 누르면 자동4로 변경함.
+          self.longCruiseGap = 4
+
       elif active_mode <= 0:
         if self.longActiveUser != active_mode and self.longControlActiveSound >= 2:
           #controls.events.add(EventName.cruisePaused)
@@ -655,6 +658,10 @@ class CruiseHelper:
         pass
 
       self.cruise_control(controls, CS, longActiveUser)
+
+      if self.longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
+        if CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < 4.0:
+          self.send_apilot_event(controls, EventName.stopStop, 10.0)
 
       ###### 크루즈 속도제어~~~
       self.v_cruise_kph_apply = self.cruise_control_speed(controls, CS, v_cruise_kph)
