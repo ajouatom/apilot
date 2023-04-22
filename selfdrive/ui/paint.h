@@ -10,3 +10,15 @@ void ui_fill_rect(NVGcontext *vg, const Rect &r, const NVGcolor &color, float ra
 void ui_nvg_init(UIState *s);
 void ui_resize(UIState *s, int width, int height);
 void ui_update_params(UIState *s);
+
+
+class DrawApilot : public QObject {
+	Q_OBJECT
+public:
+	DrawApilot();
+public:
+	void drawLaneLines(const UIState* s);
+	void drawLeadApilot(const UIState* s);
+	void drawDebugText(UIState* s);
+
+};
