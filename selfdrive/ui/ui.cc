@@ -182,8 +182,8 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
     float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, float max_dist, bool allow_invert = true) {
     const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
     QPolygonF left_points, right_points;
-    left_points.reserve(20+1);
-    right_points.reserve(20+1);
+    left_points.reserve(40+1);
+    right_points.reserve(40+1);
     float idxs[33], line_xs[33], line_ys[33], line_zs[33];
     for (int i = 0; i < 33; i++) {
         idxs[i] = (float)i;
@@ -192,9 +192,9 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
         line_zs[i] = line_z[i];
     }
 
-    float dist_dt = 2.0;
+    float dist_dt = 1.0;
     for (float dist = 1.0; dist < max_dist; dist += dist_dt) {
-        dist_dt += (dist/10.);
+        dist_dt += (dist/30.);
         float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
@@ -268,7 +268,7 @@ void update_model(UIState *s,
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
 #else
-  update_line_data_dist(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_distance, false);
+  update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
 #endif
 }
 

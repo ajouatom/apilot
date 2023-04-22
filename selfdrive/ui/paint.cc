@@ -310,35 +310,35 @@ void drawLaneLines(const UIState* s) {
             float   v_ego = car_state.getVEgoCluster();
             float   v_ego_kph = v_ego * MS_TO_KPH;
 #ifdef __TEST
-            v_ego_kph = 20.0;
+            v_ego_kph = 120.0;
 #endif
-            float   seq = (1.0 * v_ego_kph / 120.0);
-            if (seq < 0.5) seq = 0.5;
+            float   seq = (1.0 * v_ego_kph / 100.0);
+            if (seq < 0.3) seq = 0.3;
             if (accel > -0.5) {
                 pathDrawSeq += seq;
-                if (pathDrawSeq > track_vertices_len / 4) pathDrawSeq = 0.0;
+                if (pathDrawSeq > track_vertices_len / 4 + 3) pathDrawSeq = 0.0;
             }
             else {
                 pathDrawSeq -= seq;
-                if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4.;
+                if (pathDrawSeq < 0.0) pathDrawSeq = track_vertices_len / 4. + 3;
             }
             float   x[6], y[6];
 
             switch (show_path_mode) {
             case 1: case 2: case 5: case 6:
-                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 1; i += 2) {
+                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
                     x[0] = scene.track_vertices[i].x();
                     y[0] = scene.track_vertices[i].y();
-                    x[1] = scene.track_vertices[i + 1].x();
-                    y[1] = scene.track_vertices[i + 1].y();
-                    x[2] = scene.track_vertices[track_vertices_len - i - 2].x();
-                    y[2] = scene.track_vertices[track_vertices_len - i - 2].y();
+                    x[1] = scene.track_vertices[i + 2].x();
+                    y[1] = scene.track_vertices[i + 2].y();
+                    x[2] = scene.track_vertices[track_vertices_len - i - 3].x();
+                    y[2] = scene.track_vertices[track_vertices_len - i - 3].y();
                     x[3] = scene.track_vertices[track_vertices_len - i - 1].x();
                     y[3] = scene.track_vertices[track_vertices_len - i - 1].y();
 
                     int draw = false;
-                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 4) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 10) draw = true;
+                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
+                    if (track_vertices_len / 2 < 12) draw = true;
                     if (show_path_mode == 5 || show_path_mode == 6) draw = true;
 
                     if (draw) {
@@ -353,23 +353,23 @@ void drawLaneLines(const UIState* s) {
                 }
                 break;
             case 3: case 4: case 7: case 8:
-                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 2; i += 2) {
+                for (int i = 0, color_n = 0; i < track_vertices_len / 2 - 4; i += 2) {
                     x[0] = scene.track_vertices[i].x();
                     y[0] = scene.track_vertices[i].y();
-                    x[1] = scene.track_vertices[i + 1].x();
-                    y[1] = scene.track_vertices[i + 1].y();
-                    x[2] = (scene.track_vertices[i + 2].x() + scene.track_vertices[track_vertices_len - i - 3].x()) / 2;
-                    y[2] = (scene.track_vertices[i + 2].y() + scene.track_vertices[track_vertices_len - i - 3].y()) / 2;
-                    x[3] = scene.track_vertices[track_vertices_len - i - 2].x();
-                    y[3] = scene.track_vertices[track_vertices_len - i - 2].y();
+                    x[1] = scene.track_vertices[i + 2].x();
+                    y[1] = scene.track_vertices[i + 2].y();
+                    x[2] = (scene.track_vertices[i + 4].x() + scene.track_vertices[track_vertices_len - i - 5].x()) / 2;
+                    y[2] = (scene.track_vertices[i + 4].y() + scene.track_vertices[track_vertices_len - i - 5].y()) / 2;
+                    x[3] = scene.track_vertices[track_vertices_len - i - 3].x();
+                    y[3] = scene.track_vertices[track_vertices_len - i - 3].y();
                     x[4] = scene.track_vertices[track_vertices_len - i - 1].x();
                     y[4] = scene.track_vertices[track_vertices_len - i - 1].y();
                     x[5] = (x[1] + x[3]) / 2;
                     y[5] = (y[1] + y[3]) / 2;
 
                     int draw = false;
-                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) + 4) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 10) draw = true;
+                    if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
+                    if (track_vertices_len / 2 < 12) draw = true;
                     if (show_path_mode == 7 || show_path_mode == 8) draw = true;
 
                     if (draw) {
