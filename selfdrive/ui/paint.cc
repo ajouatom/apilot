@@ -313,8 +313,12 @@ void drawLaneLines(const UIState* s) {
             v_ego_kph = 120.0;
 #endif
             float   seq = (1.0 * v_ego_kph / 100.0);
+            static bool forward = true;
             if (seq < 0.3) seq = 0.3;
-            if (accel > -0.5) {
+            if (accel < -0.5) forward = false;
+            if (accel > 0.0) forward = true;
+
+            if (forward) {
                 pathDrawSeq += seq;
                 if (pathDrawSeq > track_vertices_len / 4 + 3) pathDrawSeq = 0.0;
             }
