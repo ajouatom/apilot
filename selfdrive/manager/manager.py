@@ -21,7 +21,8 @@ from selfdrive.manager.process_config import managed_processes
 from selfdrive.athena.registration import register, UNREGISTERED_DONGLE_ID
 from system.swaglog import cloudlog, add_file_handler
 from system.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
-                              terms_version, training_version, is_tested_branch
+                           get_normalized_origin, terms_version, training_version, \
+                           is_tested_branch, is_release_branch
 
 
 
