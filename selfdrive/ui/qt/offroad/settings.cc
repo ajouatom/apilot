@@ -685,7 +685,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "핸들햅틱기능사용", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("SoftHoldMode", "소프트오토홀드기능(1)", "0:사용안함,1:사용,2:SCC제어와함께사용(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("ShowHudMode", "화면:표시모드", "0:일반,1:APilot,2:하단고정,3:상단고정", "../assets/offroad/icon_shell.png", 0, 3, 1));
+  toggleLayout->addWidget(new CValueControl("ShowHudMode", "화면:표시모드", "0:일반,1:APilot,2:하단고정,3:상단고정,4:좌측,5:좌하", "../assets/offroad/icon_shell.png", 0, 5, 1));
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "화면:디버그정보", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new CValueControl("ShowDateTime", "화면:시간정보", "0:표시안함,1:시간/날짜표시,2:시간표시,3:날짜표시", "../assets/offroad/icon_shell.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("ShowSteerRotate", "화면:핸들회전", "0:안함,1:회전함", "../assets/offroad/icon_shell.png", 0, 1, 1));
