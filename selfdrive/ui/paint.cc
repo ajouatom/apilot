@@ -718,7 +718,7 @@ void drawLeadApilot(const UIState* s) {
             nvgFontSize(s->vg, 40);
             if (s->show_steer_mode == 2) {
                 int radar_y = (y > s->fb_h - 550) ? s->fb_h - 550 : y - 40;
-                if (s->show_mode == 3) radar_y = y - 145;
+                if (s->show_mode >= 3) radar_y = y - 145;
                 //ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
                 //textColor = COLOR_WHITE;
                 ui_draw_text(s, x, radar_y, str, 40, bgColor, BOLD);
@@ -860,6 +860,14 @@ void drawLeadApilot(const UIState* s) {
         if (s->fb_w < 1200) x = 650;
         else x = 950;
     }
+    else if (s->show_mode == 4) {
+        y = 330;
+        x = 150;
+    }
+    else if (s->show_mode == 5) {
+        y = 620;
+        x = 600;
+    }
 
     // 속도표시
     if (true) {
@@ -974,6 +982,10 @@ void drawLeadApilot(const UIState* s) {
 
         bx = x - 200;
         by = y + 250;
+        if (s->show_mode == 4) {
+            bx = 150;
+            by = 380;
+        }
         if (limit_speed > 0) {
             nvgBeginPath(s->vg);
             nvgCircle(s->vg, bx, by, 140 / 2);
@@ -996,9 +1008,9 @@ void drawLeadApilot(const UIState* s) {
             }
         }
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
-            ui_draw_image(s, { bx - 60, by - 70, 120, 150 }, "ic_road_speed", 1.0f);
+            ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_road_speed", 1.0f);
             sprintf(str, "%d", roadLimitSpeed);
-            ui_draw_text(s, bx, by + 55, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+            ui_draw_text(s, bx, by + 75, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
         }
     }
     // Tpms...
