@@ -692,6 +692,10 @@ class CruiseHelper:
 
       self.cruise_control(controls, CS, longActiveUser)
 
+      if self.longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
+        if CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < 4.0:
+          self.send_apilot_event(controls, EventName.stopStop, 10.0)
+
       ###### 크루즈 속도제어~~~
       self.v_cruise_kph_apply = self.cruise_control_speed(controls, CS, v_cruise_kph)
 

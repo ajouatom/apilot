@@ -338,7 +338,7 @@ void drawLaneLines(const UIState* s) {
 
                     int draw = false;
                     if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 12) draw = true;
+                    if (track_vertices_len / 2 < 8) draw = true;
                     if (show_path_mode == 5 || show_path_mode == 6) draw = true;
 
                     if (draw) {
@@ -369,7 +369,7 @@ void drawLaneLines(const UIState* s) {
 
                     int draw = false;
                     if ((int)(pathDrawSeq + 0.5) * 2 == i || (((int)(pathDrawSeq + 0.5) - 2) * 2 == i))  draw = true;
-                    if (track_vertices_len / 2 < 12) draw = true;
+                    if (track_vertices_len / 2 < 8) draw = true;
                     if (show_path_mode == 7 || show_path_mode == 8) draw = true;
 
                     if (draw) {
@@ -459,13 +459,18 @@ void drawLeadApilot(const UIState* s) {
     {
         if (track_vertices_len >= 10) {
             path_width = scene.track_vertices[track_vertices_len / 2].x() - scene.track_vertices[track_vertices_len / 2 - 1].x();
-            path_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
-            path_y = scene.track_vertices[track_vertices_len / 2].y();
-            //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
-            path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
-            //path_by = scene.track_vertices[0].y();
-            if (uiDrawPathEnd) {
-                ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10}, COLOR_RED, 5);
+            int temp_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
+            int temp_y = scene.track_vertices[track_vertices_len / 2].y();
+            if (temp_x == 0 or temp_y == 0);
+            else {
+                path_x = temp_x;
+                path_y = temp_y;
+                //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
+                path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
+                //path_by = scene.track_vertices[0].y();
+                if (uiDrawPathEnd) {
+                    ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, COLOR_RED, 5);
+                }
             }
         }
     }
@@ -476,8 +481,12 @@ void drawLeadApilot(const UIState* s) {
 #else
     const int d_rel = lead_data.getX()[0];
 #endif
-    int x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
-    int y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
+    int x = path_x;
+    int y = path_y;
+    if (!no_radar) {
+        x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
+        y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
+    }
 
     y -= ((icon_size / 2) - d_rel);
     if (no_radar) {
