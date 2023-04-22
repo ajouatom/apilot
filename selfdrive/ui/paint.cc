@@ -476,8 +476,14 @@ void drawLeadApilot(const UIState* s) {
 #else
     const int d_rel = lead_data.getX()[0];
 #endif
-    int x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
-    int y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
+    static int prev_x = 0;
+    static int prev_y = 0;
+    int x = prev_x;
+    int y = prev_y;
+    if (d_rel > 0) {
+        x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
+        y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
+    }
 
     y -= ((icon_size / 2) - d_rel);
     if (no_radar) {
@@ -496,6 +502,8 @@ void drawLeadApilot(const UIState* s) {
     filter_y = filter_y * 0.96 + y * 0.04;
     x = filter_x;
     y = filter_y;
+    prev_x = x;
+    prev_y = y;
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
     int circle_size = 160;
