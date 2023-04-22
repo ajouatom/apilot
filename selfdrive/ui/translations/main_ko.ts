@@ -641,6 +641,18 @@ location set</source>
         <source>Navigation</source>
         <translation>네비게이션</translation>
     </message>
+    <message>
+        <source>Cruise</source>
+        <translation>크루즈</translation>
+    </message>
+    <message>
+        <source>Tuning</source>
+        <translation>튜닝</translation>
+    </message>
+    <message>
+        <source>ETC</source>
+        <translation>기타</translation>
+    </message>
 </context>
 <context>
     <name>Setup</name>
@@ -1086,6 +1098,29 @@ location set</source>
     <message>
         <source>Forget</source>
         <translation>저장안함</translation>
+    </message>
+</context>
+<context>
+    <name>DrawApilot</name>
+    <message>
+        <source>MANUAL</source>
+        <translation>수동운전</translation>
+    </message>
+    <message>
+        <source>CRUISE</source>
+        <translation>정속주행</translation>
+    </message>
+    <message>
+        <source>E2ECRUISE</source>
+        <translation>E2E주행</translation>
+    </message>
+    <message>
+        <source>CRUISE READY</source>
+        <translation>크루즈준비</translation>
+    </message>
+    <message>
+        <source>SIGN DETECTED</source>
+        <translation>신호감지</translation>
     </message>
 </context>
 </TS>

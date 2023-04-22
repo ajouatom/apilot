@@ -192,9 +192,9 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
         line_zs[i] = line_z[i];
     }
 
-    float dist_dt = 1.0;
-    for (float dist = 1.0; dist < max_dist; dist += dist_dt) {
-        dist_dt += (dist/30.);
+    float dist_dt = 0.1;
+    for (float dist = 2; dist < max_dist; dist += dist_dt) {
+        dist_dt += 0.1;
         float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
@@ -229,6 +229,12 @@ void update_model(UIState *s,
   float max_distance = std::clamp(plan_position.getX()[TRAJECTORY_SIZE - 1],
                                   MIN_DRAW_DISTANCE, MAX_DRAW_DISTANCE);
 
+  auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
+  if (lead_one.getStatus()) {
+      const float lead_d = lead_one.getDRel() * 2.;
+      max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
+  }
+
   // update lane lines
   const auto lane_lines = model.getLaneLines();
   const auto lane_line_probs = model.getLaneLineProbs();
@@ -259,11 +265,11 @@ void update_model(UIState *s,
   }
 
   // update path
-  auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
-  if (lead_one.getStatus()) {
-    const float lead_d = lead_one.getDRel() * 2.;
-    max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
-  }
+//  auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
+//  if (lead_one.getStatus()) {
+//    const float lead_d = lead_one.getDRel() * 2.;
+//    max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
+//  }
 #if 0
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);

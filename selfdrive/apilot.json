@@ -134,11 +134,11 @@
     {
       "group": "자동크루즈",
       "name": "CruiseControlMode",
-      "title": "크루즈연비제어",
+      "title": "크루즈연비제어(4km/h)",
       "descr": "목표속도를 일시적으로 올림",
       "min": 0,
       "max": 10,
-      "default": 0,
+      "default": 4,
       "unit": 1
     },
     {
@@ -774,8 +774,8 @@
     {
       "group": "조향",
       "name": "UseLaneLineSpeed",
-      "title": "레인모드작동속도",
-      "descr": "레인모드 작동속도: 크게하면 안함...",
+      "title": "레인모드작동속도(0)",
+      "descr": "레인모드 작동속도: 0: 안함...",
       "min": 0,
       "max": 200,
       "default": 80,

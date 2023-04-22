@@ -516,9 +516,9 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 #endif
     {tr("Toggles"), toggles},
     {tr("Software"), new SoftwarePanel(this)},
-    {"크루즈", new CruisePanel(this)},
-    {"튜닝", new TuningPanel(this)},
-    {"기타", new CommunityPanel(this)},
+    {tr("Cruise"), new CruisePanel(this)},
+    {tr("Tuning"), new TuningPanel(this)},
+    {tr("ETC"), new CommunityPanel(this)},
   };
 
 #ifdef ENABLE_MAPS
@@ -674,13 +674,13 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("EnableAutoEngage", "EnableAutoEngage", "", "../assets/offroad/icon_road.png", this));
 
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", "과속카메라작동 방법(2)", "0:사용안함, 1:NDA", "../assets/offroad/icon_road.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", "과속카메라작동 방법(1)", "0:사용안함, 1:NDA", "../assets/offroad/icon_road.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", "과속카메라감속 시작 시간(22초)", "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", "과속카메라감속 완료 시간(6초)", "감속완료시점을 설정합니다. 값이 크면 카메라에서 멀리 감속 완료", "../assets/offroad/icon_road.png", 3, 20, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "인게이지 유지모드", "", "../assets/offroad/icon_shell.png", this));
-  toggleLayout->addWidget(new CValueControl("UseLaneLineSpeed", "레인모드사용속도", "", "../assets/offroad/icon_road.png", 0, 200, 10));
+  toggleLayout->addWidget(new CValueControl("UseLaneLineSpeed", "레인모드사용속도(0)", "0으로 하면 안함", "../assets/offroad/icon_road.png", 0, 200, 10));
   toggleLayout->addWidget(new CValueControl("PathOffset", "차선치우침 좌우보정", "(-)좌측, (+)우측", "../assets/offroad/icon_road.png", -200, 200, 1));
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "핸들햅틱기능사용", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("SoftHoldMode", "소프트오토홀드기능(1)", "0:사용안함,1:사용,2:SCC제어와함께사용(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
@@ -806,7 +806,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     vlayout->addWidget(scroller, 1);
 
     // 크루즈
-    toggleLayout->addWidget(new CValueControl("CruiseControlMode", "크루즈연비제어", "목표속도를 일시적으로 올림", "../assets/offroad/icon_road.png", 0, 10, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseControlMode", "크루즈연비제어(4km/h)", "목표속도를 일시적으로 올림", "../assets/offroad/icon_road.png", 0, 10, 1));
     toggleLayout->addWidget(new CValueControl("AutoSyncCruiseSpeedMax", "자동속도업데이트속도 (120)", "가속시 크루즈속도보다 높아지면 지정 속도를 올려줍니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차에 크루즈속도맞춤(+40)", "불필요한 기능, 선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
