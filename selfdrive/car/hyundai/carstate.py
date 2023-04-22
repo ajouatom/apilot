@@ -493,7 +493,7 @@ class CarState(CarStateBase):
       signals.append(("CF_Lvr_Gear", "LVR12"))
       checks.append(("LVR12", 100))
 
-    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
+    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0, enforce_checks=False)
 
   @staticmethod
   def get_cam_can_parser(CP):
@@ -509,11 +509,13 @@ class CarState(CarStateBase):
       ("CF_Lkas_LdwsRHWarning", "LKAS11"),
       ("CF_Lkas_HbaLamp", "LKAS11"),
       ("CF_Lkas_FcwBasReq", "LKAS11"),
+      ("CF_Lkas_ToiFlt", "LKAS11"),
       ("CF_Lkas_HbaSysState", "LKAS11"),
       ("CF_Lkas_FcwOpt", "LKAS11"),
       ("CF_Lkas_HbaOpt", "LKAS11"),
       ("CF_Lkas_FcwSysState", "LKAS11"),
       ("CF_Lkas_FcwCollisionWarning", "LKAS11"),
+      ("CF_Lkas_MsgCount", "LKAS11"),
       ("CF_Lkas_FusionState", "LKAS11"),
       ("CF_Lkas_FcwOpt_USM", "LKAS11"),
       ("CF_Lkas_LdwsOpt_USM", "LKAS11"),
