@@ -508,7 +508,8 @@ class LongitudinalMpc:
         self.e2ePaused = False
       if self.e2ePaused and cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
         self.e2ePaused = False
-      if v_ego_kph > 50.0 or self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
+      #if v_ego_kph > 50.0 or self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
+      if self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
         self.e2ePaused = False
 
       if controls.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.

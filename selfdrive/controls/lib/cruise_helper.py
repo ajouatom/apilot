@@ -381,7 +381,7 @@ class CruiseHelper:
     if self.longActiveUser <= 0:
       #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
       #    - autoResumeFromGasSpeedMode에 따라 속도 설정(기존속도, 현재속도)
-      if ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and self.trafficState != 1 and self.autoResumeFromGas:
+      if ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas:
         if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
           # 60% 이상 밟으면...
           if self.preGasPressedMax >= 0.6:
@@ -403,7 +403,7 @@ class CruiseHelper:
       if self.xState == XState.softHold:
         longActiveUser = -2
       #  2. 신호감지감속중: cruiseOFF: 신호감지감속이 맘에 안드는 상태, 가속페달을 밟으면 해제
-      elif self.xState in [XState.e2eStop, XState.e2eCruise] and self.v_ego_kph < v_cruise_kph and self.trafficState == 1: #controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: 
+      elif self.xState in [XState.e2eStop, XState.e2eCruise] and self.v_ego_kph < v_cruise_kph and (self.trafficState % 10) == 1: #controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: 
         longActiveUser = -2
       #  3. 저속주행: cruiseOFF(autoResumeFromGasSpeed 이하): 조건(autoCancelFromGasMode)에 따라 선행차의 유무에 따라 크루즈 해제
       elif self.v_ego_kph < self.autoResumeFromGasSpeed:
