@@ -380,8 +380,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 #endif
             float   seq = (1.0 * v_ego_kph / 100.0);
             if (seq < 0.3) seq = 0.3;
-            if (accel < -0.5) forward = false;
-            if (accel > 0.5) forward = true;
+            if (accel < -1.0) forward = false;
+            if (accel > -0.5) forward = true;
 
             if (forward) {
                 pathDrawSeq += seq;
