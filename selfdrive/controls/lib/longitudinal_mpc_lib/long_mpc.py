@@ -526,8 +526,8 @@ class LongitudinalMpc:
           stopSign = False
 
         ## 현재속도로 정지가 가능한경우에만 신호인식하도록 해보자~, stop_distance는 신호정지시 model_x가 0이므로... 이것도 인지하도록 함.
-        #self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
-        self.stopSignCount = self.stopSignCount + 1 if stopSign else 0 
+        self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
+        #self.stopSignCount = self.stopSignCount + 1 if stopSign else 0 
 
         # cruise_helper에서 깜박이 켜고 신호감지, 브레이크 크루즈ON을 기동하면... 신호오류와 같이, 크루즈버튼으로 출발해야함.
         if self.longActiveUser_prev != controls.longActiveUser:
