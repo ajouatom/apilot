@@ -553,6 +553,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     int longActiveUser = controls_state.getLongActiveUser();
     int longActiveUserReady = controls_state.getLongActiveUserReady();
 
+    nvgFontFace(s->vg, BOLD);
+    nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
+
     ui_draw_radar_info(s);
 
     if (s->show_mode == 2) {
@@ -699,10 +702,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     bool blinkerOn = (blinkerTimer <= 16 / 2);
     int trafficState = lp.getTrafficState();
     char    str[128];
-
-    nvgFontFace(s->vg, BOLD);
-    nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
-
 
 #ifdef __TEST
     static int _desire = 0.;
