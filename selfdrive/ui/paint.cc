@@ -145,64 +145,20 @@ static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, 
 
 }
 #if 0
-template <class T>
-float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrapolate)
-{
-    int i = 0;
-    if (x >= x_list[size - 2]) {
-        i = size - 2;
-    }
-    else {
-        while (x > x_list[i + 1]) i++;
-    }
-    T xL = x_list[i], yL = y_list[i], xR = x_list[i + 1], yR = y_list[i + 1];
-    if (!extrapolate) {
-        if (x < xL) yR = yL;
-        if (x > xR) yL = yR;
-    }
-
-    T dydx = (yR - yL) / (xR - xL);
-    return yL + dydx * (x - xL);
-}
-
 static void ui_draw_path(const UIState* s) {
-    const UIScene& scene = s->scene;
-    SubMaster& sm = *(s->sm);
-    auto plan_position = sm["uiPlan"].getUiPlan().getPosition();
+    auto plan_position = (*s->sm)["uiPlan"].getUiPlan().getPosition();
     if (plan_position.getX().size() < 33) {
-        plan_position = sm["modelV2"].getModelV2().getPosition();
+        plan_position = (*s->sm)["modelV2"].getModelV2().getPosition();
     }
     float max_distance = std::clamp(plan_position.getX()[TRAJECTORY_SIZE - 1],
         MIN_DRAW_DISTANCE, MAX_DRAW_DISTANCE);
 
-    auto lead_one = sm["radarState"].getRadarState().getLeadOne();
+    auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
     if (lead_one.getStatus()) {
         const float lead_d = lead_one.getDRel() * 2.;
         max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
     }
-    auto    car_state = sm["carState"].getCarState();
-    float   accel = car_state.getAEgo();
-    float   v_ego = car_state.getVEgoCluster();
-    float   v_ego_kph = v_ego * MS_TO_KPH;
-    static bool forward = true;
 
-    if (accel > 0.5) forward = true;
-    if (accel < -0.5) forward = false;
-
-    float start_dist = 10.0;
-    float dt = 0.01;
-    float max_t = sqrt((dist - start_dist) / (v_ego * dt));
-    static float pos_t[2] = { 0, 3 };   // dist = pos_t[] * pos_t[] * v_ego * 0.01 + 3.0,  pos_t = sqrt((dist-3.0) / (v_ego*0.01))
-    for (int i = 0; i < 2; i++) {
-        dist = pos_t[i] * pos_t[i] * v_ego * dt + start_dist;
-        if (dist > max_distance) {
-            pos_t[i] = 0;
-            dist = start_dist;
-        }
-
-        if (forward) pos_t[i] = (pos_t[i] + 1) % (int)max_t;
-        else if (--pos_t[i] < 0) pos_t[i] = (int)max_t - 1;
-    }
     // 0~150M까지 display해준다... 
     // 높이시작은 0.8 ~ s->show_z_offset(max_distance)
 

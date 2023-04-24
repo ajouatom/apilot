@@ -192,10 +192,9 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
         line_zs[i] = line_z[i];
     }
 
-//    int count = 0;
-    float dist = 2;
-    for (int i=0; dist < max_dist; i++) {
-//        count++;
+    float dist_dt = 0.1;
+    for (float dist = 2; dist < max_dist; dist += dist_dt) {
+        dist_dt += 0.1;
         float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
@@ -215,9 +214,7 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
             left_points.push_back(left);
             right_points.push_front(right);
         }
-        dist = i * i * 0.1 + 3;
     }
-    //printf("max_dist = %.1f, count = %d\n", max_dist, count);
     *pvd = left_points + right_points;
 }
 
