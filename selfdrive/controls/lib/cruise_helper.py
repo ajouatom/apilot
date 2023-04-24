@@ -660,9 +660,11 @@ class CruiseHelper:
         pass
 
       if longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
-        if self.cruiseOnDist > 0.0 and CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < self.cruiseOnDist:
+        cruiseOnDist = abs(self.cruiseOnDist)
+        if cruiseOnDist > 0.0 and CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < cruiseOnDist:
           self.send_apilot_event(controls, EventName.stopStop, 10.0)
-          longActiveUser = 3
+          if self.cruiseOnDist > 0.0:
+            longActiveUser = 3
 
       self.cruise_control(controls, CS, longActiveUser)
 
