@@ -129,6 +129,7 @@ class CruiseHelper:
     self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
     self.steerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
     self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
+    self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -184,6 +185,7 @@ class CruiseHelper:
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
       elif self.update_params_count == 16:
         self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
+        self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
 
   def getSteerActuatorDelay(self, v_ego):
     v_ego_kph = v_ego * 3.6
@@ -657,11 +659,13 @@ class CruiseHelper:
           longActiveUser = 3
         pass
 
+      if longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
+        if self.cruiseOnDist > 0.0 and CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < self.cruiseOnDist:
+          self.send_apilot_event(controls, EventName.stopStop, 10.0)
+          longActiveUser = 3
+
       self.cruise_control(controls, CS, longActiveUser)
 
-      if self.longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
-        if CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < 4.0:
-          self.send_apilot_event(controls, EventName.stopStop, 10.0)
 
       ###### 크루즈 속도제어~~~
       self.v_cruise_kph_apply = self.cruise_control_speed(controls, CS, v_cruise_kph)
