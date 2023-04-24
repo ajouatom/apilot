@@ -72,6 +72,7 @@ class CruiseHelper:
     self.trafficState = 0
     self.xState_prev = XState.cruise
     self.xState = XState.cruise
+    self.xStop = 0
     self.v_ego_kph = 0
     self.v_ego_kph_set = 0
     self.blinker = False
@@ -384,16 +385,19 @@ class CruiseHelper:
       #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
       #    - autoResumeFromGasSpeedMode에 따라 속도 설정(기존속도, 현재속도)
       if ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas:
-        if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
-          # 60% 이상 밟으면...
-          if self.preGasPressedMax >= 0.6:
-            v_cruise_kph = self.v_cruise_kph_backup # 60%이상 GAS를 밟으면..
-          else:
-            v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+        if self.preGasPressedMax >= 0.6: # 60%이상 GAS를 밟으면.. 기존속도..
+          v_cruise_kph = self.v_cruise_kph_backup 
+        elif self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
+          v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
         elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
             v_cruise_kph = self.v_cruise_kph_backup 
         elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
           if self.dRel > 0:
+            v_cruise_kph = self.v_cruise_kph_backup 
+          else:
+            v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+        elif self.autoResumeFromGasSpeedMode == 3: # 60M이상 직선도로일때 기존속도. 1초이상 페달밟음.
+          if self.xStop > 60.0 and self.gasPressedCount * DT_CTRL > 1.0: 
             v_cruise_kph = self.v_cruise_kph_backup 
           else:
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
@@ -600,6 +604,7 @@ class CruiseHelper:
     self.v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 2.0 #실제속도가 v_cruise_kph보다 조금 빨라 2을 더함.
     self.v_ego_kph_set = clip(self.v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     self.xState = controls.sm['longitudinalPlan'].xState
+    self.xStop = controls.sm['longitudinalPlan'].xStop
     dRel, vRel = self.get_lead_rel(controls)
     leadCarSpeed = self.v_ego_kph + vRel*CV.MS_TO_KPH
     

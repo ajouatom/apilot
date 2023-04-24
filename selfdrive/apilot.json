@@ -465,9 +465,9 @@
       "group": "자동크루즈",
       "name": "AutoResumeFromGasSpeedMode",
       "title": "엑셀크루즈ON:복원속도",
-      "descr": "0:현재속도,1:이전속도,2:선행차량이있을때만 이전속도",
+      "descr": "0:현재속도,1:이전속도,2:선행차량,3:60M이상직진",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 0,
       "unit": 1
     },
