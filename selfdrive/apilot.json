@@ -142,6 +142,16 @@
       "unit": 1
     },
     {
+      "group": "자동크루즈",
+      "name": "CruiseOnDist",
+      "title": "크루즈ON거리(0cm)",
+      "descr": "엑셀/브레이크OFF시, 전방차량이 설정거리만큰 가까와지면 크루즈ON",
+      "min": 0,
+      "max": 500,
+      "default": 0,
+      "unit": 50
+    },
+    {
       "group": "조향튜닝",
       "name": "SteerDeltaUp",
       "title": "SteerDeltaUp(3)",
