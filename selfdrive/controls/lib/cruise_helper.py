@@ -489,7 +489,7 @@ class CruiseHelper:
         else:   #그냥 감속한경우, 현재속도세트
           if self.v_ego_kph >= self.autoResumeFromBrakeCarSpeed and self.autoResumeFromBrakeCarSpeed > 0:
             longActiveUser = 3
-            v_cruise_kph = self.v_ego_kph_set
+            #v_cruise_kph = self.v_ego_kph_set
 
     return longActiveUser, v_cruise_kph, v_cruise_kph_backup
 
