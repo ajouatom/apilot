@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-//#define __TEST
+#define __TEST
 
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
@@ -184,6 +184,15 @@ static void ui_draw_path(const UIState* s) {
     float   accel = car_state.getAEgo();
     float   v_ego = car_state.getVEgoCluster();
     float   v_ego_kph = v_ego * MS_TO_KPH;
+    const auto line_x = plan_position.getX(), line_y = plan_position.getY(), line_z = plan_position.getZ();
+    float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    for (int i = 0; i < 33; i++) {
+        idxs[i] = (float)i;
+        line_xs[i] = line_x[i];
+        line_ys[i] = line_y[i];
+        line_zs[i] = line_z[i];
+    }
+
     static bool forward = true;
 
     if (accel > 0.5) forward = true;
@@ -192,9 +201,9 @@ static void ui_draw_path(const UIState* s) {
     float start_dist = 10.0;
     float dt = 0.01;
     float max_t = sqrt((dist - start_dist) / (v_ego * dt));
-    static float pos_t[2] = { 0, 3 };   // dist = pos_t[] * pos_t[] * v_ego * 0.01 + 3.0,  pos_t = sqrt((dist-3.0) / (v_ego*0.01))
-    for (int i = 0; i < 2; i++) {
-        dist = pos_t[i] * pos_t[i] * v_ego * dt + start_dist;
+    static float pos_t = 2;   // dist = pos_t[] * pos_t[] * v_ego * 0.01 + 3.0,  pos_t = sqrt((dist-3.0) / (v_ego*0.01))
+    for (int i = 0; i < 5; i++) {
+        dist = (pos_t+i) * (pos_t+i) * v_ego * dt + start_dist;
         if (dist > max_distance) {
             pos_t[i] = 0;
             dist = start_dist;
