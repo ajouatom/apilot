@@ -14,7 +14,7 @@
 #include "selfdrive/ui/qt/maps/map_helpers.h"
 #endif
 
-#define __TEST
+//#define __TEST
 #ifdef __TEST
 double start_millis = 0.0;
 double check_millis[10] = { 0.0, };
