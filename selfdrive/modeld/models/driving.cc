@@ -40,7 +40,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
 #endif
 
 #ifdef DESIRE
-  s->m->addDesire(s->pulse_desire, DESIRE_LEN*(HISTORY_BUFFER_LEN+1));
+  s->m->addDesire(s->pulse_desire, DESIRE_LEN_IN*(HISTORY_BUFFER_LEN+1));
 #endif
 
 #ifdef TRAFFIC_CONVENTION
@@ -60,15 +60,15 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
 ModelOutput* model_eval_frame(ModelState* s, VisionBuf* buf, VisionBuf* wbuf,
                               const mat3 &transform, const mat3 &transform_wide, float *desire_in, bool is_rhd, float *driving_style, float *nav_features, bool prepare_only) {
 #ifdef DESIRE
-  std::memmove(&s->pulse_desire[0], &s->pulse_desire[DESIRE_LEN], sizeof(float) * DESIRE_LEN*HISTORY_BUFFER_LEN);
+  std::memmove(&s->pulse_desire[0], &s->pulse_desire[DESIRE_LEN_IN], sizeof(float) * DESIRE_LEN_IN*HISTORY_BUFFER_LEN);
   if (desire_in != NULL) {
-    for (int i = 1; i < DESIRE_LEN; i++) {
+    for (int i = 1; i < DESIRE_LEN_IN; i++) {
       // Model decides when action is completed
       // so desire input is just a pulse triggered on rising edge
       if (desire_in[i] - s->prev_desire[i] > .99) {
-        s->pulse_desire[DESIRE_LEN*HISTORY_BUFFER_LEN+i] = desire_in[i];
+        s->pulse_desire[DESIRE_LEN_IN*HISTORY_BUFFER_LEN+i] = desire_in[i];
       } else {
-        s->pulse_desire[DESIRE_LEN*HISTORY_BUFFER_LEN+i] = 0.0;
+        s->pulse_desire[DESIRE_LEN_IN*HISTORY_BUFFER_LEN+i] = 0.0;
       }
       s->prev_desire[i] = desire_in[i];
     }
@@ -149,12 +149,12 @@ void fill_lead(cereal::ModelDataV2::LeadDataV3::Builder lead, const ModelOutputL
 }
 
 void fill_meta(cereal::ModelDataV2::MetaData::Builder meta, const ModelOutputMeta &meta_data) {
-  std::array<float, DESIRE_LEN> desire_state_softmax;
-  softmax(meta_data.desire_state_prob.array.data(), desire_state_softmax.data(), DESIRE_LEN);
+  std::array<float, DESIRE_LEN_OUT> desire_state_softmax;
+  softmax(meta_data.desire_state_prob.array.data(), desire_state_softmax.data(), DESIRE_LEN_OUT);
 
-  std::array<float, DESIRE_PRED_LEN * DESIRE_LEN> desire_pred_softmax;
+  std::array<float, DESIRE_PRED_LEN * DESIRE_LEN_OUT> desire_pred_softmax;
   for (int i=0; i<DESIRE_PRED_LEN; i++) {
-    softmax(meta_data.desire_pred_prob[i].array.data(), desire_pred_softmax.data() + (i * DESIRE_LEN), DESIRE_LEN);
+    softmax(meta_data.desire_pred_prob[i].array.data(), desire_pred_softmax.data() + (i * DESIRE_LEN_OUT), DESIRE_LEN_OUT);
   }
 
   std::array<float, DISENGAGE_LEN> lat_long_t = {2,4,6,8,10};

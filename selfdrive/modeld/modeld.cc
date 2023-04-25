@@ -132,8 +132,8 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
       live_calib_seen = true;
     }
 
-    float vec_desire[DESIRE_LEN] = {0};
-    if (desire >= 0 && desire < DESIRE_LEN) {
+    float vec_desire[DESIRE_LEN_IN] = {0};
+    if (desire >= 0 && desire < DESIRE_LEN_IN) {
       vec_desire[desire] = 1.0;
     }
 
