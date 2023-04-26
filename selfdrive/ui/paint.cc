@@ -816,7 +816,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             if (leftBlinker && blinkerOn) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_blinker_l", 1.0f);
         }
         // BSD 표시
-        if (true) {
+        if (false) {
             if (bsd_l) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_bsd_l", 1.0f);
             if (bsd_r) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_bsd_r", 1.0f);
         }
