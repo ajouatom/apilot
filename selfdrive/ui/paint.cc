@@ -112,8 +112,8 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
-
 }
+
 static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, bool right) {
     int index = vd.length();
 
@@ -483,6 +483,125 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 #endif
     }
 }
+
+#define PLOT_MAX 500
+
+int     plotSize = 0;
+int     plotIndex = 0;
+float   plotQueue[2][PLOT_MAX];
+float   plotMin = 0.;
+float   plotMax = 0.;
+float   plotShift = 0.0;
+float   plotX = 400.0;
+float   plotWidth = 1000;
+float   plotY = 30.0;
+float   plotHeight = 300.0;
+float   plotRatio = 1.0;
+int     show_plot_mode_prev = -1;
+static void ui_draw_plotting(const UIState* s, int start, float x, float y[], int size, NVGcolor* color, float stroke = 0.0) {
+
+    nvgBeginPath(s->vg);
+    plotRatio = (plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / (plotMax - plotMin);
+    float dx = 2.0;
+    char str[128];
+
+    for (int i = 0; i < size; i++) {
+        float data = y[(start - i + PLOT_MAX) % PLOT_MAX];
+        float plot_y = plotY + plotHeight - (data - plotMin) * plotRatio;
+        if (i == 0) {
+            nvgMoveTo(s->vg, x + (size - i)*dx, plot_y);
+            sprintf(str, "%.1f", data);
+            ui_draw_text(s, x + (size - i)*dx + 50, plot_y + 40, str, 40, *color, BOLD);
+        }
+        else nvgLineTo(s->vg, x + (size - i)*dx, plot_y);
+    }
+    //nvgClosePath(s->vg);
+
+    if (stroke > 0.0) {
+        nvgStrokeColor(s->vg, *color);
+        nvgStrokeWidth(s->vg, stroke);
+        nvgStroke(s->vg);
+    }
+}
+
+// 에잉 시간텀... ㅠㅠ
+static void make_plot_data(const UIState* s, float& data1, float& data2) {
+    SubMaster& sm = *(s->sm);
+    auto    car_state = sm["carState"].getCarState();
+    float   a_ego = car_state.getAEgo();
+    float   v_ego = car_state.getVEgo();
+    auto    car_control = sm["carControl"].getCarControl();
+    float   accel = car_control.getActuators().getAccel();
+    auto    live_parameters = sm["liveParameters"].getLiveParameters();
+    float   roll = live_parameters.getRoll();
+    auto    controls_state = sm["controlsState"].getControlsState();
+    float   curvature = controls_state.getCurvature();
+    float   desired_curvature = controls_state.getDesiredCurvature();
+    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    float   speeds_0 = lp.getSpeeds()[0];
+
+    switch (s->show_plot_mode) {
+    case 0:
+    case 1:
+        data1 = a_ego;
+        data2 = accel;
+        break;
+    case 2:
+        data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
+        data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        break;
+    case 3:
+    default:
+        data1 = v_ego;
+        data2 = speeds_0;
+        break;
+    }
+    if (s->show_plot_mode != show_plot_mode_prev) {
+        plotSize = 0;
+        plotIndex = 0;
+        plotMin = 0.;
+        plotMax = 0.;
+        show_plot_mode_prev = s->show_plot_mode;
+    }
+}
+
+void ui_draw_plot(const UIState* s) {
+
+    if (s->show_plot_mode == 0) return;
+
+    float _data = 0.;
+    float _data1 = 0.;
+
+    make_plot_data(s, _data, _data1);
+
+#ifdef __TEST
+    static float _data_s = 0.0;
+    _data = _data_s;
+    _data += 0.1;
+    if (_data > 2.0) _data = -2.0;
+    _data1 = 3. - _data;
+
+    _data_s = _data;
+#endif
+    if (plotMin > _data) plotMin = _data;
+    if (plotMax < _data) plotMax = _data;
+    if (plotMin > _data1) plotMin = _data1;
+    if (plotMax < _data1) plotMax = _data1;
+    plotIndex = (plotIndex + 1) % PLOT_MAX;
+    plotQueue[0][plotIndex] = _data;
+    plotQueue[1][plotIndex] = _data1;
+    if (plotSize < PLOT_MAX - 1) plotSize++;
+
+    if (s->fb_w < 1200) return;
+
+    NVGcolor color[2] = { COLOR_YELLOW, COLOR_GREEN };
+    for (int i = 0; i < 2; i++) {
+        //ui_draw_plotting(s, i, plotX, plotQueue[i], plotSize, &color[i], nullptr);
+        ui_draw_plotting(s, plotIndex, plotX, plotQueue[i], plotSize, &color[i], 3.0f);
+    }
+    //ui_draw_rect(s->vg, { (int)plotX, (int)plotY, (int)plotWidth, (int)plotHeight }, COLOR_WHITE, 2, 0);
+
+}
 void ui_draw_radar_info(const UIState* s) {
 
     char str[128];
@@ -556,6 +675,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     nvgFontFace(s->vg, BOLD);
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
 
+    ui_draw_plot(s);
     ui_draw_radar_info(s);
 
     if (s->show_mode == 2) {
@@ -949,7 +1069,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 1 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 2 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 3 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
-        ui_draw_text(s, x + dxGap + 20, y+80, "GAP", 25, COLOR_WHITE, BOLD);
+        ui_draw_text(s, x + dxGap + 20, y+90, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
     if (s->show_gap_info >= 0) {
@@ -1026,7 +1146,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     }
     else if (s->show_mode == 5) {
         y = 620;
-        x = 600;
+        x = 400;
     }
 
     // 속도표시
@@ -1146,6 +1266,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             bx = 150;
             by = 380;
         }
+        else if (s->show_mode == 5) {
+            bx = 100;
+            by = 650;
+        }
         if (limit_speed > 0) {
             nvgBeginPath(s->vg);
             nvgCircle(s->vg, bx, by, 140 / 2);
@@ -1246,16 +1370,24 @@ void DrawApilot::drawDebugText(UIState* s) {
     if (s->fb_w < 1200) return;
     const SubMaster& sm = *(s->sm);
     char  str[128];
+    QString qstr;
 
-    int y = 150;
+    int y = 150, dy = 80;
 
     const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
-
+    
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
     ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-    //p.drawText(text_x, y + 80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
 
+    qstr = QString::fromStdString(live_torque_params.getDebugText().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     //auto controls_state = sm["controlsState"].getControlsState();
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));

@@ -398,6 +398,8 @@ class CruiseHelper:
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
         elif self.autoResumeFromGasSpeedMode == 3: # 60M이상 직선도로일때 기존속도. 1초이상 페달밟음.
           if self.xStop > 60.0 and self.gasPressedCount * DT_CTRL > 1.0: 
+            if self.v_cruise_kph_backup < self.v_ego_kph_set:
+              self.v_cruise_kph_backup = self.v_ego_kph_set
             v_cruise_kph = self.v_cruise_kph_backup 
           else:
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~

@@ -123,7 +123,8 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii].trackId = self.track_id
             self.track_id += 1
 
-          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          #self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          self.pts[ii].dRel = (cpt["SCC11"]['ACC_ObjDist'] - 0.6) * 1.18 # from front of car  레이더트랙과 비슷하게... 조작
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
           self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].aRel = float('nan')

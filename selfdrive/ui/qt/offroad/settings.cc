@@ -642,6 +642,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "화면:패스표시모드,레인모드", "", "../assets/offroad/icon_shell.png", 0, 8, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathColorLane", "화면:패스표시색상,레인모드", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathWidth", "화면:패스표시폭", "", "../assets/offroad/icon_shell.png", 10, 200, 10));
+  toggleLayout->addWidget(new CValueControl("ShowPlotMode", "화면:디버그플롯", "", "../assets/offroad/icon_shell.png", 0, 5, 1));
 
 }
 

@@ -667,6 +667,7 @@ class LongitudinalMpc:
 
       #self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
       #  self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      self.debugLongText1 = "A{:3.2f},L0{:5.1f},L1{:5.1f},C{:5.1f},X{:5.1f}".format(self.max_a, lead_0_obstacle[0], lead_1_obstacle[0], cruise_obstacle[0], x2[0])
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
