@@ -762,6 +762,16 @@
       "unit": 10
     },
     {
+      "group": "화면",
+      "name": "ShowPlotMode",
+      "title": "화면디버그플롯(0)",
+      "descr": "",
+      "min": 0,
+      "max": 5,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "시작",
       "name": "EnableAutoEngage",
       "title": "자동인게이지 사용",

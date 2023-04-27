@@ -1,5 +1,17 @@
 APILOT
 ------
+* PREVIEW
+
+  ![image](https://user-images.githubusercontent.com/43668841/234758895-29ce21fa-521a-444f-8318-e00ce991a03c.png)
+
+  ![image](https://user-images.githubusercontent.com/43668841/234758774-851624ee-5f15-4492-bbaf-9239bf5ddb94.png)
+
+  ![image](https://user-images.githubusercontent.com/43668841/231068110-1bd61f5b-8c1f-406b-bacd-419e47289a08.png)
+  
+  ![image](https://user-images.githubusercontent.com/43668841/231068378-ebbcaafe-55d1-4e18-a08c-8dd01a337a7f.png)
+  
+  ![image](https://user-images.githubusercontent.com/43668841/231068460-11c7977a-feaa-4f1c-b4be-263d4132d213.png)
+
 * 읽어보기
 
   * 설정값을 함부로 건들면 사고의 위험이 있으며, 사고/고장 발생시 본인의 책임입니다.

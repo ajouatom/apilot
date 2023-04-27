@@ -6,6 +6,7 @@ from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.hyundai.values import DBC
 from common.params import Params
+from common.numpy_fast import interp
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
@@ -123,7 +124,13 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii].trackId = self.track_id
             self.track_id += 1
 
-          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          vRel = cpt["SCC11"]['ACC_ObjRelSpd']
+          #self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          #self.pts[ii].dRel = (cpt["SCC11"]['ACC_ObjDist'] - 0.6) * 1.18 # from front of car  레이더트랙과 비슷하게... 조작
+
+          #레이더트랙, 비젼거리와 비교해보니, vRel이 (-)일때 값이 같고, vRel이 +일때 거리가 적게 측정됨. vRel값으로 참고 하여 다가오는경우 멀어지는 경우 약간 보정이 필요할것 같음..
+          # 하지만.. vRel값이 0 근처인경우... 값의 변화가 많아 선행차와 등속 주행시 약간의 문제가???
+          self.pts[ii].dRel = interp(vRel, [-1.0, 0.0, 0.5], [cpt["SCC11"]['ACC_ObjDist'], cpt["SCC11"]['ACC_ObjDist'], (cpt["SCC11"]['ACC_ObjDist'] - 0.6) * 1.18])
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
           self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].aRel = float('nan')

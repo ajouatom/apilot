@@ -74,7 +74,7 @@ static void ui_draw_text(const UIState* s, float x, float y, const char* string,
     nvgText(s->vg, x, y, string, NULL);
 }
 
-static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint) {
+static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
     if (vd.size() == 0) return;
 
     nvgBeginPath(s->vg);
@@ -90,6 +90,11 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
         nvgFillPaint(s->vg, *paint);
     }
     nvgFill(s->vg);
+    if (stroke > 0.0) {
+        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeWidth(s->vg, stroke);
+        nvgStroke(s->vg);
+    }
 }
 static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
 
@@ -112,8 +117,8 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
-
 }
+
 static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, bool right) {
     int index = vd.length();
 
@@ -296,36 +301,27 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     }
     // paint path
     static bool forward = true;
+    int alpha = 120;
+    NVGcolor colors[10] = {
+         COLOR_RED_ALPHA(alpha),
+         nvgRGBA(255,153,0, alpha),
+         COLOR_YELLOW_ALPHA(alpha),
+         COLOR_GREEN_ALPHA(alpha),
+         COLOR_BLUE_ALPHA(alpha),
+         nvgRGBA(0,0,128, alpha),
+         nvgRGBA(0x8b,0,0xff, alpha),
+         COLOR_OCHRE_ALPHA(alpha),
+         COLOR_WHITE_ALPHA(alpha),
+         COLOR_BLACK_ALPHA(alpha),
+    };
     if (s->show_lane_info > -1) {
-#if 0
-        QLinearGradient bg(0, height(), 0, height() / 4);
-        float start_hue, end_hue;
-        if (sm["controlsState"].getControlsState().getExperimentalMode() || true) {
-            const auto& acceleration = sm["modelV2"].getModelV2().getAcceleration();
-            float acceleration_future = 0;
-            if (acceleration.getZ().size() > 16) {
-                acceleration_future = acceleration.getX()[16];  // 2.5 seconds
-            }
-            start_hue = 60;
-            // speed up: 120, slow down: 0
-            end_hue = fmax(fmin(start_hue + acceleration_future * 45, 148), 0);
-
-            // FIXME: painter.drawPolygon can be slow if hue is not rounded
-            end_hue = int(end_hue * 100 + 0.5) / 100;
-
-            bg.setColorAt(0.0, QColor::fromHslF(start_hue / 360., 0.97, 0.56, 0.4));
-            bg.setColorAt(0.5, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.35));
-            bg.setColorAt(1.0, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.0));
-        }
-        else {
-            bg.setColorAt(0.0, QColor::fromHslF(148 / 360., 0.94, 0.51, 0.4));
-            bg.setColorAt(0.5, QColor::fromHslF(112 / 360., 1.0, 0.68, 0.35));
-            bg.setColorAt(1.0, QColor::fromHslF(112 / 360., 1.0, 0.68, 0.0));
-        }
-        painter.setBrush(bg);
-        painter.drawPolygon(scene.track_vertices);
+        auto lp = sm["lateralPlan"].getLateralPlan();
+        int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+        int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
+        if (show_path_mode == 0) {
+#if 1
+            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
 #else
-        if (s->show_path_mode == 0) {
             NVGpaint track_bg;
             float torque_scale = 0.0;
             int red_lvl = fmin(255, torque_scale);
@@ -333,28 +329,12 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
                 nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
             ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
+#endif
         }
         else {
 
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
-            int alpha = 120;
-            NVGcolor colors[10] = {
-                 COLOR_RED_ALPHA(alpha),
-                 nvgRGBA(255,153,0, alpha),
-                 COLOR_YELLOW_ALPHA(alpha),
-                 COLOR_GREEN_ALPHA(alpha),
-                 COLOR_BLUE_ALPHA(alpha),
-                 nvgRGBA(0,0,128, alpha),
-                 nvgRGBA(0x8b,0,0xff, alpha),
-                 COLOR_OCHRE_ALPHA(alpha),
-                 COLOR_WHITE_ALPHA(alpha),
-                 COLOR_BLACK_ALPHA(alpha),
-            };
-            auto lp = sm["lateralPlan"].getLateralPlan();
-
-            int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
-            int show_path_color = (lp.getUseLaneLines())?s->show_path_color_lane : s->show_path_color;
             auto    car_state = sm["carState"].getCarState();
             float   accel = car_state.getAEgo();
             float   v_ego = car_state.getVEgoCluster();
@@ -455,8 +435,126 @@ void DrawApilot::drawLaneLines(const UIState* s) {
                 break;
             }
         }
-#endif
     }
+}
+
+#define PLOT_MAX 500
+
+int     plotSize = 0;
+int     plotIndex = 0;
+float   plotQueue[2][PLOT_MAX];
+float   plotMin = 0.;
+float   plotMax = 0.;
+float   plotShift = 0.0;
+float   plotX = 400.0;
+float   plotWidth = 1000;
+float   plotY = 30.0;
+float   plotHeight = 300.0;
+float   plotRatio = 1.0;
+int     show_plot_mode_prev = -1;
+static void ui_draw_plotting(const UIState* s, int start, float x, float y[], int size, NVGcolor* color, float stroke = 0.0) {
+
+    nvgBeginPath(s->vg);
+    plotRatio = (plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / (plotMax - plotMin);
+    float dx = 2.0;
+    char str[128];
+
+    for (int i = 0; i < size; i++) {
+        float data = y[(start - i + PLOT_MAX) % PLOT_MAX];
+        float plot_y = plotY + plotHeight - (data - plotMin) * plotRatio;
+        if (i == 0) {
+            nvgMoveTo(s->vg, x + (size - i)*dx, plot_y);
+            sprintf(str, "%.1f", data);
+            ui_draw_text(s, x + (size - i)*dx + 50, plot_y + 40, str, 40, *color, BOLD);
+        }
+        else nvgLineTo(s->vg, x + (size - i)*dx, plot_y);
+    }
+    //nvgClosePath(s->vg);
+
+    if (stroke > 0.0) {
+        nvgStrokeColor(s->vg, *color);
+        nvgStrokeWidth(s->vg, stroke);
+        nvgStroke(s->vg);
+    }
+}
+
+// 에잉 시간텀... ㅠㅠ
+static void make_plot_data(const UIState* s, float& data1, float& data2) {
+    SubMaster& sm = *(s->sm);
+    auto    car_state = sm["carState"].getCarState();
+    float   a_ego = car_state.getAEgo();
+    float   v_ego = car_state.getVEgo();
+    auto    car_control = sm["carControl"].getCarControl();
+    float   accel = car_control.getActuators().getAccel();
+    auto    live_parameters = sm["liveParameters"].getLiveParameters();
+    float   roll = live_parameters.getRoll();
+    auto    controls_state = sm["controlsState"].getControlsState();
+    float   curvature = controls_state.getCurvature();
+    float   desired_curvature = controls_state.getDesiredCurvature();
+    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    float   speeds_0 = lp.getSpeeds()[0];
+
+    switch (s->show_plot_mode) {
+    case 0:
+    case 1:
+        data1 = a_ego;
+        data2 = accel;
+        break;
+    case 2:
+        data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
+        data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        break;
+    case 3:
+    default:
+        data1 = v_ego;
+        data2 = speeds_0;
+        break;
+    }
+    if (s->show_plot_mode != show_plot_mode_prev) {
+        plotSize = 0;
+        plotIndex = 0;
+        plotMin = 0.;
+        plotMax = 0.;
+        show_plot_mode_prev = s->show_plot_mode;
+    }
+}
+
+void ui_draw_plot(const UIState* s) {
+
+    if (s->show_plot_mode == 0) return;
+
+    float _data = 0.;
+    float _data1 = 0.;
+
+    make_plot_data(s, _data, _data1);
+
+#ifdef __TEST
+    static float _data_s = 0.0;
+    _data = _data_s;
+    _data += 0.1;
+    if (_data > 2.0) _data = -2.0;
+    _data1 = 3. - _data;
+
+    _data_s = _data;
+#endif
+    if (plotMin > _data) plotMin = _data;
+    if (plotMax < _data) plotMax = _data;
+    if (plotMin > _data1) plotMin = _data1;
+    if (plotMax < _data1) plotMax = _data1;
+    plotIndex = (plotIndex + 1) % PLOT_MAX;
+    plotQueue[0][plotIndex] = _data;
+    plotQueue[1][plotIndex] = _data1;
+    if (plotSize < PLOT_MAX - 1) plotSize++;
+
+    if (s->fb_w < 1200) return;
+
+    NVGcolor color[2] = { COLOR_YELLOW, COLOR_GREEN };
+    for (int i = 0; i < 2; i++) {
+        //ui_draw_plotting(s, i, plotX, plotQueue[i], plotSize, &color[i], nullptr);
+        ui_draw_plotting(s, plotIndex, plotX, plotQueue[i], plotSize, &color[i], 3.0f);
+    }
+    //ui_draw_rect(s->vg, { (int)plotX, (int)plotY, (int)plotWidth, (int)plotHeight }, COLOR_WHITE, 2, 0);
+
 }
 void ui_draw_radar_info(const UIState* s) {
 
@@ -531,6 +629,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     nvgFontFace(s->vg, BOLD);
     nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
 
+    ui_draw_plot(s);
     ui_draw_radar_info(s);
 
     if (s->show_mode == 2) {
@@ -924,7 +1023,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 1 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 2 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
         ui_draw_rect(s->vg, { x + dxGap, (int)(y + 5 + 64 * 3 / 4.), 40, 64 / 4 }, COLOR_WHITE, 4, 0);
-        ui_draw_text(s, x + dxGap + 20, y+80, "GAP", 25, COLOR_WHITE, BOLD);
+        ui_draw_text(s, x + dxGap + 20, y+90, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
     if (s->show_gap_info >= 0) {
@@ -1001,7 +1100,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     }
     else if (s->show_mode == 5) {
         y = 620;
-        x = 600;
+        x = 400;
     }
 
     // 속도표시
@@ -1121,6 +1220,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             bx = 150;
             by = 380;
         }
+        else if (s->show_mode == 5) {
+            bx = 100;
+            by = 650;
+        }
         if (limit_speed > 0) {
             nvgBeginPath(s->vg);
             nvgCircle(s->vg, bx, by, 140 / 2);
@@ -1221,16 +1324,24 @@ void DrawApilot::drawDebugText(UIState* s) {
     if (s->fb_w < 1200) return;
     const SubMaster& sm = *(s->sm);
     char  str[128];
+    QString qstr;
 
-    int y = 150;
+    int y = 150, dy = 80;
 
     const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
-
+    
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
     ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-    //p.drawText(text_x, y + 80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
 
+    qstr = QString::fromStdString(live_torque_params.getDebugText().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     //auto controls_state = sm["controlsState"].getControlsState();
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));

@@ -66,6 +66,7 @@ def manager_init() -> None:
     ("ShowPathModeLane", "0"),
     ("ShowPathColorLane", "0"),
     ("ShowPathWidth", "100"),
+    ("ShowPlotMode", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    

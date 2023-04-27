@@ -203,6 +203,7 @@ public:
   int show_path_mode_lane = 0;
   int show_path_color_lane = 14;
   float show_path_width = 1.0;
+  int show_plot_mode = 0;
 
 signals:
   void uiUpdate(const UIState &s);

@@ -185,21 +185,29 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
     left_points.reserve(40+1);
     right_points.reserve(40+1);
     float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    float   x_prev = 0;
     for (int i = 0; i < 33; i++) {
         idxs[i] = (float)i;
-        line_xs[i] = line_x[i];
+        if (i>0 && line_x[i] < x_prev) {
+            //printf("plan data error.\n");
+            line_xs[i] = x_prev;
+        }
+        else line_xs[i] = line_x[i];
+        x_prev = line_xs[i];
         line_ys[i] = line_y[i];
         line_zs[i] = line_z[i];
     }
 
-    float   dist_dt = 0.1;
+    float   dist = 2.0, dist_dt = 1.;
     bool    exit = false;
-    for (float dist = 2; !exit; dist += dist_dt) {
-        dist_dt += 0.1;
+    //printf("\ndist = ");
+    for (int i = 0; !exit; i++, dist = dist + dist*0.15) {
+        dist_dt += (i*0.05);
         if (dist >= max_dist) {
             dist = max_dist;
             exit = true;
         }
+        //printf("%.0f ", dist);
         float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
@@ -257,7 +265,7 @@ void update_model(UIState *s,
   update_line_data(s, lane_lines[2], 0, -0.05, -0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
 #else
   int max_idx_barrier = get_path_length_idx(plan_position, 40.0);
-  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // Â÷¼±ÆøÀ» ¾Ë¸é ÁÁ°ÚÁö¸¸...
+  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // ì°¨ì„ í­ì„ ì•Œë©´ ì¢‹ê² ì§€ë§Œ...
   update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false, 1.7);
 #endif
 
@@ -441,6 +449,7 @@ void ui_update_params(UIState *s) {
   case 70:
       s->show_path_color_lane = std::atoi(params.get("ShowPathColorLane").c_str());;
       s->show_path_width = std::atof(params.get("ShowPathWidth").c_str()) / 100.;
+      s->show_plot_mode = std::atoi(params.get("ShowPlotMode").c_str());
       break;
   }
  }
