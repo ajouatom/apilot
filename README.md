@@ -2,6 +2,8 @@ APILOT
 ------
 * PREVIEW
 
+  ![image](https://user-images.githubusercontent.com/43668841/234758895-29ce21fa-521a-444f-8318-e00ce991a03c.png)
+
   ![image](https://user-images.githubusercontent.com/43668841/234758774-851624ee-5f15-4492-bbaf-9239bf5ddb94.png)
 
   ![image](https://user-images.githubusercontent.com/43668841/231068110-1bd61f5b-8c1f-406b-bacd-419e47289a08.png)
