@@ -592,7 +592,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathEnd",
       "title": "화면패쓰끝표시",
       "descr": "",
@@ -652,7 +652,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowLaneInfo",
       "title": "화면차선정보",
       "descr": "-1:없음, 0:패스만, 1:레인, 2:로드엣지",
@@ -702,7 +702,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowZOffset",
       "title": "화면패스높이(170)",
       "descr": "패스끝이 선행차 아래표시될때까지 올릴것",
@@ -712,7 +712,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathMode",
       "title": "화면패스종류",
       "descr": "0:일반,1,2:사각,3,4:^^,5,6:사각,7,8:^^",
@@ -722,7 +722,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathColor",
       "title": "화면패스색상",
       "descr": "(+10:띠)0:빨,1:주,2:노,3:초,4:파,5:남,6:보,7:고,8:흰,9:검",
@@ -732,7 +732,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathModeLane",
       "title": "화면패스종류,레인모드",
       "descr": "0:일반,1,2:사각,3,4:^^,5,6:사각,7,8:^^",
@@ -742,7 +742,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathColorLane",
       "title": "화면패스색상,레인모드",
       "descr": "(+10:띠)0:빨,1:주,2:노,3:초,4:파,5:남,6:보,7:고,8:흰,9:검",
@@ -752,7 +752,7 @@
       "unit": 1
     },
     {
-      "group": "화면",
+      "group": "화면패스",
       "name": "ShowPathWidth",
       "title": "화면패스폭(100%)",
       "descr": "",
