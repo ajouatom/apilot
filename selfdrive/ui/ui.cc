@@ -189,7 +189,7 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
     for (int i = 0; i < 33; i++) {
         idxs[i] = (float)i;
         if (i>0 && line_x[i] < x_prev) {
-            printf("plan data error.\n");
+            //printf("plan data error.\n");
             line_xs[i] = x_prev;
         }
         else line_xs[i] = line_x[i];
