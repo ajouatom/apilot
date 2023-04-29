@@ -265,7 +265,7 @@ void update_model(UIState *s,
   update_line_data(s, lane_lines[2], 0, -0.05, -0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
 #else
   int max_idx_barrier = get_path_length_idx(plan_position, 40.0);
-  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // Â÷¼±ÆøÀ» ¾Ë¸é ÁÁ°ÚÁö¸¸...
+  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // ì°¨ì„ í­ì„ ì•Œë©´ ì¢‹ê² ì§€ë§Œ...
   update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false, 1.7);
 #endif
 

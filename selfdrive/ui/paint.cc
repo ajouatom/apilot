@@ -74,7 +74,7 @@ static void ui_draw_text(const UIState* s, float x, float y, const char* string,
     nvgText(s->vg, x, y, string, NULL);
 }
 
-static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint) {
+static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
     if (vd.size() == 0) return;
 
     nvgBeginPath(s->vg);
@@ -90,6 +90,11 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
         nvgFillPaint(s->vg, *paint);
     }
     nvgFill(s->vg);
+    if (stroke > 0.0) {
+        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeWidth(s->vg, stroke);
+        nvgStroke(s->vg);
+    }
 }
 static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
 
@@ -321,36 +326,27 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     }
     // paint path
     static bool forward = true;
+    int alpha = 120;
+    NVGcolor colors[10] = {
+         COLOR_RED_ALPHA(alpha),
+         nvgRGBA(255,153,0, alpha),
+         COLOR_YELLOW_ALPHA(alpha),
+         COLOR_GREEN_ALPHA(alpha),
+         COLOR_BLUE_ALPHA(alpha),
+         nvgRGBA(0,0,128, alpha),
+         nvgRGBA(0x8b,0,0xff, alpha),
+         COLOR_OCHRE_ALPHA(alpha),
+         COLOR_WHITE_ALPHA(alpha),
+         COLOR_BLACK_ALPHA(alpha),
+    };
     if (s->show_lane_info > -1) {
-#if 0
-        QLinearGradient bg(0, height(), 0, height() / 4);
-        float start_hue, end_hue;
-        if (sm["controlsState"].getControlsState().getExperimentalMode() || true) {
-            const auto& acceleration = sm["modelV2"].getModelV2().getAcceleration();
-            float acceleration_future = 0;
-            if (acceleration.getZ().size() > 16) {
-                acceleration_future = acceleration.getX()[16];  // 2.5 seconds
-            }
-            start_hue = 60;
-            // speed up: 120, slow down: 0
-            end_hue = fmax(fmin(start_hue + acceleration_future * 45, 148), 0);
-
-            // FIXME: painter.drawPolygon can be slow if hue is not rounded
-            end_hue = int(end_hue * 100 + 0.5) / 100;
-
-            bg.setColorAt(0.0, QColor::fromHslF(start_hue / 360., 0.97, 0.56, 0.4));
-            bg.setColorAt(0.5, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.35));
-            bg.setColorAt(1.0, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.0));
-        }
-        else {
-            bg.setColorAt(0.0, QColor::fromHslF(148 / 360., 0.94, 0.51, 0.4));
-            bg.setColorAt(0.5, QColor::fromHslF(112 / 360., 1.0, 0.68, 0.35));
-            bg.setColorAt(1.0, QColor::fromHslF(112 / 360., 1.0, 0.68, 0.0));
-        }
-        painter.setBrush(bg);
-        painter.drawPolygon(scene.track_vertices);
+        auto lp = sm["lateralPlan"].getLateralPlan();
+        int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+        int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
+        if (show_path_mode == 0) {
+#if 1
+            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
 #else
-        if (s->show_path_mode == 0) {
             NVGpaint track_bg;
             float torque_scale = 0.0;
             int red_lvl = fmin(255, torque_scale);
@@ -358,28 +354,12 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
                 nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
             ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
+#endif
         }
         else {
 
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
-            int alpha = 120;
-            NVGcolor colors[10] = {
-                 COLOR_RED_ALPHA(alpha),
-                 nvgRGBA(255,153,0, alpha),
-                 COLOR_YELLOW_ALPHA(alpha),
-                 COLOR_GREEN_ALPHA(alpha),
-                 COLOR_BLUE_ALPHA(alpha),
-                 nvgRGBA(0,0,128, alpha),
-                 nvgRGBA(0x8b,0,0xff, alpha),
-                 COLOR_OCHRE_ALPHA(alpha),
-                 COLOR_WHITE_ALPHA(alpha),
-                 COLOR_BLACK_ALPHA(alpha),
-            };
-            auto lp = sm["lateralPlan"].getLateralPlan();
-
-            int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
-            int show_path_color = (lp.getUseLaneLines())?s->show_path_color_lane : s->show_path_color;
             auto    car_state = sm["carState"].getCarState();
             float   accel = car_state.getAEgo();
             float   v_ego = car_state.getVEgoCluster();
@@ -480,7 +460,6 @@ void DrawApilot::drawLaneLines(const UIState* s) {
                 break;
             }
         }
-#endif
     }
 }
 

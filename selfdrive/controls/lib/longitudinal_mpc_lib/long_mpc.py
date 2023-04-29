@@ -661,7 +661,15 @@ class LongitudinalMpc:
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
+
+      ## 시험코드: 왜 앞차는 가속하는데... 내차는 가속을 안하냐구...
+      ## 결론은 long_mpc에 입력하는 cruise_obstacle값이 작음... 크게하여 가속도를 늘려야함.
+      # 레이더있고, 내차보다 빠르면.. 유효거리 50M이내.. 
+      # 값을 크게하면... lead_obstacle값으로 가겠지..
+      if radarstate.leadOne.status and self.applyLongDynamicCost and radarstate.leadOne.dRel < 50:
+        self.comfort_brake *= interp(radarstate.leadOne.vRel*3.6, [0, 5.], [1.0, self.applyDynamicTFollowApart])
+      #cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, T_FOLLOW, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
