@@ -453,7 +453,7 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
     if controls.longCruiseGap >= 4:
-      self.applyCruiseGap = interp(v_ego_kph, [0, 60, 120, 140], [1,2,3,4])
+      self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 120, 140], [1,1,2,3,4])
       cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
       self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
     else:
