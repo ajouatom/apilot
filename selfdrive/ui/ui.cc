@@ -272,7 +272,9 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
 
     //v_ego_kph = 60.;
     float   dt = (v_ego_kph * 0.01);
-    if (dt > 1.0) dt = 1.0;
+    float   dt_max = 1.0;
+    if (show_path_mode == 10) dt_max = 0.6;
+    if (dt > dt_max) dt = dt_max;
     else {
         if (v_ego_kph < 1) pos_t = 4.0;
         else if (dt < 0.2) dt = 0.2;
