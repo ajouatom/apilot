@@ -94,6 +94,8 @@ class CruiseHelper:
     self.apilotEventWait = 0
     self.apilotEventPrev = 0
 
+    self.leadCarSpeed = 0.
+
     self.update_params_count = 0
     self.curvatureFilter = StreamingMovingAverage(10)
 
@@ -393,7 +395,10 @@ class CruiseHelper:
             v_cruise_kph = self.v_cruise_kph_backup 
         elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
           if self.dRel > 0:
-            v_cruise_kph = self.v_cruise_kph_backup 
+            if self.leadCarSpeed  < self.v_ego_kph_set:
+              v_cruise_kph = self.v_ego_kph_set
+            else:
+              v_cruise_kph = self.v_cruise_kph_backup 
           else:
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
         elif self.autoResumeFromGasSpeedMode == 3: # 60M이상 직선도로일때 기존속도. 1초이상 페달밟음.
@@ -608,7 +613,7 @@ class CruiseHelper:
     self.xState = controls.sm['longitudinalPlan'].xState
     self.xStop = controls.sm['longitudinalPlan'].xStop
     dRel, vRel = self.get_lead_rel(controls)
-    leadCarSpeed = self.v_ego_kph + vRel*CV.MS_TO_KPH
+    self.leadCarSpeed = self.v_ego_kph + vRel*CV.MS_TO_KPH
     
     #if 2 < dRel < 20:
     #  self.dRelValidCount += 1
@@ -682,14 +687,14 @@ class CruiseHelper:
       ###### leadCar 관련 속도처리
       roadSpeed1 = self.roadSpeed * self.autoSpeedUptoRoadSpeedLimit
       if v_cruise_kph < roadSpeed1 and self.dRel > 0 and self.vRel > 0 and self.autoSpeedUptoRoadSpeedLimit > 0:
-        if leadCarSpeed > v_cruise_kph:
-          v_cruise_kph = max(v_cruise_kph, min(leadCarSpeed, roadSpeed1))
+        if self.leadCarSpeed > v_cruise_kph:
+          v_cruise_kph = max(v_cruise_kph, min(self.leadCarSpeed, roadSpeed1))
           self.v_cruise_kph_apply = v_cruise_kph
       elif self.autoSpeedAdjustWithLeadCar > 0.0 and self.dRel > 0:
-        leadCarSpeed1 = max(leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
+        leadCarSpeed1 = max(self.leadCarSpeed + self.autoSpeedAdjustWithLeadCar, 30)
         if leadCarSpeed1 < v_cruise_kph:
           self.v_cruise_kph_apply = leadCarSpeed1
-      #controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( leadCarSpeed, vRel*CV.MS_TO_KPH, self.roadSpeed, self.v_cruise_kph_apply)      
+      #controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( self.leadCarSpeed, vRel*CV.MS_TO_KPH, self.roadSpeed, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl > 0 and self.naviSpeed > 0:
