@@ -346,7 +346,7 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
                 left_points.push_back(left);
                 right_points.push_front(right);
             }
-            else printf("calib_frame_to_full_frame.... error\n");
+            //else printf("calib_frame_to_full_frame.... error\n");
             if (exit) break;
         }
     }
