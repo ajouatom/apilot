@@ -405,7 +405,13 @@ class CruiseHelper:
           if self.xStop > 60.0 and self.gasPressedCount * DT_CTRL > 1.0: 
             if self.v_cruise_kph_backup < self.v_ego_kph_set:
               self.v_cruise_kph_backup = self.v_ego_kph_set
-            v_cruise_kph = self.v_cruise_kph_backup 
+            if self.dRel > 0:
+              if self.leadCarSpeed  < self.v_ego_kph_set:
+                v_cruise_kph = self.v_ego_kph_set
+              else:
+                v_cruise_kph = self.v_cruise_kph_backup 
+            else:
+              v_cruise_kph = self.v_cruise_kph_backup 
           else:
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
         if self.longCruiseGap != 5: 
