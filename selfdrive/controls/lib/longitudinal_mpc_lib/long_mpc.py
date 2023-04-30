@@ -63,7 +63,7 @@ MIN_ACCEL = -4.0 #-3.5
 MAX_ACCEL = 2.5
 T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 6.5
+STOP_DISTANCE = 6.0
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE, krkeegan=False):
   if not krkeegan:
@@ -615,8 +615,6 @@ class LongitudinalMpc:
         self.trafficState = 0
         self.trafficError = False
 
-      fakeCruiseDistance = 0.0
-
       #3단계: 조건에 따른. 감속및 주행.
       if self.xState in [XState.lead, XState.cruise] or self.e2ePaused or controls.longActiveUser<=0:
         model_x = 1000.0
@@ -634,7 +632,6 @@ class LongitudinalMpc:
         pass
       elif self.xState == XState.e2eStop:
         self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
-        fakeCruiseDistance = 10.0
 
         #if cruiseButtonCounterDiff > 0:
         #  self.buttonStopDist += 1.0
@@ -668,8 +665,7 @@ class LongitudinalMpc:
       comfort_brake = self.comfort_brake
       if radarstate.leadOne.status and self.applyLongDynamicCost and radarstate.leadOne.dRel < 50:
         comfort_brake *= interp(radarstate.leadOne.vRel*3.6, [0, 2.], [1.0, self.applyDynamicTFollowApart])
-      #cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, T_FOLLOW, comfort_brake, applyStopDistance + fakeCruiseDistance)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, T_FOLLOW, comfort_brake, STOP_DISTANCE)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
