@@ -12,7 +12,7 @@ from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL, N
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N, get_speed_error
-from system.swaglog import cloudlog
+from selfdrive.swaglog import cloudlog
 from common.params import Params
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
