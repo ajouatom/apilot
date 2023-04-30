@@ -356,6 +356,33 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
 #endif
         }
+        else if (show_path_mode >= 9) {
+            int     track_vertices_len = scene.track_vertices.length();
+            //printf("len = %d\n", track_vertices_len);
+            float   x[6], y[6];
+            int     color_n = 0;
+            //for (int i = 0; i < track_vertices_len / 2; i++)
+            //    printf("(%.1f,%.1f)(%.1f,%.1f)\n", scene.track_vertices[i].x(), scene.track_vertices[i].y(), scene.track_vertices[track_vertices_len-i - 1].x(), scene.track_vertices[track_vertices_len-i - 1].y());
+            for (int i = 0; i < track_vertices_len / 2 - 1; i += 3) {
+                int e = track_vertices_len - i - 1;
+                x[0] = scene.track_vertices[i].x();
+                y[0] = scene.track_vertices[i].y();
+                x[1] = scene.track_vertices[i + 1].x();
+                y[1] = scene.track_vertices[i + 1].y();
+                x[2] = (scene.track_vertices[i + 2].x() + scene.track_vertices[e - 2].x()) / 2;
+                y[2] = (scene.track_vertices[i + 2].y() + scene.track_vertices[e - 2].y()) / 2;
+                x[3] = scene.track_vertices[e - 1].x();
+                y[3] = scene.track_vertices[e - 1].y();
+                x[4] = scene.track_vertices[e].x();
+                y[4] = scene.track_vertices[e].y();
+                x[5] = (x[1] + x[3]) / 2;
+                y[5] = (y[1] + y[3]) / 2;
+                //ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+
+                if (++color_n > 6) color_n = 0;
+            }
+        }
         else {
 
             int     track_vertices_len = scene.track_vertices.length();

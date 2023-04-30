@@ -230,6 +230,128 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
     }
     *pvd = left_points + right_points;
 }
+float dist_function(float t, float max_dist) {
+    float dist = 3.0 * pow(1.2, t);
+    return (dist >= max_dist)? max_dist: dist;
+}
+
+void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& line,
+    float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, float max_dist, bool allow_invert = true) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+    QPolygonF left_points, right_points;
+    left_points.reserve(40 + 1);
+    right_points.reserve(40 + 1);
+
+
+    // comma의 데이터는 x,y,z 점들로 이루어짐. 
+    float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    float   x_prev = 0;
+    for (int i = 0; i < 33; i++) {
+        idxs[i] = (float)i;
+        if (i > 0 && line_x[i] < x_prev) {
+            //printf("plan data error.\n");
+            line_xs[i] = x_prev;
+        }
+        else line_xs[i] = line_x[i];
+        x_prev = line_xs[i];
+        line_ys[i] = line_y[i];
+        line_zs[i] = line_z[i];
+    }
+    SubMaster& sm = *(s->sm);
+    auto lp = sm["lateralPlan"].getLateralPlan();
+    //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+    int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+    auto    car_state = sm["carState"].getCarState();
+    //float   accel = car_state.getAEgo();
+    float   v_ego = car_state.getVEgoCluster();
+    float   v_ego_kph = v_ego * MS_TO_KPH;
+
+    static float    pos_t = 0.0;
+    float           pos_t_start = 0.0;
+    float           pos_t_max = 24.0;
+
+    //v_ego_kph = 60.;
+    float   dt = (v_ego_kph * 0.01);
+    if (show_path_mode < 2) { if (dt > 0.8) dt = 0.8; }
+    else {
+        if (v_ego_kph < 1) pos_t = 4.0;
+        else if (dt < 0.2) dt = 0.2;
+    }
+    pos_t += dt;
+    if (pos_t > pos_t_max) pos_t = pos_t_start + (pos_t - pos_t_max); 
+
+    float   d, t;
+    float   draw_t[50];
+    int     draw_t_n = 0;
+    float   dist = 0.0;
+
+    if (show_path_mode == 9) {
+        draw_t[draw_t_n++] = pos_t;
+        d = 3.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        d = 10.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        d = 3.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+    }
+    else {
+        draw_t[draw_t_n++] = pos_t;
+        for (int i = 0; i < 7; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
+    
+    int     draw_t_idx = 0;
+    float   temp = draw_t[0];
+    for (int i = 0; i < draw_t_n; i++) {
+        if (draw_t[i] < temp) {
+            draw_t_idx = i;
+            temp = draw_t[i];
+        }
+    }
+    bool exit = false;
+    for (int i = 0; i < draw_t_n && !exit; i++) {
+        t = draw_t[draw_t_idx];
+        draw_t_idx = (draw_t_idx + 1) % draw_t_n;
+        if (t < 3.0) continue;
+        if (dist_function(t, max_dist) == max_dist) exit = true;
+        for (int j = 2; j >= 0; j--) {
+            if (exit) dist = dist_function(100, max_dist);
+            else dist = dist_function(t - j * 1.0, max_dist);
+            float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
+            float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
+            y_off *= width_apply;
+            float  idx = interp<float>(dist, line_xs, idxs, 33, false);
+            if (idx >= 33) {
+                printf("index... %.1f\n", idx);
+                break;
+            }
+            float line_y1 = interp<float>(idx, idxs, line_ys, 33, false);
+            float line_z1 = interp<float>(idx, idxs, line_zs, 33, false);
+
+            QPointF left, right;
+            bool l = calib_frame_to_full_frame(s, dist, line_y1 - y_off, line_z1 + z_off, &left);
+            bool r = calib_frame_to_full_frame(s, dist, line_y1 + y_off, line_z1 + z_off, &right);
+            if (l && r) {
+                // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+                //if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+                //    printf("iiiii dist=%.1f, t=%.1f, i=%d, j=%d\n", dist, t, i,j);
+                    //continue;
+                //}
+                left_points.push_back(left);
+                right_points.push_front(right);
+            }
+            else printf("calib_frame_to_full_frame.... error\n");
+            if (exit) break;
+        }
+    }
+    *pvd = left_points + right_points;
+}
 
 void update_model(UIState *s, 
                   const cereal::ModelDataV2::Reader &model,
@@ -287,7 +409,14 @@ void update_model(UIState *s,
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
 #else
-  update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
+  SubMaster& sm = *(s->sm);
+  auto lp = sm["lateralPlan"].getLateralPlan();
+  //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+  int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+  if(show_path_mode >= 9) 
+    update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
+  else
+    update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
 #endif
 }
 void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &driverstate, float dm_fade_state, bool is_rhd) {
