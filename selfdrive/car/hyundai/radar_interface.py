@@ -60,6 +60,8 @@ class RadarInterface(RadarInterfaceBase):
     self.radar_off_can = CP.radarUnavailable
     self.rcp = get_radar_can_parser(CP)
 
+    self.vRel_prev = 1000.0
+
   def update(self, can_strings):
     # This one causes my radar points to not work
     # if self.radar_off_can or (self.rcp is None):
@@ -128,11 +130,18 @@ class RadarInterface(RadarInterfaceBase):
           self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
           self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
-          self.pts[ii].aRel = float('nan')
+          if self.vRel_prev == 1000:
+            self.vRel_prev = self.pts[ii].vRel
+            self.pts[ii].aRel = 0.0
+          else:
+            self.pts[ii].aRel = self.pts[ii].vRel - self.vRel_prev
+            self.vRel_prev = self.pts[ii].vRel
+          #self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True
 
         else:
+          self.vRel_prev = 1000.0
           if ii in self.pts:
             del self.pts[ii]
 
