@@ -562,7 +562,7 @@
       "unit": 10
     },
     {
-      "group": "내꺼",
+      "group": "화면",
       "name": "ShowDebugUI",
       "title": "디버그정보 표시",
       "descr": "",
