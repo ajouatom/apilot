@@ -666,7 +666,7 @@ class LongitudinalMpc:
       comfort_brake = self.comfort_brake
       if radarstate.leadOne.status and self.applyLongDynamicCost and radarstate.leadOne.dRel < 50:
         comfort_brake *= interp(radarstate.leadOne.vRel*3.6, [0, 2.], [1.0, self.applyDynamicTFollowApart])
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, T_FOLLOW, comfort_brake, STOP_DISTANCE)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, comfort_brake, applyStopDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
