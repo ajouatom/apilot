@@ -273,7 +273,7 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
     //v_ego_kph = 60.;
     float   dt = (v_ego_kph * 0.01);
     float   dt_max = 1.0;
-    if (show_path_mode == 10) dt_max = 0.6;
+    if (show_path_mode >= 10) dt_max = 0.6;
     if (dt > dt_max) dt = dt_max;
     else {
         if (v_ego_kph < 1) pos_t = 4.0;
@@ -299,7 +299,7 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
         t = draw_t[draw_t_n - 1];
         draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
     }
-    else {
+    else if (show_path_mode == 10) {
         draw_t[draw_t_n++] = pos_t;
         for (int i = 0; i < 7; i++) {
             d = 3.0;
@@ -307,7 +307,15 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
             draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
         }
     }
-    
+    else if (show_path_mode == 11) {
+        draw_t[draw_t_n++] = pos_t;
+        for (int i = 0; i < 5; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
+
     int     draw_t_idx = 0;
     float   temp = draw_t[0];
     for (int i = 0; i < draw_t_n; i++) {
