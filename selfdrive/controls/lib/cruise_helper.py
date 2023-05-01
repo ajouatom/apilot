@@ -133,6 +133,7 @@ class CruiseHelper:
     self.steerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
     self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
     self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
+    self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -189,6 +190,9 @@ class CruiseHelper:
       elif self.update_params_count == 16:
         self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
         self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
+      elif self.update_params_count == 17:
+        self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
+
 
   def getSteerActuatorDelay(self, v_ego):
     v_ego_kph = v_ego * 3.6

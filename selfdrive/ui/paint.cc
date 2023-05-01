@@ -1369,6 +1369,12 @@ void DrawApilot::drawDebugText(UIState* s) {
     qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
     y += dy;
     ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    const auto live_params = sm["liveParameters"].getLiveParameters();
+    float   liveSteerRatio = live_params.getSteerRatio();
+    sprintf(str, "LiveSR = %.2f", liveSteerRatio);
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
     //auto controls_state = sm["controlsState"].getControlsState();
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));

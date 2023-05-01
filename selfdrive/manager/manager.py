@@ -151,6 +151,7 @@ def manager_init() -> None:
     ("SteerActuatorDelayMid", "30"),    
     ("CruiseControlMode", "4"),
     ("CruiseOnDist", "0"),
+    ("SteerRatioApply", "0"),
     ("SteerDeltaUp", "3"),       
     ("SteerDeltaDown", "7"),       
   ]
