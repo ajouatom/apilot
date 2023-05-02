@@ -315,6 +315,18 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
             draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
         }
     }
+    else if (show_path_mode == 12) {
+        draw_t[draw_t_n++] = pos_t;
+        int n = (int)(v_ego_kph * 0.58 + 0.5);
+        if (n < 2) n = 2;
+        else if (n > 7) n = 7;
+        
+        for (int i = 0; i < n; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
 
     int     draw_t_idx = 0;
     float   temp = draw_t[0];
