@@ -226,6 +226,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ShowZOffset", PERSISTENT },
     { "ShowPathMode", PERSISTENT },
     { "ShowPathColor", PERSISTENT },
+    { "ShowPathModeCruiseOff", PERSISTENT },
+    { "ShowPathColorCruiseOff", PERSISTENT },
     { "ShowPathModeLane", PERSISTENT },
     { "ShowPathColorLane", PERSISTENT },
     { "ShowPathWidth", PERSISTENT },

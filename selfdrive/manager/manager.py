@@ -63,6 +63,8 @@ def manager_init() -> None:
     ("ShowZOffset", "122"),
     ("ShowPathMode", "0"),
     ("ShowPathColor", "0"),
+    ("ShowPathModeCruiseOff", "0"),
+    ("ShowPathColorCruiseOff", "0"),
     ("ShowPathModeLane", "0"),
     ("ShowPathColorLane", "0"),
     ("ShowPathWidth", "100"),
