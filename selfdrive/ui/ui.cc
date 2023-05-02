@@ -261,7 +261,13 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
     auto lp = sm["lateralPlan"].getLateralPlan();
     //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
     int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+    auto controls_state = sm["controlsState"].getControlsState();
+    int longActiveUser = controls_state.getLongActiveUser();
+    if (longActiveUser <= 0) {
+        show_path_mode = s->show_path_mode_cruise_off;
+    }
     auto    car_state = sm["carState"].getCarState();
+
     //float   accel = car_state.getAEgo();
     float   v_ego = car_state.getVEgoCluster();
     float   v_ego_kph = v_ego * MS_TO_KPH;
