@@ -564,6 +564,10 @@ void ui_update_params(UIState *s) {
       s->show_path_width = std::atof(params.get("ShowPathWidth").c_str()) / 100.;
       s->show_plot_mode = std::atoi(params.get("ShowPlotMode").c_str());
       break;
+  case 80:
+      s->show_path_mode_cruise_off = std::atoi(params.get("ShowPathModeCruiseOff").c_str());;
+      s->show_path_color_cruise_off = std::atoi(params.get("ShowPathColorCruiseOff").c_str());;
+      break;
   }
  }
 

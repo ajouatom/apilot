@@ -341,8 +341,16 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     };
     if (s->show_lane_info > -1) {
         auto lp = sm["lateralPlan"].getLateralPlan();
+        auto controls_state = sm["controlsState"].getControlsState();
+
+        int longActiveUser = controls_state.getLongActiveUser();
         int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
-        int show_path_mode = (lp.getUseLaneLines())?s->show_path_mode_lane : s->show_path_mode;
+        int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+
+        if (longActiveUser <=  0) {
+            show_path_color = s->show_path_color_cruise_off;
+            show_path_mode = s->show_path_mode_cruise_off;
+        }
         if (show_path_mode == 0) {
 #if 1
             ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);

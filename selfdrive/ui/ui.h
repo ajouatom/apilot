@@ -200,6 +200,8 @@ public:
   float show_z_offset = 1.22;
   int show_path_mode = 0;
   int show_path_color = 14;
+  int show_path_mode_cruise_off = 0;
+  int show_path_color_cruise_off = 14;
   int show_path_mode_lane = 0;
   int show_path_color_lane = 14;
   float show_path_width = 1.0;
