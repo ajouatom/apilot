@@ -842,11 +842,11 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         showBg = true;
         showDistInfo = false;
     }
+    int trafficMode = 0;
     if (true) {  // 핸들표시가 없는경우만 표시, 핸들표시모드인경우, 핸들아이콘으로 표시됨.
 #ifdef __TEST
         if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
 #endif
-        int trafficMode = 0;
         if (longActiveUser <= 0) trafficMode = 0;  // 크루즈가 꺼져있으면... 신호등을 모두 꺼버려?
         else if (trafficState >= 100) trafficMode = 3; // yellow
         else {
@@ -855,11 +855,13 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f);
+                if (s->show_mode == 4 || s->show_mode == 5);
+                else if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f);
                 showBg = true;
                 break;
             case 2: trafficMode = 2;
-                if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+                if (s->show_mode == 4 || s->show_mode == 5);
+                else if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
                 break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
@@ -1221,6 +1223,11 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
         int bx = x;
         int by = y + 270;
+
+        if (s->show_mode == 4 || s->show_mode == 5) {
+            if (trafficMode == 1) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2 + 270, icon_size, icon_size }, "ic_traffic_red", 1.0f);
+            else if (trafficMode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2 + 270, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+        }
 
         char speed[128];
         sprintf(speed, "%.0f", cur_speed);
