@@ -337,11 +337,14 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
         }
     }
     bool exit = false;
-    for (int i = 0; i < draw_t_n && !exit; i++) {
-        t = draw_t[draw_t_idx];
-        draw_t_idx = (draw_t_idx + 1) % draw_t_n;
-        if (t < 3.0) continue;
-        if (dist_function(t, max_dist) == max_dist) exit = true;
+    for (int i = 0; i <= draw_t_n && !exit; i++) {
+        if(i==draw_t_n) exit = true;
+        else {
+            t = draw_t[draw_t_idx];
+            draw_t_idx = (draw_t_idx + 1) % draw_t_n;
+            if (t < 3.0) continue;
+            if (dist_function(t, max_dist) == max_dist) exit = true;
+        }
         for (int j = 2; j >= 0; j--) {
             if (exit) dist = dist_function(100, max_dist);
             else dist = dist_function(t - j * 1.0, max_dist);
