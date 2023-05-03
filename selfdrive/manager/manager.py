@@ -149,8 +149,6 @@ def manager_init() -> None:
     ("LateralAccelCost", "0"),       
     ("LateralJerkCost", "5"),       
     ("SteerActuatorDelay", "30"),       
-    ("SteerActuatorDelayLow", "30"),       
-    ("SteerActuatorDelayMid", "30"),    
     ("CruiseControlMode", "4"),
     ("CruiseOnDist", "0"),
     ("SteerRatioApply", "0"),

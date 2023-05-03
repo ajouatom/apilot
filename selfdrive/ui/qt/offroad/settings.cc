@@ -743,8 +743,6 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "횡컨: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "횡컨: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "횡컨:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
-    toggleLayout->addWidget(new CValueControl("SteerActuatorDelayMid", "횡컨:SteerActuatorDelayMid(30)", "50km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
-    toggleLayout->addWidget(new CValueControl("SteerActuatorDelayLow", "횡컨:SteerActuatorDelayLow(30)", "0km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaUp", "횡컨: SteerDeltaUp(3)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaDown", "횡컨: SteerDeltaDown(7)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerRatioApply", "횡컨: SteerRatio적용(0x0.1)", "0:사용안함", "../assets/offroad/icon_road.png", 0, 300, 2));
