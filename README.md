@@ -227,8 +227,6 @@ APILOT
   * 조향튜닝
     * LiveSteerRatioApply: 100
     * SteerActuatorDelay:30
-    * SteerActuatorDelayLow: 30
-    * SteerActuatorDelayMid: 30
     * SteerDeltaDown: 7
     * SteerDeltaUp: 4
     * SteeringRateCost: 10

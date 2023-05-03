@@ -112,26 +112,6 @@
       "unit": 1
     },
     {
-      "group": "조향튜닝",
-      "name": "SteerActuatorDelayLow",
-      "title": "SteerActuatorDelayLow(30)",
-      "descr": "0키로일때 SAD",
-      "min": 0,
-      "max": 200,
-      "default": 30,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "SteerActuatorDelayMid",
-      "title": "SteerActuatorDelayMid(30)",
-      "descr": "50키로속도 SAD",
-      "min": 0,
-      "max": 200,
-      "default": 30,
-      "unit": 1
-    },
-    {
       "group": "크루즈",
       "name": "CruiseControlMode",
       "title": "크루즈연비제어(4km/h)",
