@@ -176,7 +176,7 @@
       "name": "SteerRatioApply",
       "title": "SteerRatio적용(0x0.1)",
       "descr": "0: LiveSteerRatio사용, 단위:0.1",
-      "min": 1,
+      "min": 0,
       "max": 300,
       "default": 0,
       "unit": 10
