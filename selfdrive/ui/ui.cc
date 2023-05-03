@@ -323,7 +323,7 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
     }
     else if (show_path_mode == 12) {
         draw_t[draw_t_n++] = pos_t;
-        int n = (int)(v_ego_kph * 0.058 + 0.5);
+        int n = (int)(v_ego_kph * 0.058 - 0.5);
         if (n < 0) n = 0;
         else if (n > 7) n = 7;
         
