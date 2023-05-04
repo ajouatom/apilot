@@ -444,6 +444,10 @@ void update_model(UIState *s,
   auto lp = sm["lateralPlan"].getLateralPlan();
   //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
   int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+  auto controls_state = sm["controlsState"].getControlsState();
+  int longActiveUser = controls_state.getLongActiveUser();
+  if (longActiveUser <= 0) show_path_mode = s->show_path_mode_cruise_off;
+
   if(show_path_mode >= 9) 
     update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
   else
