@@ -124,31 +124,78 @@ float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrap
     T dydx = (yR - yL) / (xR - xL);
     return yL + dydx * (x - xL);
 }
-void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
-                      float y_off, float z_off_left, float z_off_right, QPolygonF *pvd, int max_idx, bool allow_invert=true, float y_shift=0.0) { 
-  const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
-  QPolygonF left_points, right_points;
-  left_points.reserve(max_idx + 1);
-  right_points.reserve(max_idx + 1);
+void update_line_data(const UIState* s, const cereal::XYZTData::Reader& line,
+    float y_off, float z_off_left, float z_off_right, QPolygonF* pvd, int max_idx, bool allow_invert = true, float y_shift = 0.0) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+    QPolygonF left_points, right_points;
+    left_points.reserve(max_idx + 1);
+    right_points.reserve(max_idx + 1);
 
-  //printf("%.1f,%.1f,%.1f\n", line_x[0], line_y[0], line_z[0]);
+    //printf("%.1f,%.1f,%.1f\n", line_x[0], line_y[0], line_z[0]);
 
-  for (int i = 0; i <= max_idx; i++) {
-    // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
-    if (line_x[i] < 0) continue;
-    QPointF left, right;
-    bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off + y_shift, line_z[i] + z_off_left, &left);
-    bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off + y_shift, line_z[i] + z_off_right, &right);
-    if (l && r) {
-      // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
-      if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
-        continue;
-      }
-      left_points.push_back(left);
-      right_points.push_front(right);
+    for (int i = 0; i <= max_idx; i++) {
+        // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
+        if (line_x[i] < 0) continue;
+        QPointF left, right;
+        bool l = calib_frame_to_full_frame(s, line_x[i], line_y[i] - y_off + y_shift, line_z[i] + z_off_left, &left);
+        bool r = calib_frame_to_full_frame(s, line_x[i], line_y[i] + y_off + y_shift, line_z[i] + z_off_right, &right);
+        if (l && r) {
+            // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+            if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+                continue;
+            }
+            left_points.push_back(left);
+            right_points.push_front(right);
+        }
     }
-  }
-  *pvd = left_points + right_points;
+    *pvd = left_points + right_points;
+}
+void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
+    QPolygonF* pvd, float z_off_start, float z_off_end, int max_idx) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+
+    QPolygonF points;
+
+    float   path_end_x = 8.0;
+    float   path_end_y = 0.0;
+    float   path_end_z = 0.0;
+    //printf("max_idx=%d, (%.0f, %.0f, %.0f)\n", max_idx, line_x[max_idx], line_y[max_idx], line_z[max_idx]);
+    if (line_x[max_idx] > 8.0) {
+        path_end_x = line_x[max_idx];
+        path_end_y = line_y[max_idx];
+        path_end_z = line_z[max_idx];
+    }
+    int idx = 0;
+    float path_start_x = 8.0;
+    float path_start_y = 0.0;
+    float path_start_z = 0.0;
+    for (idx = 0; idx < max_idx; idx++) if (line_x[idx] > 8.0) break;
+    if (idx != max_idx && line_x[idx] > 8.0) {
+        path_start_x = line_x[idx];
+        path_start_y = line_y[idx];
+        path_start_z = line_z[idx];
+    }
+    // 카메라높이부터 100미터전방 z높이 interp... 이렇게 하는것이 맞는지...
+    float z_off = z_off_end;// interp<float>(path_end_x, { 0.0f, 100.0f }, { z_off_start, z_off_end }, false);
+    // 차선폭은 가까우면
+    float y_off = 1.5;// interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.7f, 1.2f, 1.7f }, false);
+    //printf("x=%.0f, %.0f, %.0f,,,, %.1f,%.1f\n", path_end_x, path_end_y, path_end_z, y_off, z_off);
+    QPointF left, right;
+    bool l = calib_frame_to_full_frame(s, path_end_x, path_end_y - y_off, path_end_z+z_off, &left);
+    bool r = calib_frame_to_full_frame(s, path_end_x, path_end_y + y_off, path_end_z+z_off, &right);
+    if (l && r) {
+        points.push_front(left);
+        points.push_back(right);
+    }
+    else printf("path_end... err\n");
+    l = calib_frame_to_full_frame(s, path_start_x, path_start_y - 0.5, path_start_z + z_off, &left);
+    r = calib_frame_to_full_frame(s, path_start_x, path_start_y + 0.5, path_start_z + z_off, &right);
+    if (l && r) {
+        points.push_front(left);
+        points.push_back(right);
+    }
+    else printf("path_start... err\n");
+    *pvd = points;
 }
 void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
     float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, int max_idx, bool allow_invert = true) {
@@ -436,10 +483,6 @@ void update_model(UIState *s,
 //    const float lead_d = lead_one.getDRel() * 2.;
 //    max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
 //  }
-#if 0
-  max_idx = get_path_length_idx(plan_position, max_distance);
-  update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
-#else
   SubMaster& sm = *(s->sm);
   auto lp = sm["lateralPlan"].getLateralPlan();
   //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
@@ -448,12 +491,18 @@ void update_model(UIState *s,
   int longActiveUser = controls_state.getLongActiveUser();
   if (longActiveUser <= 0) show_path_mode = s->show_path_mode_cruise_off;
 
-  if(show_path_mode >= 9) 
+  max_idx = get_path_length_idx(plan_position, max_distance);
+  if (show_path_mode == 0) {
+      update_line_data(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_idx, false);
+  }
+  else if(show_path_mode >= 9) 
     update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
   else
-    update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, true);
-#endif
+    update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
+
+  update_path_end(s, plan_position, &scene.path_end_vertices, 0.8, s->show_z_offset, max_idx);
 }
+
 void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &driverstate, float dm_fade_state, bool is_rhd) {
   UIScene &scene = s->scene;
   const auto driver_orient = is_rhd ? driverstate.getRightDriverData().getFaceOrientation() : driverstate.getLeftDriverData().getFaceOrientation();

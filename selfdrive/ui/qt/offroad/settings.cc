@@ -575,7 +575,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   vlayout->addWidget(scroller, 1);
 
-  auto updateBtn = new ButtonControl("업데이트 체크 및 적용", "업데이트");
+  auto updateBtn = new ButtonControl("Check Update and Apply", "Update");
   QObject::connect(updateBtn, &ButtonControl::clicked, [=]()
   {
       const char* gitcommit = "/data/openpilot/selfdrive/assets/addon/sh/gitcommit.sh";
@@ -588,12 +588,12 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
       QString commit_local = QString::fromStdString(Params().get("GitCommit").substr(0, 7));
       QString commit_remote = QString::fromStdString(Params().get("GitCommitRemote").substr(0, 7));
 
-      desc += QString("(로컬/리모트): %1/%2\n").arg(commit_local, commit_remote);
+      desc += QString("(Local/Remote): %1/%2\n").arg(commit_local, commit_remote);
       if (commit_local == commit_remote) {
-          desc += QString("로컬과 리모트가 일치합니다.");
+          desc += QString("No Update exist.");
       }
       else {
-          desc += QString("업데이트가 있습니다.");
+          desc += QString("Update exist.");
       }
       if (ConfirmationDialog::alert(desc, this)) {
           //Params().putBool("OpkrPrebuiltOn", 0);
@@ -610,9 +610,9 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("EnableAutoEngage", "EnableAutoEngage", "", "../assets/offroad/icon_road.png", this));
 
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", "과속카메라작동 방법(1)", "0:사용안함, 1:NDA", "../assets/offroad/icon_road.png", 0, 1, 1));
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", "과속카메라감속 시작 시간(22초)", "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", "과속카메라감속 완료 시간(6초)", "감속완료시점을 설정합니다. 값이 크면 카메라에서 멀리 감속 완료", "../assets/offroad/icon_road.png", 3, 20, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(1)"), tr("0:Not used, 1:NDA"), "../assets/offroad/icon_road.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", tr("SpeedCameraDecelStart(22s)"), "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", tr("SpeedCameraDecelEnd(6s)"), "감속완료시점을 설정합니다.값이 크면 카메라에서 멀리 감속 완료", ".. / assets / offroad / icon_road.png", 3, 20, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "인게이지 유지모드", "", "../assets/offroad/icon_shell.png", this));

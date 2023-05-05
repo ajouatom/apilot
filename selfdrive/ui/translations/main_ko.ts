@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <TS version="2.1" language="ko_KR">
 <context>
@@ -1110,27 +1110,54 @@ This may take up to a minute.</source>
         <translation>저장안함</translation>
     </message>
 </context>
-<context>
+  <context>
     <name>DrawApilot</name>
     <message>
-        <source>MANUAL</source>
-        <translation>수동운전</translation>
+      <source>MANUAL</source>
+      <translation>수동운전</translation>
     </message>
     <message>
-        <source>CRUISE</source>
-        <translation>정속주행</translation>
+      <source>CRUISE</source>
+      <translation>정속주행</translation>
     </message>
     <message>
-        <source>E2ECRUISE</source>
-        <translation>E2E주행</translation>
+      <source>E2ECRUISE</source>
+      <translation>E2E주행</translation>
     </message>
     <message>
-        <source>CRUISE READY</source>
-        <translation>크루즈준비</translation>
+      <source>CRUISE READY</source>
+      <translation>크루즈준비</translation>
     </message>
     <message>
-        <source>SIGN DETECTED</source>
-        <translation>신호감지</translation>
+      <source>SIGN DETECTED</source>
+      <translation>신호감지</translation>
     </message>
-</context>
+  </context>
+  <context>
+    <name>CommunityPanel</name>
+    <message>
+      <source>SpeedCameraControl(1)</source>
+      <translation>과속카메라작동방법(1)</translation>
+    </message>
+    <message>
+      <source>0:Not used, 1:NDA</source>
+      <translation>0:사용안함, 1:NDA</translation>
+    </message>
+    <message>
+      <source>SpeedCameraDecelStart(22s)</source>
+      <translation>과속카메라감속 시작 시간(22초)</translation>
+    </message>
+    <message>
+      <source>SpeedCameraDecelEnd(6s)</source>
+      <translation>과속카메라감속 완료 시간(6초)</translation>
+    </message>
+    <message>
+      <source>CRUISE READY</source>
+      <translation>크루즈준비</translation>
+    </message>
+    <message>
+      <source>SIGN DETECTED</source>
+      <translation>신호감지</translation>
+    </message>
+  </context>
 </TS>

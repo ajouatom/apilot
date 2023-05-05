@@ -352,17 +352,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             show_path_mode = s->show_path_mode_cruise_off;
         }
         if (show_path_mode == 0) {
-#if 1
             ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
-#else
-            NVGpaint track_bg;
-            float torque_scale = 0.0;
-            int red_lvl = fmin(255, torque_scale);
-            int green_lvl = fmin(255, 255 - torque_scale);
-            track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
-                nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
-            ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
-#endif
         }
         else if (show_path_mode >= 9) {
             int     track_vertices_len = scene.track_vertices.length();
@@ -673,7 +663,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     //bool is_radar = s->scene.lead_radar[0];
     bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
-    bool    uiDrawPathEnd = s->show_path_end;   // path끝에 표시를 넣을건지..
 
 #ifndef __TEST
     if (!sm.alive("controlsState") || !sm.alive("radarState") || !sm.alive("carControl")) return;
@@ -725,6 +714,40 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
 
     // Path의 끝위치를 계산 및 표시
+#if 1
+    int len = scene.path_end_vertices.length();
+    static float path_fx = s->fb_w / 2;
+    static float path_fy = s->fb_h - 400;
+    static float path_fwidth = 160;
+    int path_bx = (int)path_fx;
+    if (len == 4) {
+        float x1, y1, x2, y2;
+        float sx1, sy1, sx2, sy2;
+        x1 = scene.path_end_vertices[1].x();
+        y1 = scene.path_end_vertices[1].y();
+        x2 = scene.path_end_vertices[2].x();
+        y2 = scene.path_end_vertices[2].y();
+        sx1 = scene.path_end_vertices[0].x();
+        sy1 = scene.path_end_vertices[0].y();
+        sx2 = scene.path_end_vertices[3].x();
+        sy2 = scene.path_end_vertices[3].y();
+        float _path_x = (x1 + x2) / 2.;
+        float _path_y = (y1 + y2) / 2.;
+        if (_path_y > s->fb_h - 100) _path_y = s->fb_h - 100;
+        float _path_width = x2 - x1;
+        path_fx = path_fx * 0.9 + _path_x * 0.1;
+        path_fy = path_fy * 0.9 + _path_y * 0.1;
+        path_fwidth = path_fwidth * 0.9 + _path_width * 0.1;
+        path_bx = (sx1 + sx2) / 2;
+
+        //printf("(%.1f,%.1f,%.1f,%.1f)(%.1f,%.1f,%.1f,%.1f)\n", x1, y1, x2, y2, sx1, sy1, sx2, sy2);
+    }
+    int path_x = (int)path_fx;
+    int path_y = (int)path_fy;
+    int path_width = (int)path_fwidth;
+    if(s->show_path_end>0) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -4 }, COLOR_RED, 5);
+
+#else
     int     track_vertices_len = scene.track_vertices.length();
     int path_x = s->fb_w / 2;
     int path_y = s->fb_h - 400;
@@ -744,12 +767,13 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
                 path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
                 //path_by = scene.track_vertices[0].y();
-                if (uiDrawPathEnd) {
+                if (s->show_path_end) {
                     ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, COLOR_RED, 5);
                 }
             }
         }
     }
+#endif
     // 과녁을 표시할 위치를 계산
     int icon_size = 256;
 #ifdef __TEST
@@ -1157,7 +1181,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else x = 950;
     }
     else if (s->show_mode == 4) {
-        y = 330;
+        y = 380;
         x = 150;
     }
     else if (s->show_mode == 5) {
