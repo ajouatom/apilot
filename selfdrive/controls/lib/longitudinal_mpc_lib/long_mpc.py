@@ -63,7 +63,7 @@ T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -4.0 #-3.5
 MAX_ACCEL = 2.5
 T_FOLLOW = 1.45
-COMFORT_BRAKE = 2.3 #2.5
+COMFORT_BRAKE = 2.5
 STOP_DISTANCE = 6.5
 
 def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE, krkeegan=False):
@@ -453,7 +453,7 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
     if controls.longCruiseGap >= 4:
-      self.applyCruiseGap = interp(v_ego_kph, [0, 60, 120, 140], [1,2,3,4])
+      self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
       cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
       self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
     else:
@@ -616,7 +616,7 @@ class LongitudinalMpc:
         self.trafficState = 0
         self.trafficError = False
 
-      fakeCruiseDistance = 0.0
+      fakeCruiseDistance = 0.0  #신호정지시: 뒤쪽에서는 문제....
 
       #3단계: 조건에 따른. 감속및 주행.
       if self.xState in [XState.lead, XState.cruise] or self.e2ePaused or controls.longActiveUser<=0:
@@ -661,12 +661,21 @@ class LongitudinalMpc:
       v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                  v_lower,
                                  v_upper)
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + fakeCruiseDistance)
+
+      ## 시험코드: 왜 앞차는 가속하는데... 내차는 가속을 안하냐구...
+      ## 결론은 long_mpc에 입력하는 cruise_obstacle값이 작음... 크게하여 가속도를 늘려야함.
+      # 레이더있고, 내차보다 빠르면.. 유효거리 50M이내.. 
+      # 값을 크게하면... lead_obstacle값으로 가겠지..
+      comfort_brake = self.comfort_brake
+      if radarstate.leadOne.status and self.applyLongDynamicCost and radarstate.leadOne.dRel < 50:
+        comfort_brake *= interp(radarstate.leadOne.vRel*3.6, [0, 2.], [1.0, self.applyDynamicTFollowApart])
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, comfort_brake, applyStopDistance + fakeCruiseDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
       #self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
       #  self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      self.debugLongText1 = "A{:3.2f},L0{:5.1f},L1{:5.1f},C{:5.1f},X{:5.1f}".format(self.max_a, lead_0_obstacle[0], lead_1_obstacle[0], cruise_obstacle[0], x2[0])
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 

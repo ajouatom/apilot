@@ -637,11 +637,14 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowDmInfo", "화면:DM정보", "0:안함,1:사용함,-1:MODEL사용안함", "../assets/offroad/icon_shell.png", -1, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowRadarInfo", "화면:레이더감지정보", "0:안함,1:표시함", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowZOffset", "화면:패스높이조정(170)", "올리면 아래로 표시됨", "../assets/offroad/icon_shell.png", -300, 300, 10));
-  toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드", "", "../assets/offroad/icon_shell.png", 0, 8, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathColor", "화면:패스표시색상", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "화면:패스표시모드,레인모드", "", "../assets/offroad/icon_shell.png", 0, 8, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathModeCruiseOff", "화면:패스표시모드,크루즈OFF", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColorCruiseOff", "화면:패스표시색상,크루즈OFF", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathMode", "화면:패스표시모드,레인리스", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColor", "화면:패스표시색상,레인리스", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "화면:패스표시모드,레인모드", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathColorLane", "화면:패스표시색상,레인모드", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathWidth", "화면:패스표시폭", "", "../assets/offroad/icon_shell.png", 10, 200, 10));
+  toggleLayout->addWidget(new CValueControl("ShowPlotMode", "화면:디버그플롯", "", "../assets/offroad/icon_shell.png", 0, 5, 1));
 
 }
 
@@ -676,10 +679,9 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "횡컨: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "횡컨: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "횡컨:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
-    toggleLayout->addWidget(new CValueControl("SteerActuatorDelayMid", "횡컨:SteerActuatorDelayMid(30)", "50km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
-    toggleLayout->addWidget(new CValueControl("SteerActuatorDelayLow", "횡컨:SteerActuatorDelayLow(30)", "0km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaUp", "횡컨: SteerDeltaUp(3)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaDown", "횡컨: SteerDeltaDown(7)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
+    toggleLayout->addWidget(new CValueControl("SteerRatioApply", "횡컨: SteerRatio적용(0x0.1)", "0:사용안함", "../assets/offroad/icon_road.png", 0, 300, 2));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("JerkUpperLowerLimit", "롱컨: JERK값(8)", "값이 커지면 가감속반응이 빨라지지만, 기분이 안좋음.", "../assets/offroad/icon_road.png", 5, 50, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKpV", "롱컨: P게인(100)", "(시험용) ", "../assets/offroad/icon_road.png", 50, 150, 1));
@@ -743,6 +745,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
 
     // 크루즈
     toggleLayout->addWidget(new CValueControl("CruiseControlMode", "크루즈연비제어(4km/h)", "목표속도를 일시적으로 올림", "../assets/offroad/icon_road.png", 0, 10, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseOnDist", "크루즈ON거리(0cm)", "엑셀/브레이크OFF시, 전방차량이 설정거리만큰 가까와지면 크루즈ON", "../assets/offroad/icon_road.png", -500, 500, 50));
     toggleLayout->addWidget(new CValueControl("AutoSyncCruiseSpeedMax", "자동속도업데이트속도 (120)", "가속시 크루즈속도보다 높아지면 지정 속도를 올려줍니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "자동속도증가모드 (100%)", "전방차량의 속도가 빨라지면 RoadSpeedLimit까지 속도를 올립니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "선행차에 크루즈속도맞춤(+40)", "불필요한 기능, 선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
@@ -756,7 +759,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "엑셀 크루즈ON 사용", "엑셀밟으면 크루즈를 켭니다. 60%이상 밟으면 크루즈를 켭니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "엑셀 크루즈ON:속도", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 140, 5));
-    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "엑셀 크루즈ON:속도복원설정(0)", "0:현재속도, 1:이전속도, 2: 선행차량이 있을때만 이전속도", "../assets/offroad/icon_road.png", 0, 2, 1));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "엑셀 크루즈ON:속도복원설정(0)", "0:현재속도, 1:이전속도, 2: 선행차량, 3:60M이상직진", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("AutoCancelFromGasMode", "엑셀 크루즈OFF:모드", "엑셀크루즈ON속도 이하에서 엑셀을 밟으면 크루즈가 해제됩니다. 1:항상, 2:레이더OFF시에만", "../assets/offroad/icon_road.png", 0, 140, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "브레이크해제 크루즈ON 사용", "브레이크를 떼면 크르즈를 켭니다.", "../assets/offroad/icon_road.png", this));

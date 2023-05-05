@@ -185,16 +185,29 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
     left_points.reserve(40+1);
     right_points.reserve(40+1);
     float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    float   x_prev = 0;
     for (int i = 0; i < 33; i++) {
         idxs[i] = (float)i;
-        line_xs[i] = line_x[i];
+        if (i>0 && line_x[i] < x_prev) {
+            //printf("plan data error.\n");
+            line_xs[i] = x_prev;
+        }
+        else line_xs[i] = line_x[i];
+        x_prev = line_xs[i];
         line_ys[i] = line_y[i];
         line_zs[i] = line_z[i];
     }
 
-    float dist_dt = 0.1;
-    for (float dist = 2; dist < max_dist; dist += dist_dt) {
-        dist_dt += 0.1;
+    float   dist = 2.0, dist_dt = 1.;
+    bool    exit = false;
+    //printf("\ndist = ");
+    for (int i = 0; !exit; i++, dist = dist + dist*0.15) {
+        dist_dt += (i*0.05);
+        if (dist >= max_dist) {
+            dist = max_dist;
+            exit = true;
+        }
+        //printf("%.0f ", dist);
         float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
@@ -213,6 +226,159 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
             }
             left_points.push_back(left);
             right_points.push_front(right);
+        }
+    }
+    *pvd = left_points + right_points;
+}
+float dist_function(float t, float max_dist) {
+    float dist = 3.0 * pow(1.2, t);
+    return (dist >= max_dist)? max_dist: dist;
+}
+
+void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& line,
+    float width_apply, float z_off_start, float z_off_end, QPolygonF* pvd, float max_dist, bool allow_invert = true) {
+    const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
+    QPolygonF left_points, right_points;
+    left_points.reserve(40 + 1);
+    right_points.reserve(40 + 1);
+
+
+    // commaÏùò Îç∞Ïù¥ÌÑ∞Îäî x,y,z Ï†êÎì§Î°ú Ïù¥Î£®Ïñ¥Ïßê. 
+    float idxs[33], line_xs[33], line_ys[33], line_zs[33];
+    float   x_prev = 0;
+    for (int i = 0; i < 33; i++) {
+        idxs[i] = (float)i;
+        if (i > 0 && line_x[i] < x_prev) {
+            //printf("plan data error.\n");
+            line_xs[i] = x_prev;
+        }
+        else line_xs[i] = line_x[i];
+        x_prev = line_xs[i];
+        line_ys[i] = line_y[i];
+        line_zs[i] = line_z[i];
+    }
+    SubMaster& sm = *(s->sm);
+    auto lp = sm["lateralPlan"].getLateralPlan();
+    //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+    int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+    auto controls_state = sm["controlsState"].getControlsState();
+    int longActiveUser = controls_state.getLongActiveUser();
+    if (longActiveUser <= 0) {
+        show_path_mode = s->show_path_mode_cruise_off;
+    }
+    auto    car_state = sm["carState"].getCarState();
+
+    //float   accel = car_state.getAEgo();
+    float   v_ego = car_state.getVEgoCluster();
+    float   v_ego_kph = v_ego * MS_TO_KPH;
+
+    static float    pos_t = 0.0;
+    float           pos_t_start = 0.0;
+    float           pos_t_max = 24.0;
+
+    //v_ego_kph = 60.;
+    float   dt = (v_ego_kph * 0.01);
+    float   dt_max = 1.0;
+    if (show_path_mode >= 10) dt_max = 0.6;
+    if (dt > dt_max) dt = dt_max;
+    else {
+        if (v_ego_kph < 1) pos_t = 4.0;
+        else if (dt < 0.2) dt = 0.2;
+    }
+    pos_t += dt;
+    if (pos_t > pos_t_max) pos_t = pos_t_start + (pos_t - pos_t_max); 
+
+    float   d, t;
+    float   draw_t[50];
+    int     draw_t_n = 0;
+    float   dist = 0.0;
+
+    if (show_path_mode == 9) {
+        draw_t[draw_t_n++] = pos_t;
+        d = 3.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        d = 10.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        d = 3.0;
+        t = draw_t[draw_t_n - 1];
+        draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+    }
+    else if (show_path_mode == 10) {
+        draw_t[draw_t_n++] = pos_t;
+        for (int i = 0; i < 7; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
+    else if (show_path_mode == 11) {
+        draw_t[draw_t_n++] = pos_t;
+        for (int i = 0; i < 5; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
+    else if (show_path_mode == 12) {
+        draw_t[draw_t_n++] = pos_t;
+        int n = (int)(v_ego_kph * 0.058 - 0.5);
+        if (n < 0) n = 0;
+        else if (n > 7) n = 7;
+        
+        for (int i = 0; i < n; i++) {
+            d = 3.0;
+            t = draw_t[draw_t_n - 1];
+            draw_t[draw_t_n++] = ((t + d) > pos_t_max) ? (t + d) - pos_t_max : t + d;
+        }
+    }
+
+    int     draw_t_idx = 0;
+    float   temp = draw_t[0];
+    for (int i = 0; i < draw_t_n; i++) {
+        if (draw_t[i] < temp) {
+            draw_t_idx = i;
+            temp = draw_t[i];
+        }
+    }
+    bool exit = false;
+    for (int i = 0; i <= draw_t_n && !exit; i++) {
+        if(i==draw_t_n) exit = true;
+        else {
+            t = draw_t[draw_t_idx];
+            draw_t_idx = (draw_t_idx + 1) % draw_t_n;
+            if (t < 3.0) continue;
+            if (dist_function(t, max_dist) == max_dist) exit = true;
+        }
+        for (int j = 2; j >= 0; j--) {
+            if (exit) dist = dist_function(100, max_dist);
+            else dist = dist_function(t - j * 1.0, max_dist);
+            float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
+            float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
+            y_off *= width_apply;
+            float  idx = interp<float>(dist, line_xs, idxs, 33, false);
+            if (idx >= 33) {
+                printf("index... %.1f\n", idx);
+                break;
+            }
+            float line_y1 = interp<float>(idx, idxs, line_ys, 33, false);
+            float line_z1 = interp<float>(idx, idxs, line_zs, 33, false);
+
+            QPointF left, right;
+            bool l = calib_frame_to_full_frame(s, dist, line_y1 - y_off, line_z1 + z_off, &left);
+            bool r = calib_frame_to_full_frame(s, dist, line_y1 + y_off, line_z1 + z_off, &right);
+            if (l && r) {
+                // For wider lines the drawn polygon will "invert" when going over a hill and cause artifacts
+                //if (!allow_invert && left_points.size() && left.y() > left_points.back().y()) {
+                //    printf("iiiii dist=%.1f, t=%.1f, i=%d, j=%d\n", dist, t, i,j);
+                    //continue;
+                //}
+                left_points.push_back(left);
+                right_points.push_front(right);
+            }
+            //else printf("calib_frame_to_full_frame.... error\n");
+            if (exit) break;
         }
     }
     *pvd = left_points + right_points;
@@ -252,7 +418,7 @@ void update_model(UIState *s,
   update_line_data(s, lane_lines[2], 0, -0.05, -0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
 #else
   int max_idx_barrier = get_path_length_idx(plan_position, 40.0);
-  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // ¬˜º±∆¯¿ª æÀ∏È ¡¡∞⁄¡ˆ∏∏...
+  update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false, -1.7); // Ï∞®ÏÑ†Ìè≠ÏùÑ ÏïåÎ©¥ Ï¢ãÍ≤†ÏßÄÎßå...
   update_line_data(s, plan_position, 0, 1.2 - 0.05, 1.2 - 0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false, 1.7);
 #endif
 
@@ -274,7 +440,18 @@ void update_model(UIState *s,
   max_idx = get_path_length_idx(plan_position, max_distance);
   update_line_data2(s, plan_position, s->show_path_width, 1.0, s->show_z_offset, &scene.track_vertices, max_idx, false);
 #else
-  update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
+  SubMaster& sm = *(s->sm);
+  auto lp = sm["lateralPlan"].getLateralPlan();
+  //int show_path_color = (lp.getUseLaneLines()) ? s->show_path_color_lane : s->show_path_color;
+  int show_path_mode = (lp.getUseLaneLines()) ? s->show_path_mode_lane : s->show_path_mode;
+  auto controls_state = sm["controlsState"].getControlsState();
+  int longActiveUser = controls_state.getLongActiveUser();
+  if (longActiveUser <= 0) show_path_mode = s->show_path_mode_cruise_off;
+
+  if(show_path_mode >= 9) 
+    update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
+  else
+    update_line_data_dist(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, true);
 #endif
 }
 void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &driverstate, float dm_fade_state, bool is_rhd) {
@@ -410,6 +587,11 @@ void ui_update_params(UIState *s) {
   case 70:
       s->show_path_color_lane = std::atoi(params.get("ShowPathColorLane").c_str());;
       s->show_path_width = std::atof(params.get("ShowPathWidth").c_str()) / 100.;
+      s->show_plot_mode = std::atoi(params.get("ShowPlotMode").c_str());
+      break;
+  case 80:
+      s->show_path_mode_cruise_off = std::atoi(params.get("ShowPathModeCruiseOff").c_str());;
+      s->show_path_color_cruise_off = std::atoi(params.get("ShowPathColorCruiseOff").c_str());;
       break;
   }
  }
