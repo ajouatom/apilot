@@ -659,7 +659,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #ifndef __TEST
     const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
 #endif
-    const QPointF& vd = s->scene.lead_vertices[0];
+    //const QPointF& vd = s->scene.lead_vertices[0];
     //bool is_radar = s->scene.lead_radar[0];
     bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
@@ -778,11 +778,11 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     // 과녁을 표시할 위치를 계산
     int icon_size = 256;
 #ifdef __TEST
-    const int d_rel = 0;
+    //const int d_rel = 0;
     static int test_seq = 0;
     if (++test_seq > 100) test_seq = 0;
 #else
-    const int d_rel = lead_data.getX()[0];
+    //const int d_rel = lead_data.getX()[0];
 #endif
     int x = path_x;
     int y = path_y;
