@@ -708,7 +708,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     //float path_by = path_y;
     //float path_bwidth = path_width;
     {
-        if (track_vertices_len >= 10) {
+        if (track_vertices_len >= 4) {
             path_width = scene.track_vertices[track_vertices_len / 2].x() - scene.track_vertices[track_vertices_len / 2 - 1].x();
             int temp_x = (scene.track_vertices[track_vertices_len / 2].x() + scene.track_vertices[track_vertices_len / 2 - 1].x()) / 2.;
             int temp_y = scene.track_vertices[track_vertices_len / 2].y();
