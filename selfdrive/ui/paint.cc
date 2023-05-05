@@ -617,23 +617,23 @@ void ui_draw_radar_info(const UIState* s) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             disp = true;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 0);
             ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_GREEN, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
             if (s->show_radar_info == 2) {
                 sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry + 40, str, 40, COLOR_WHITE, BOLD);
+                ui_draw_text(s, rx, ry + 40, str, 30, COLOR_WHITE, BOLD);
             }
         }
         for (auto const& vrd : s->scene.lead_vertices_oncoming) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 0);
             ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_RED, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
             if (s->show_radar_info == 2) {
                 sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry + 40, str, 40, COLOR_WHITE, BOLD);
+                ui_draw_text(s, rx, ry + 40, str, 30, COLOR_WHITE, BOLD);
             }
         }
         if (s->show_radar_info == 2) {
