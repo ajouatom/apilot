@@ -640,12 +640,12 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowPlotMode", "DISP:Debug plot", "", "../assets/offroad/icon_shell.png", 0, 5, 1));
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new CValueControl("ShowZOffset", "PATH:Height adjust(170)", "(+) Down, (-) Up", "../assets/offroad/icon_shell.png", -300, 300, 10));
-  toggleLayout->addWidget(new CValueControl("ShowPathModeCruiseOff", "PATH: Display Mode: Cruise OFFF", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathColorCruiseOff", "PATH: Display Color: Cruise OFF", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathMode", "PATH:Display Mode: Laneless", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathColor", "PATH:Display Color: Laneless", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "PATH:Display Mode: LaneMode", "", "../assets/offroad/icon_shell.png", 0, 11, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathColorLane", "PATH:Display Color: LaneMode", "", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathModeCruiseOff", "PATH: Display Mode: Cruise OFFF", "0:Normal,1,2:Rec,3,4:^^,5,6:Rec,7,8:^^,9,10,11,12:Smooth^^", "../assets/offroad/icon_shell.png", 0, 11, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColorCruiseOff", "PATH: Display Color: Cruise OFF", "(+10:Stroke)0:Red,1:Orange,2:Yellow,3:Green,4:Blue,5:Indigo,6:Violet,7:Brown,8:White,9:Black", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathMode", "PATH:Display Mode: Laneless", "0:Normal,1,2:Rec,3,4:^^,5,6:Rec,7,8:^^,9,10,11,12:Smooth^^", "../assets/offroad/icon_shell.png", 0, 11, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColor", "PATH:Display Color: Laneless", "(+10:Stroke)0:Red,1:Orange,2:Yellow,3:Green,4:Blue,5:Indigo,6:Violet,7:Brown,8:White,9:Black", "../assets/offroad/icon_shell.png", 0, 19, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathModeLane", "PATH:Display Mode: LaneMode", "0:Normal,1,2:Rec,3,4:^^,5,6:Rec,7,8:^^,9,10,11,12:Smooth^^", "../assets/offroad/icon_shell.png", 0, 11, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathColorLane", "PATH:Display Color: LaneMode", "(+10:Stroke)0:Red,1:Orange,2:Yellow,3:Green,4:Blue,5:Indigo,6:Violet,7:Brown,8:White,9:Black", "../assets/offroad/icon_shell.png", 0, 19, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathWidth", "PATH:Width ratio(100%)", "", "../assets/offroad/icon_shell.png", 10, 200, 10));
 
 }
