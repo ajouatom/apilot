@@ -193,7 +193,7 @@ class Controls:
     self.debugText2 = ""
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
-    self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
+    self.enableAutoEngage = int(Params().get("EnableAutoEngage")) if self.CP.openpilotLongitudinalControl else 0
     self.autoEngageCounter = 200
     self.right_lane_visible = False
     self.left_lane_visible = False
@@ -575,16 +575,16 @@ class Controls:
     elif self.state == State.disabled:
       autoEngage = False
       ## 오토인게이지 조건시, 시간지연....
-      if self.autoEngageCounter > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+      if self.autoEngageCounter > 0 and (self.enableAutoEngage>0 and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
         self.autoEngageCounter -= 1
-      elif self.autoEngageCounter == 0 and self.enableAutoEngage:
+      elif self.autoEngageCounter == 0 and self.enableAutoEngage>0:
         autoEngage = True
       if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
 
         else:
-          self.enableAutoEngage = False
+          self.enableAutoEngage = 0
           if self.events.any(ET.PRE_ENABLE):
             self.state = State.preEnabled
           elif self.events.any(ET.OVERRIDE_LATERAL) or self.events.any(ET.OVERRIDE_LONGITUDINAL):
@@ -593,7 +593,7 @@ class Controls:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
           self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode)
-          self.cruise_helper.longActiveUser = 0 
+          self.cruise_helper.longActiveUser = 1 if self.enableAutoEngage == 2 else 0           
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
