@@ -1067,7 +1067,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             //ui_draw_text(s, x, y + 210, str, 40, COLOR_WHITE, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
 #endif
         }
-        ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
+        if (s->show_mode >= 4) {
+            if(!no_radar) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
+        }
+        else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
