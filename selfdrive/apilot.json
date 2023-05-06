@@ -685,9 +685,9 @@
       "group": "화면",
       "name": "ShowRadarInfo",
       "title": "레이더감지정보(0)",
-      "descr": "",
+      "descr": "0:안함,1:표시함,2:상대위치,3:정지차량",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 0,
       "unit": 1
     },
