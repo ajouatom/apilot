@@ -658,7 +658,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     const UIScene& scene = s->scene;
     auto leads = model.getLeadsV3();
 #ifndef __TEST
-    const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
+    //const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
 #endif
     //const QPointF& vd = s->scene.lead_vertices[0];
     //bool is_radar = s->scene.lead_radar[0];
