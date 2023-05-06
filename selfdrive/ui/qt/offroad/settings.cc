@@ -751,7 +751,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("AutoSyncCruiseSpeedMax", "CRUISE: Auto sync speed limit (120km/h)", "가속시 크루즈속도보다 높아지면 지정 속도를 올려줍니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "CRUISE: Auto speed up (100%)", "Auto speed up based on the lead car upto RoadSpeedLimit.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "CRUISE: Auto speed set to lead Car(+0)", "useless, 선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
-    toggleLayout->addWidget(new CValueControl("InitMyDrivingMode", "DRIVEMODEe: On boot(3)", "1:ECO,2:SAFE,3:NORMAL,4:HIGH(non E2E mode)", "../assets/offroad/icon_road.png", 1, 4, 1));
+    toggleLayout->addWidget(new CValueControl("InitMyDrivingMode", "DRIVEMODE: On boot(3)", "1:ECO,2:SAFE,3:NORMAL,4:HIGH(non E2E mode)", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(new CValueControl("MyEcoModeFactor", "DRIVEMODE: ECO Accel ratio(80%)", "일반모드대비 가속비율을 지정합니다.", "../assets/offroad/icon_road.png", 10, 95, 5));
     toggleLayout->addWidget(new CValueControl("MySafeModeFactor", "DRIVEMODE: SAFE ratio(80%)", "Accel/StopDistance/DecelRatio/Gap control ratio", "../assets/offroad/icon_road.png", 10, 90, 10));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "Button: Cruise Speed Mode", "0:Normal,1:User1, 2:User2, 3:User3, 4:User4", "../assets/offroad/icon_road.png", 0, 4, 1));
@@ -761,12 +761,12 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "GAS CRUISE ON: Use", "Auto Cruise on when GAS pedal released, 60% Gas Cruise On automatically", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "GAS CRUISE ON: Speed(30)", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 140, 5));
-    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "GAS CRUISE ON: Speed retore option(0)", "0:Current Speed, 1:Prev. speed, 2: Lead car speed, 3: 60M이상상직진시 이전속도", "../assets/offroad/icon_road.png", 0, 3, 1));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "GAS CRUISE ON: Set Speed option(0)", "0:Current Speed, 1:Prev. speed, 2: Lead car speed, 3: 60M이상상직진시 이전속도", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("AutoCancelFromGasMode", "GAS CRUISE OFF: Mode", "Cruise OFF below speed(GAS CRUISE ON: speed). 1:Always, 2:No lear car", "../assets/offroad/icon_road.png", 0, 140, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeRelease", "BRAKE CRUISE ON: Use", "Auto Cruise On when Brake released", "../assets/offroad/icon_road.png", this));
-    toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "BRAKE CRUISE ON:Moving, LeadCar distance(20)", "on moving, lead car is greater than the set dist", "../assets/offroad/icon_road.png", 0, 80, 5));
-    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "BRAKE CRUISE ON: Stopping, LeadCar distance", "on stopping, lead car within 10meters", "../assets/offroad/icon_road.png", this));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeReleaseDist", "BRAKE CRUISE ON: Moving, LeadCar(20)", "on moving, lead car is greater than the set dist", "../assets/offroad/icon_road.png", 0, 80, 5));
+    toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseLeadCar", "BRAKE CRUISE ON: Stopping, LeadCar", "on stopping, lead car within 10meters", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromBrakeCarSpeed", "BRAKE CRUISE ON: Moving, Speed(40)", "on moving, my car is greater then the set dist(no lead car)", "../assets/offroad/icon_road.png", 0, 80, 5));
     toggleLayout->addWidget(new ParamControl("AutoResumeFromBrakeReleaseTrafficSign", "BRAKE CRUISE ON: Moving, Traffic signal", "on moving, if traffic signal detected", "../assets/offroad/icon_road.png", this));
 
