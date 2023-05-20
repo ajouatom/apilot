@@ -605,7 +605,7 @@ class CruiseHelper:
           self.cruiseSpeedTarget = v_cruise_kph
 
         if self.cruiseSpeedTarget != 0:  ## 크루즈 연비 제어모드 작동중일때: 연비제어 종료지점
-          if CS.vEgo*3.6 > self.cruiseSpeedTarget: # 설정속도를 초과하면..
+          if self.v_ego_kph > self.cruiseSpeedTarget: # 설정속도를 초과하면..
             self.cruiseSpeedTarget = 0
           else:
             v_cruise_kph_apply = self.cruiseSpeedTarget + self.cruiseControlMode  # + 설정 속도로 설정함.
@@ -624,7 +624,7 @@ class CruiseHelper:
     if self.autoCurveSpeedCtrlUse > 0:
       self.curveSpeed = self.apilot_curve(CS, controls)
 
-    self.v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 2.0 #실제속도가 v_cruise_kph보다 조금 빨라 2을 더함.
+    self.v_ego_kph = int(CS.vEgoCluster * CV.MS_TO_KPH + 0.5)
     self.v_ego_kph_set = clip(self.v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     self.xState = controls.sm['longitudinalPlan'].xState
     self.xStop = controls.sm['longitudinalPlan'].xStop
