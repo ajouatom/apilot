@@ -40,8 +40,8 @@ def plannerd_thread(sm=None, pm=None):
   lateral_planner = LateralPlanner(CP)
 
   if sm is None:
-    sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'sensorEvents'],
-                             poll=['radarState', 'modelV2', 'sensorEvents'], ignore_avg_freq=['radarState'])
+    sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'sensorEvents', 'roadLimitSpeed'],
+                             poll=['radarState', 'modelV2', 'sensorEvents', 'roadLimitSpeed'], ignore_avg_freq=['radarState'])
 
   if pm is None:
     pm = messaging.PubMaster(['longitudinalPlan', 'lateralPlan', 'uiPlan'])

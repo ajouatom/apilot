@@ -286,6 +286,8 @@ class CarInterface(CarInterfaceBase):
       ret.enableBsm = 0x58b in fingerprint[0]
       ret.sccBus = 2 if 1056 in fingerprint[2] else 0 if 1056 in fingerprint[0] else -1
 
+      ret.naviCluster = 1 if 1348 in fingerprint[0] else 0
+
       ret.sccBus = 0
       if Params().get_bool("SccConnectedBus2"):
         ret.sccBus = 2

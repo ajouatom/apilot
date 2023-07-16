@@ -61,6 +61,9 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
+    self.params = Params()
+    self.param_read_counter = 0
+    self.read_param()
 
     self.vCluRatio = 1.0
 
@@ -76,21 +79,20 @@ class LongitudinalPlanner:
 
     self.mpc.openpilotLongitudinalControl = CP.openpilotLongitudinalControl
 
+  def read_param(self):
+    #try:
+    #  self.personality = int(self.params.get('LongitudinalPersonality'))
+    #except (ValueError, TypeError):
+    #  self.personality = log.LongitudinalPersonality.standard
 
-  def update_params(self):
-    self.params_count = (self.params_count + 1) % 200
-    if self.params_count == 50:
-      self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
-    elif self.params_count == 100:
-      self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
-      self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
-    elif self.params_count == 130:
-      self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
-      self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
-    elif self.params_count == 150:
-      self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
-      self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
-      self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
+    self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
+    self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
+    self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
+    self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
+    self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
+    self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
+    self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
+    self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
     
   def get_max_accel(self, v_ego):
@@ -113,7 +115,7 @@ class LongitudinalPlanner:
       j = np.zeros(len(T_IDXS_MPC))
       y = np.zeros(len(T_IDXS_MPC))
       
-    if autoTurnControl == 2: # 속도를 줄이자~
+    if False: #autoTurnControl == 2: # 속도를 줄이자~
       max_lat_accel = interp(v_ego, [5, 10, 20], [1.5, 2.0, 3.0])
       curvatures = np.interp(T_IDXS_MPC, T_IDXS, model_msg.orientationRate.z) / np.clip(v, 0.3, 100.0)
       max_v = np.sqrt(max_lat_accel / (np.abs(curvatures) + 1e-3)) - 2.0
@@ -122,8 +124,11 @@ class LongitudinalPlanner:
     return x, v, a, j, y
 
   def update(self, sm):
-    self.update_params()
-    self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
+    if self.param_read_counter % 50 == 0:
+      self.read_param()
+    self.param_read_counter += 1
+    #self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
+    self.mpc.experimentalMode = sm['controlsState'].experimentalMode
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise
@@ -222,7 +227,7 @@ class LongitudinalPlanner:
 
     longitudinalPlan.speeds = self.v_desired_trajectory.tolist()
     longitudinalPlan.accels = self.a_desired_trajectory.tolist()
-    #C2#longitudinalPlan.jerks = self.j_desired_trajectory.tolist()
+    longitudinalPlan.jerks = self.j_desired_trajectory.tolist()
 
     longitudinalPlan.hasLead = sm['radarState'].leadOne.status
     longitudinalPlan.longitudinalPlanSource = self.mpc.source
@@ -233,7 +238,7 @@ class LongitudinalPlanner:
     #C2#longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
     #self.mpc.debugLongText2 = "Vout={:3.2f},{:3.2f},{:3.2f},{:3.2f},{:3.2f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[2]*3.6,longitudinalPlan.speeds[3]*3.6,longitudinalPlan.speeds[-1]*3.6)
     #self.mpc.debugLongText2 = "VisionTurn:State={},Speed={:.1f}".format(self.vision_turn_controller.state, self.vision_turn_controller.v_turn*3.6)
-    #C2#longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
+    longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
     if self.mpc.trafficError:

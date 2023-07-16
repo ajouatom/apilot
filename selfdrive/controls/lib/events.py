@@ -1014,5 +1014,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.stopStop: {
      ET.WARNING: EngagementAlert(AudibleAlert.stopStop),
   },
+  EventName.audioLaneChange: {
+     ET.WARNING: EngagementAlert(AudibleAlert.laneChange),
+  },
+  EventName.audioTurn: {
+     ET.WARNING: EngagementAlert(AudibleAlert.audioTurn),
+  },
 
 }

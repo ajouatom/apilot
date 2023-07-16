@@ -62,6 +62,7 @@ class CarController:
     self.jerkUpperLowerLimit = 12.0       
     self.speedCameraHapticEndFrame = 0
     self.hapticFeedbackWhenSpeedCamera = 0
+    self.maxAngleFrames = MAX_ANGLE_FRAMES
     self.softHoldMode = 1
     self.blinking_signal = False #아이콘 깜박이용 1Hz
     self.blinking_frame = int(1.0 / DT_CTRL)
@@ -114,6 +115,7 @@ class CarController:
     if self.frame % 100 == 0:
       self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
       self.hapticFeedbackWhenSpeedCamera = int(Params().get("HapticFeedbackWhenSpeedCamera", encoding="utf8"))
+      self.maxAngleFrames = int(Params().get("MaxAngleFrames", encoding="utf8"))
       self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
       self.steerDeltaUp = int(Params().get("SteerDeltaUp", encoding="utf8"))
       self.steerDeltaDown = int(Params().get("SteerDeltaDown", encoding="utf8"))
@@ -133,10 +135,10 @@ class CarController:
       self.angle_limit_counter = 0
 
     # Cut steer actuation bit for two frames and hold torque with induced temporary fault
-    torque_fault = CC.latActive and self.angle_limit_counter > MAX_ANGLE_FRAMES
+    torque_fault = CC.latActive and self.angle_limit_counter > self.maxAngleFrames
     lat_active = CC.latActive and not torque_fault
 
-    if self.angle_limit_counter >= MAX_ANGLE_FRAMES + MAX_ANGLE_CONSECUTIVE_FRAMES:
+    if self.angle_limit_counter >= self.maxAngleFrames + MAX_ANGLE_CONSECUTIVE_FRAMES:
       self.angle_limit_counter = 0
 
     # CAN-FD platforms
@@ -190,10 +192,6 @@ class CarController:
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
                                                 left_lane_warning, right_lane_warning))
 
-      ##HW: 임시로 코드넣음.. 나중에  MDPS 저속(60kmh)개조 된것들은 넣어줘야함.
-      if self.frame % 2 == 0 and False: # and self.mdpsMode:
-        can_sends.append(hyundaican.create_clu11_mdps(self.packer, self.frame, CS.clu11, Buttons.NONE, self.CP.carFingerprint, 60))
-
       if not self.CP.openpilotLongitudinalControl:
         if CC.cruiseControl.cancel:
           can_sends.append(hyundaican.create_clu11(self.packer, self.frame, CS.clu11, Buttons.CANCEL, self.CP.carFingerprint))
@@ -238,13 +236,22 @@ class CarController:
         can_sends.append(hyundaican.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
+        if False: #sunnyhaibin, smoother stop test
+          stopping = stopping and CS.out.vEgoRaw < 0.05
         # TODO: unclear if this is needed
         startingJerk = 1
         if self.CP.carFingerprint in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):
-          startingJerk = 5
-        jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid,LongCtrlState.starting,LongCtrlState.stopping] else startingJerk  #comma: jerk=1
-        can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk, int(self.frame / 2),
+          startingJerk = 5        
+        if actuators.jerk <= 0:
+          jerk_l = max(1, - actuators.jerk * 2)
+          jerk_u = 0
+        else:
+          jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid,LongCtrlState.stopping] else startingJerk  #comma: jerk=1
+          jerk_u = jerk #actuators.jerk *3
+          jerk_l = jerk #0 if actuators.jerk > 0.5 else 1.0
+        can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk_u, jerk_l, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode))
+        self.accel_last = accel
 
       # 20 Hz LFA MFA message
       if self.frame % 5 == 0 and self.CP.flags & HyundaiFlags.SEND_LFA.value:

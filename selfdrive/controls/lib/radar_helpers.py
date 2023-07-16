@@ -6,9 +6,6 @@ from common.filter_simple import StreamingMovingAverage
 # Default lead acceleration decay set to 50% at 1s
 _LEAD_ACCEL_TAU = 1.5
 
-# Hack to maintain vision lead state
-_vision_lead_aTau = {0: _LEAD_ACCEL_TAU, 1: _LEAD_ACCEL_TAU}
-
 # radar tracks
 SPEED, ACCEL = 0, 1   # Kalman filter states enum
 
@@ -135,7 +132,7 @@ class Cluster():
       "aLeadTau": float(self.aLeadTau)
     }
 
-  def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo, lead_index):
+  def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
     useVisionMix = False
     if mixRadarInfo>0 and float(lead_msg.prob) > 0.5 and abs(float(self.aLeadK)) < abs(float(lead_msg.a[0])):
       useVisionMix = True
@@ -152,24 +149,19 @@ class Cluster():
       "fcw": self.is_potential_fcw(model_prob),
       "modelProb": model_prob,
       "radar": True,
-      "aLeadTau": _vision_lead_aTau[lead_index] if useVisionMix else float(self.aLeadTau)
+      "aLeadTau": 0.3 if useVisionMix else float(self.aLeadTau)
     }
 
-  def get_RadarState_from_vision(self, lead_msg, lead_index, v_ego):
-    # Learn if constant acceleration
-    if abs(float(lead_msg.a[0])) < 0.5:
-      _vision_lead_aTau[lead_index] = _LEAD_ACCEL_TAU
-    else:
-      _vision_lead_aTau[lead_index] *= 0.9
-
+  def get_RadarState_from_vision(self, lead_msg, v_ego, model_v_ego):
+    lead_v_rel_pred = lead_msg.v[0] - model_v_ego
     return {
       "dRel": float(lead_msg.x[0] - RADAR_TO_CAMERA),
       "yRel": float(-lead_msg.y[0]),
-      "vRel": float(lead_msg.v[0] - v_ego),
-      "vLead": float(lead_msg.v[0]),
-      "vLeadK": float(lead_msg.v[0]),
+      "vRel": float(lead_v_rel_pred),
+      "vLead": float(v_ego + lead_v_rel_pred),
+      "vLeadK": float(v_ego + lead_v_rel_pred),
       "aLeadK": float(lead_msg.a[0]),
-      "aLeadTau": _vision_lead_aTau[lead_index],
+      "aLeadTau": 0.3,
       "fcw": False,
       "modelProb": float(lead_msg.prob),
       "radar": False,

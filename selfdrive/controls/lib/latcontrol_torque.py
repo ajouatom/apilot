@@ -33,6 +33,10 @@ class LatControlTorque(LatControl):
     self.steering_angle_deadzone_deg = self.torque_params.steeringAngleDeadzoneDeg
     self.paramsCount = 0
 
+    self.lateralTorqueCustom = int(Params().get("LateralTorqueCustom", encoding="utf8"))
+    self.lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+    self.lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
     self.torque_params.latAccelOffset = latAccelOffset
@@ -45,9 +49,18 @@ class LatControlTorque(LatControl):
       lateralTorqueKp = float(int(Params().get("LateralTorqueKp", encoding="utf8")))*0.01
       lateralTorqueKi = float(int(Params().get("LateralTorqueKi", encoding="utf8")))*0.01
       lateralTorqueKd = float(int(Params().get("LateralTorqueKd", encoding="utf8")))*0.01
+      lateralTorqueKf = float(int(Params().get("LateralTorqueKf", encoding="utf8")))*0.01
       self.pid._k_p = [[0], [lateralTorqueKp]]
       self.pid._k_i = [[0], [lateralTorqueKi]]
       self.pid._k_d = [[0], [lateralTorqueKd]]
+      self.pid.k_f = lateralTorqueKf
+    elif self.paramsCount == 10:
+      self.lateralTorqueCustom = int(Params().get("LateralTorqueCustom", encoding="utf8"))
+      self.lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+      self.lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+      if self.lateralTorqueCustom > 0:
+        self.torque_params.latAccelFactor = self.lateralTorqueAccelFactor
+        self.torque_params.friction = self.lateralTorqueFriction
 
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     self.update_params()
@@ -101,6 +114,7 @@ class LatControlTorque(LatControl):
       #C2#pid_log.actualLateralAccel = actual_lateral_accel
       #C2#pid_log.desiredLateralAccel = desired_lateral_accel
       #C2#pid_log.saturated = self._check_saturation(self.steer_max - abs(output_torque) < 1e-3, CS, steer_limited)
+      self.latDebugText = 'latAccel={:1.3f},Friction={:1.3f}'.format(self.torque_params.latAccelFactor, self.torque_params.friction)
       angle_steers_des = math.degrees(VM.get_steer_from_curvature(-desired_curvature, CS.vEgo, params.roll)) + params.angleOffsetDeg
 
     # TODO left is positive in this convention

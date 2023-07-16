@@ -15,6 +15,7 @@ class LatControl(ABC):
 
     # we define the steer torque scale as [-1.0...1.0]
     self.steer_max = 1.0
+    self.latDebugText = ""
 
   @abstractmethod
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):

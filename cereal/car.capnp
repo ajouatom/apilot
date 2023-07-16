@@ -127,6 +127,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     audioPrompt @125; #ajouatom
     audioRefuse @126; #ajouatom
     stopStop @127; #ajouatom
+    audioLaneChange @128; #ajouatom
+    audioTurn @129; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -233,6 +235,9 @@ struct CarState {
   engineRpm @50 : Float32;
   chargeMeter @51 : Float32;
   motorRpm @52 : Float32;
+  totalDistance @53 : Float32;
+  speedLimit @54 : Int32;
+  speedLimitDistance @55 : Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -381,6 +386,7 @@ struct CarControl {
     speed @6: Float32; # m/s
     accel @4: Float32; # m/s^2
     longControlState @5: LongControlState;
+    jerk @9: Float32; # apilot
 
     enum LongControlState @0xe40f3a917d908282{
       off @0;
@@ -456,6 +462,7 @@ struct CarControl {
       bsdWarning @19;
       speedDown @20;
       stopStop @21;
+      audioTurn @22;
       
     }
   }
@@ -544,6 +551,7 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
+  naviCluster @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

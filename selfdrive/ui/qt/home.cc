@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QMouseEvent>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #include "selfdrive/ui/qt/offroad/experimental_mode.h"
@@ -78,7 +79,7 @@ void HomeWindow::showDriverView(bool show) {
   sidebar->setVisible(show == false);
 }
 
-void HomeWindow::mouseReleaseEvent(QMouseEvent* e) {
+void HomeWindow::mousePressEvent(QMouseEvent* e) {
   // Handle sidebar collapsing
   if ((onroad->isVisible() || body->isVisible()) && (!sidebar->isVisible() || e->x() > sidebar->width())) {
     sidebar->setVisible(!sidebar->isVisible() && !onroad->isMapVisible());
@@ -168,7 +169,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
 
   setStyleSheet(R"(
     * {
-     color: white;
+      color: white;
     }
     OffroadHome {
       background-color: black;

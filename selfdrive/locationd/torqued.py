@@ -7,7 +7,7 @@ from collections import deque, defaultdict
 
 import cereal.messaging as messaging
 from cereal import car, log
-from common.params import Params
+from common.params import Params, put_nonblocking
 from common.realtime import Priority, config_realtime_process, DT_MDL
 from common.filter_simple import FirstOrderFilter
 from selfdrive.swaglog import cloudlog
@@ -303,7 +303,12 @@ def main(sm=None, pm=None):
     # 4Hz driven by liveLocationKalman
     if sm.frame % 5 == 0:
       pm.send('liveTorqueParameters', estimator.get_msg(valid=sm.all_checks()))
-
+      
+    # dp - auto save every 3 mins: 4 hz * 60 * 3 = 720 (3 mins)
+    if sm.frame % 720 == 0:
+      put_nonblocking("LiveTorqueCarParams", CP.as_builder().to_bytes())
+      msg = estimator.get_msg(with_points=True)
+      put_nonblocking("LiveTorqueParameters", msg.to_bytes())
 
 if __name__ == "__main__":
   main()
