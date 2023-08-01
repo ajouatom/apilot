@@ -13,6 +13,10 @@ APILOT
   ![image](https://user-images.githubusercontent.com/43668841/231068460-11c7977a-feaa-4f1c-b4be-263d4132d213.png)
 
 * 읽어보기
+  * Ver 23.08.01부터 APM0.90으로 업뎃해야하며, NDA와 APM동시지원 안됨
+  * NDA와 APM을 같이 사용하려면
+    * APM0.85 사용
+    * 감속제어: 과속카메라 작동방법: 3 으로 하고 재시작 (단, APM090 연결안됨)
   * 설정값을 함부로 건들면 사고의 위험이 있으며, 사고/고장 발생시 본인의 책임입니다.
   * Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함(연결되어도 업로드안됨)!
   * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
@@ -46,7 +50,7 @@ APILOT
   * NOO Helper (Navigate On Openpilot)
     * 이 기능은 C3의 경우 자체네비, C2의 경우 외부네비(Mappy)를 이용한 조향 및 턴제어 보조 기능입니다(시험용)
     * NOO Helper를 1로 변경하면 작동
-    * APilotMan 필수설치(첨부)
+    * APM(APilotMan 필수설치(첨부)
     * Mappy 설치 (첨부)
     * PC에 폰을 연결하고 다음을 실행해야함. (필수)
       * adb shell pm grant com.ajouatom.apilotman android.permission.READ_LOGS
