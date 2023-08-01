@@ -34,6 +34,7 @@ class CarState(CarStateBase):
 
     self.is_metric = False
      #ajouatom
+    self.prev_pcmMode = False
     self.mdps_error_cnt = 0
 
     self.brake_error = False
@@ -45,8 +46,6 @@ class CarState(CarStateBase):
     self.cluster_speed = 0
     self.cluster_speed_counter = CLUSTER_SAMPLE_RATE
 
-    self.preMainMode_ACC = False
-    self.prePcmCruiseMode = True
     self.params = CarControllerParams(CP)
     self.gear_shifter = GearShifter.drive # Gear_init for Nexo ?? unknown 21.02.23.LSW
 
@@ -106,37 +105,22 @@ class CarState(CarStateBase):
     ret.steerFaultTemporary = False
 
     # cruise state
-    if self.CP.openpilotLongitudinalControl:
+    ret.cruiseState.pcmMode = self.prev_pcmMode
+    if self.CP.openpilotLongitudinalControl and self.CP.sccBus == 0: # SCC0: Disable SCC Module
       # These are not used for engage/disengage since openpilot keeps track of state using the buttons
-      if self.CP.sccBus != 2:
+      ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
+      ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
+      ret.cruiseState.standstill = False
+    elif self.CP.openpilotLongitudinalControl: # SCC2 배선개조된경우
+      ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
+      if ret.cruiseState.available: # 크루즈버튼이 눌림.
+        ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0
+        ret.cruiseState.standstill = False
+        ret.cruiseState.pcmMode = True
+      else:
         ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
         ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
         ret.cruiseState.standstill = False
-        ret.cruiseState.pcmMode = False
-      else:
-        mainMode_ACC = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
-        ret.cruiseState.pcmMode = self.prePcmCruiseMode
-        if not self.preMainMode_ACC and mainMode_ACC: #사용자가 CruiseSet를 눌렀거나, +-를 눌러 Enable됨.
-          if cp_cruise.vl["SCC12"]["ACCMode"] != 0:
-            ret.cruiseState.pcmMode = True
-            #print("Cruise:pcmMode")
-          else:
-            ret.cruiseState.pcmMode = False
-            #print("Cruise:buttonMode")
-        elif not mainMode_ACC:
-          ret.cruiseState.pcmMode = False
-        self.preMainMode_ACC = mainMode_ACC
-        self.prePcmCruiseMode = ret.cruiseState.pcmMode
-
-        if ret.cruiseState.pcmMode:
-          ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
-          ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0
-          ret.cruiseState.standstill = False
-          #ret.cruiseGap = cp_cruise.vl["SCC11"]["TauGapSet"]
-        else:
-          ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
-          ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
-          ret.cruiseState.standstill = False
     else:
       ret.cruiseState.available = cp_cruise.vl["SCC11"]["MainMode_ACC"] == 1
       ret.cruiseState.enabled = cp_cruise.vl["SCC12"]["ACCMode"] != 0
@@ -144,7 +128,9 @@ class CarState(CarStateBase):
       ret.cruiseState.speed = cp_cruise.vl["SCC11"]["VSetDis"] * speed_conv
 
       ret.cruiseGap = cp_cruise.vl["SCC11"]["TauGapSet"]
-      ret.cruiseState.enabled = ret.cruiseState.available #ajouatom: always enable cruise...
+
+    self.prev_pcmMode = ret.cruiseState.pcmMode
+    
     # TODO: Find brake pressure
     ret.brake = 0
     ret.brakePressed = cp.vl["TCS13"]["DriverBraking"] != 0

@@ -1,3 +1,10 @@
+230801 - APILOT
+* APM(APilotMan)0.90: 포트변경, NDA와 구별하도록함.. 기존것은 접속안될수있음.
+  * 과속카메라작동방법: 3으로 하면 NDA 접속가능
+
+230726 - APILOT
+* APilotMan 0.81 : 구간단속
+
 230714 - APILOT
 ========================
 * NOO Helper - 0:None,1:Mappy,Waze, 2:시험

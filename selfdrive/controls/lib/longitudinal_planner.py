@@ -151,9 +151,17 @@ class LongitudinalPlanner:
     reset_state = long_control_off if self.CP.openpilotLongitudinalControl else not sm['controlsState'].enabled
 
     # No change cost when user is controlling the speed, or when standstill
-    # longControl OFF상태 또는 정지상태 인경우, A_CHANGE_COST를 적용안하여 시작의 제한이 없을것 같음..
-    # 정지상태에서만 적용하고 주행중이며, longControl OFF상태에서는 적용해야할것 같음... pid가 ON이 되면, 급격한 가속도변화로 인해, 주행이 자연스럽지못함.
-    prev_accel_constraint = not sm['carState'].standstill  #prev_accel_constraint = not (reset_state or sm['carState'].standstill)
+    # 원본: longControl OFF상태 또는 정지상태 인경우, A_CHANGE_COST를 적용안하여 시작의 제한이 없을것 같음..
+    # apilot: 정지상태에서만 적용하고 주행중이며, longControl OFF상태에서는 적용해야할것 같음... pid가 ON이 되면, 급격한 가속도변화로 인해, 주행이 자연스럽지못함.
+    #  정리: False if 정지 -> 출발(pid_off -> not pid_off) else True 
+    #     standstill(정지)인경우에만 False로 처리하도록 함. (가속제한 풀어놓음)
+    # HW: 230717: 감속도중(브레이킹)상황에서, 감속조건(전방충돌조건)등이 발생할때 => prev_accel_constraint를 켜야, 급격한 PID변화를 막을 수 있음. 이미 켜져있음
+    #       현재, dist = (v**2)/(a*2) 의 수식에 따라, 현재속도로 신호정지선 까지 감속정지를 못하게된경우, 급정지가 발생함.
+    #            이것을 막으려면, 롱컨을 켜지않거나, 신호 정지를 무시하는것이 맞음.... 
+    #      230723: 서서히 주행다하 brake -> not statndstill -> 브레이크뗌.. 전방차량또는신호정지상태 -> 이때 mpc가 -accel값을 만들어냄. 그리고 +accel값을 만들어냄.. 
+    #             아마도... accel_constraint가 작동안하는? 아직 문제가 있음.  prev_accel_constraint가 false로 추정.. 하지만... standstill은 false임.
+    #prev_accel_constraint = not (reset_state or sm['carState'].standstill)
+    prev_accel_constraint = not sm['carState'].standstill
 
     if self.mpc.mode == 'acc':
       #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]      
@@ -176,6 +184,7 @@ class LongitudinalPlanner:
       # Clip aEgo to cruise limits to prevent large accelerations when becoming active
       self.a_desired = clip(sm['carState'].aEgo, accel_limits[0], accel_limits[1])
       self.mpc.prev_a = np.full(N+1, self.a_desired) ## mpc에서는 prev_a를 참고하여 constraint작동함.... pid off -> on시에는 현재 constraint가 작동하지 않아서 집어넣어봄...
+      accel_limits_turns[0] = accel_limits_turns[0] = 0.0
 
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))

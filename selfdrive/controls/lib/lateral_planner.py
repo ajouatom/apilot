@@ -199,6 +199,10 @@ class LateralPlanner:
     lateralPlan.desireEvent = self.DH.desireEvent
     lateralPlan.laneWidth = float(self.LP.lane_width)
     lateralPlan.desireReady = self.DH.desireReady
+    lateralPlan.apNaviDistance = int(self.DH.apNaviDistance)
+    lateralPlan.apNaviSpeed = int(self.DH.apNaviSpeed)
+    lateralPlan.roadEdgeStat = self.DH.prev_road_edge_stat
+    lateralPlan.latDebugText = self.DH.latDebugText
 
     #C2#plan_send.lateralPlan.dPathWLinesX = [float(x) for x in self.d_path_w_lines_xyz[:, 0]]
     #C2#plan_send.lateralPlan.dPathWLinesY = [float(y) for y in self.d_path_w_lines_xyz[:, 1]]

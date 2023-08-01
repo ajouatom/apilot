@@ -197,6 +197,14 @@ class CarInterfaceBase(ABC):
     tune.torque.latAccelOffset = 0.0
     tune.torque.steeringAngleDeadzoneDeg = steering_angle_deadzone_deg
 
+    lateralTorqueCustom = int(Params().get("LateralTorqueCustom", encoding="utf8"))
+    lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+    lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+    if lateralTorqueCustom == 2:
+      tune.torque.latAccelFactor = lateralTorqueAccelFactor
+      tune.torque.friction = lateralTorqueFriction
+
+
   @abstractmethod
   def _update(self, c: car.CarControl) -> car.CarState:
     pass
@@ -278,11 +286,12 @@ class CarInterfaceBase(ABC):
     # Handle button presses
     for b in cs_out.buttonEvents:
       # Enable OP long on falling edge of enable buttons (defaults to accelCruise and decelCruise, overridable per-port)
-      if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed) and not cs_out.cruiseState.pcmMode:
+      if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed):# and not cs_out.cruiseState.pcmMode:
         events.add(EventName.buttonEnable)
       # Disable on rising and falling edge of cancel for both stock and OP long
       if b.type == ButtonType.cancel:
-        events.add(EventName.buttonCancel)
+        if self.CP.openpilotLongitudinalControl:
+          events.add(EventName.buttonCancel)
 
     # Handle permanent and temporary steering faults
     self.steering_unpressed = 0 if cs_out.steeringPressed else self.steering_unpressed + 1
@@ -306,11 +315,16 @@ class CarInterfaceBase(ABC):
 
     # we engage when pcm is active (rising edge)
     # enabling can optionally be blocked by the car interface
-    if pcm_enable or cs_out.cruiseState.pcmMode:
+    if pcm_enable:
+      if cs_out.cruiseState.available and not self.CS.out.cruiseState.available and allow_enable:
+        events.add(EventName.pcmEnable)
+      elif not cs_out.cruiseState.available:
+        events.add(EventName.pcmDisable)
+    elif  cs_out.cruiseState.pcmMode:
       if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled and allow_enable:
         events.add(EventName.pcmEnable)
       elif not cs_out.cruiseState.enabled:
-        #events.add(EventName.pcmDisable)  #ajouatom: MAD모드 구현시 이것만 코멘트하면 됨.
+        #events.add(EventName.pcmDisable)
         pass
 
     return events

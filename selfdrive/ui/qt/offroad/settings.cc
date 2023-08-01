@@ -676,9 +676,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("MixRadarInfo", "MixRadarInfo for SCC Rardar", "0:Not used,1:Use", "../assets/offroad/icon_shell.png", 0, 1, 1));
 
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(1)"), tr("0:Not used, 1:NDA"), "../assets/offroad/icon_road.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(2)"), "0:사용안함, 1:APM, 2:APM + 순정네비게이션, 3:NDA", "../assets/offroad/icon_road.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", tr("SpeedCameraDecelStart(22s)"), "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", tr("SpeedCameraDecelEnd(6s)"), "감속완료시점을 설정합니다.값이 크면 카메라에서 멀리 감속 완료", ".. / assets / offroad / icon_road.png", 3, 20, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedBumpDist", "SpeedBumpDistance(10M)", "", ".. / assets / offroad / icon_road.png", 1, 50, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedBumpSpeed", "SpeedBumpSpeed(35Km/h)", "", ".. / assets / offroad / icon_road.png", 10, 50, 1));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Notify sound 0:OFF,1:Half, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "Keep Enagage mode", "", "../assets/offroad/icon_shell.png", this));
@@ -780,7 +782,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("TFollowRatio", "GAP: Apply ratio: Caution(110%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 70, 150, 1));
     
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new CValueControl("TrafficStopMode", "STOPPING: Traffice Stop Mode (1)", "0:사용안함,1:사용함", "../assets/offroad/icon_road.png", 0, 1, 1));
+    toggleLayout->addWidget(new CValueControl("TrafficStopMode", "STOPPING: Traffice Stop Mode (1)", "0:사용안함,1:사용함,2:APilot모드", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "STOPPING: DECEL. rate (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
     toggleLayout->addWidget(new CValueControl("ApplyModelDistOrder", "STOPPING: DECEL. model (32)", "숫자가적을수록 미리감속하고 서서히 정지합니다.", "../assets/offroad/icon_road.png", 1, 32, 1));
     toggleLayout->addWidget(new CValueControl("TrafficStopAdjustRatio", "STOPPING: Stop line adjust ratio (90)", "for Test", "../assets/offroad/icon_road.png", 0, 200, 1));
@@ -795,7 +797,9 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedCtrlUse", "TURN: Auto Control(1)", "곡선도로를 만나면 속도를 줄여줍니다. 0:사용안함,1:도로설계기준", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "TURN: Auto Control ratio(100%)", "커브속도조절(커브속도 조절 3일때 170)", "../assets/offroad/icon_road.png", 50, 300, 1));
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactorIn", "TURN: Auto Control ratio In(10%)", "커브속도조절진입", "../assets/offroad/icon_road.png", 0, 300, 1));
-    toggleLayout->addWidget(new CValueControl("AutoTurnControl", "NOO Helper(0)", "0:없음,1:작동, 2:시험", "../assets/offroad/icon_road.png", 0, 2, 1));
+    toggleLayout->addWidget(new CValueControl("AutoTurnControl", "NOO Helper(0)", "0:없음,1:외부네비 작동, 2:자동차로변경, 3:자동속도제어", "../assets/offroad/icon_road.png", 0, 3, 1));
+    toggleLayout->addWidget(new CValueControl("AutoTurnControlSpeedLaneChange", "NOO Helper LaneChange Speed (60)", "0:없음,차로변경속도", "../assets/offroad/icon_road.png", 0, 100, 10));
+    toggleLayout->addWidget(new CValueControl("AutoTurnControlSpeedTurn", "NOO Helper Turn Speed (20)", "0:없음, 턴속도", "../assets/offroad/icon_road.png", 0, 100, 5));
     toggleLayout->addWidget(new CValueControl("AutoLaneChangeSpeed", "LANE CHANGE: Speed (30)", "해당속도 이상에서만 자동차선변경", "../assets/offroad/icon_road.png", 5, 60, 5));
 
 }

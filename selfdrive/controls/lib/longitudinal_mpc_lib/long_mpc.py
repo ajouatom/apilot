@@ -349,7 +349,7 @@ class LongitudinalMpc:
 
   def set_weights(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
     if self.mode == 'acc':
-      a_change_cost = self.AChangeCost if prev_accel_constraint else 0
+      a_change_cost = self.AChangeCost if prev_accel_constraint else 40
       if self.applyLongDynamicCost:
         cost_mulitpliers = self.get_cost_multipliers(v_lead0, v_lead1)
         cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost * cost_mulitpliers[0], self.JEgoCost * cost_mulitpliers[1]]
@@ -358,7 +358,7 @@ class LongitudinalMpc:
         cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
         constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
     elif self.mode == 'blended':
-      a_change_cost = 40.0 if prev_accel_constraint else 0
+      a_change_cost = 40.0 if prev_accel_constraint else 40
       cost_weights = [0., 0.1, 0.2, 5.0, a_change_cost, 1.0]
       constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, 50.0]
     else:
@@ -833,11 +833,13 @@ class LongitudinalMpc:
         stop_x = 1000.0
 
     if self.trafficStopMode > 0:
-      #mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
-      if self.xState == XState.e2eCruisePrepare or (self.xState == XState.e2eStop and self.stopDist > 40):
-        mode = 'blended'
+      if self.trafficStopMode == 2:
+        mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
       else:
-        mode = 'acc'
+        if self.xState == XState.e2eCruisePrepare or (self.xState == XState.e2eStop and self.stopDist > 40):
+          mode = 'blended'
+        else:
+          mode = 'acc'
 
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser
@@ -849,7 +851,7 @@ class LongitudinalMpc:
     elif stop_x == 1000.0:
       self.stopDist = 0.0
     elif self.stopDist > 0:
-      stop_dist = v_ego ** 2 / (2.5 * 2) # 2.5m/s^2 으로 감속할경우 필요한 거리.
+      stop_dist = v_ego ** 2 / (2.0 * 2) # 2.0m/s^2 으로 감속할경우 필요한 거리.
       self.stopDist = self.stopDist if self.stopDist > stop_dist else stop_dist
       stop_x = 0.0
 #    else:

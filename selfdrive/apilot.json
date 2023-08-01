@@ -240,7 +240,7 @@
       "min": 0,
       "max": 300,
       "default": 0,
-      "unit": 10
+      "unit": 1
     },
     {
       "group": "가속설정",
@@ -425,10 +425,10 @@
     {
       "group": "감속제어",
       "name": "TrafficStopMode",
-      "title": "신호정지 방법 (1)",
-      "descr": "0:사용안함,1:사용함",
+      "title": "신호정지 방법 (2)",
+      "descr": "0:사용안함,1:사용함,2:Apilot모드",
       "min": 0,
-      "max": 1,
+      "max": 2,
       "default": 1,
       "unit": 1
     },
@@ -476,11 +476,31 @@
       "group": "조향일반",
       "name": "AutoTurnControl",
       "title": "NOO Helper(0)",
-      "descr": "0:사용안함,1:TMAP/Mappy Helper, 2:시험",
+      "descr": "0:사용안함,1:Navi Helper, 2:자동차로변경, 3:자동속도제어",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 0,
       "unit": 1
+    },
+    {
+      "group": "조향일반",
+      "name": "AutoTurnControlSpeedLaneChange",
+      "title": "NOO Helper 차선변경속도(60)",
+      "descr": "0:사용안함, 차선변경시 적용속도",
+      "min": 0,
+      "max": 100,
+      "default": 60,
+      "unit": 5
+    },
+    {
+      "group": "조향일반",
+      "name": "AutoTurnControlSpeedTurn",
+      "title": "NOO Helper 턴속도(20)",
+      "descr": "0:사용안함, 턴시 적용속도",
+      "min": 0,
+      "max": 100,
+      "default": 20,
+      "unit": 5
     },
     {
       "group": "조향일반",
@@ -1086,9 +1106,9 @@
       "group": "감속제어",
       "name": "AutoNaviSpeedCtrl",
       "title": "과속카메라 작동방법(2)",
-      "descr": "0:사용안함, 1:NDA, 2:NDA + 순정네비게이션",
+      "descr": "0:사용안함, 1:APM, 2:APM + 순정네비게이션, 3:NDA , 재시작필요",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 2,
       "unit": 1
     },
@@ -1111,7 +1131,26 @@
       "max": 20,
       "default": 6,
       "unit": 1
+    },
+    {
+      "group": "감속제어",
+      "name": "AutoNaviSpeedBumpDist",
+      "title": "사고방지턱 감속완료시점(10M)",
+      "descr": "",
+      "min": 1,
+      "max": 50,
+      "default": 10,
+      "unit": 5
+    },
+    {
+      "group": "감속제어",
+      "name": "AutoNaviSpeedBumpSpeed",
+      "title": "사고방지턱 속도(35Km/h)",
+      "descr": "",
+      "min": 10,
+      "max": 50,
+      "default": 35,
+      "unit": 1
     }
-
   ]
 }
