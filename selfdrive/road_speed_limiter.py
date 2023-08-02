@@ -41,7 +41,7 @@ class RoadLimitSpeedServer:
     self.remote_gps_addr = None
     self.last_time_location = 0
     
-    if Params().get("AutoNaviSpeedCtrl") != '3':
+    if int(Params().get("AutoNaviSpeedCtrl")) != 3:
       Port.BROADCAST_PORT = 7708
       Port.RECEIVE_PORT = 7707
 
@@ -140,7 +140,7 @@ class RoadLimitSpeedServer:
             if broadcast_address is not None:
               address = (broadcast_address, Port.BROADCAST_PORT)
                   
-              if Params().get("AutoNaviSpeedCtrl") != '3':
+              if int(Params().get("AutoNaviSpeedCtrl")) != 3:
                 msg = 'APMSERVICE:C3:V1' if TICI else 'APMSERVICE:C2:V1'
               else:        
                 msg = 'EON:ROAD_LIMIT_SERVICE:v1'
@@ -156,7 +156,7 @@ class RoadLimitSpeedServer:
 
   def send_sdp(self, sock):
     try:
-      if Params().get("AutoNaviSpeedCtrl") != '3':
+      if int(Params().get("AutoNaviSpeedCtrl")) != 3:
         msg = 'APMSERVICE:C3:V1' if TICI else 'APMSERVICE:C2:V1'
       else:        
         msg = 'EON:ROAD_LIMIT_SERVICE:v1'
@@ -318,9 +318,12 @@ def main():
 
   with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     try:
-      if Params().get("AutoNaviSpeedCtrl") != '3':
+      if int(Params().get("AutoNaviSpeedCtrl")) != 3:
         sock.bind(('0.0.0.0', Port.RECEIVE_PORT))
+        print("AutoNaviSpeed != 3")
+
       else:
+        print("AutoNaviSpeed == 3")
         try:
           sock.bind(('0.0.0.0', 843))
         except:
