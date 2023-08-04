@@ -687,7 +687,7 @@ class RoadSpeedLimiter:
         if not hda_limit_active:
           log = "SPDCTRL({})={:.0f}<{:.0f}<{:.0f},type={},{:.0f}".format(self.slowing_down, safe_dist, cam_limit_speed_left_dist, starting_dist, cam_type, self.started_dist)
 
-        if MIN_LIMIT <= cam_limit_speed <= MAX_LIMIT and (self.slowing_down or cam_limit_speed_left_dist < starting_dist):
+        if MIN_LIMIT <= cam_limit_speed <= MAX_LIMIT and (self.slowing_down or cam_limit_speed_left_dist < starting_dist or self.session_limit):
           if not self.slowing_down:
             self.started_dist = cam_limit_speed_left_dist
             self.slowing_down = True
