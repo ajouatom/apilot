@@ -164,10 +164,10 @@ class RoadLimitSpeedServer:
     except:
       pass
 
-  def udp_recv(self, sock):
+  def udp_recv(self, sock, wait_time):
     ret = False
     try:
-      ready = select.select([sock], [], [], 0.2)
+      ready = select.select([sock], [], [], wait_time)
       ret = bool(ready[0])
       if ret:
         data, self.remote_addr = sock.recvfrom(2048)
@@ -315,6 +315,8 @@ def main():
   nRoadLimitSpeed = -1
   
   prev_recvTime = sec_since_boot()
+  autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
+  sockWaitTime = 1.0 if autoNaviSpeedCtrl == 3 else 0.2
 
   with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     try:
@@ -334,7 +336,7 @@ def main():
 
       while True:
 
-        ret = server.udp_recv(sock)
+        ret = server.udp_recv(sock, sockWaitTime)
 
         try:
           dat = messaging.recv_sock(sock_carState, wait=False)
@@ -510,7 +512,13 @@ def main():
         sdi_valid_count -= 1
         if sdi_valid:
           sdi_valid_count = 10
-        sdiDebugText = "({}/{}/{} {}/{}/{})".format(nSdiType, nSdiDist, nSdiSpeedLimit, nSdiPlusType, nSdiPlusDist, nSdiPlusSpeedLimit)
+        sdiDebugText = ":"
+        if nSdiType >= 0:
+          sdiDebugText += "S-{}/{}/{} ".format(nSdiType, nSdiDist, nSdiSpeedLimit)
+        if nSdiPlusType >= 0:
+          sdiDebugText += "P-{}/{}/{} ".format(nSdiPlusType, nSdiPlusDist, nSdiPlusSpeedLimit)
+        if nSdiBlockType >= 0:
+          sdiDebugText += "B-{}/{}/{} ".format(nSdiBlockType, nSdiBlockDist, nSdiBlockSpeed)
         if ret:
           print(sdiDebugText)
         apm_valid_count -= 1

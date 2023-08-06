@@ -246,7 +246,7 @@ class DesireHelper:
       self.apNaviDistance = 0
       self.apNaviSpeed = 0
 
-    return nav_direction, nav_turn, need_torque, nav_event
+    return nav_direction, nav_turn, need_torque, nav_event, nav_distance
 
   def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob, roadLimitSpeed, lane_width):
     self.update_params()
@@ -255,11 +255,12 @@ class DesireHelper:
 
     road_edge_stat = self.detect_road_edge_apilot(md, lane_width)
     if self.autoTurnControl > 0:
-      nav_direction, nav_turn, need_torque, nav_event = self.nav_update(carstate, roadLimitSpeed, road_edge_stat)
+      nav_direction, nav_turn, need_torque, nav_event, nav_distance = self.nav_update(carstate, roadLimitSpeed, road_edge_stat)
     else:
       nav_direction = LaneChangeDirection.none
       nav_turn = False
       nav_event = 0
+      nav_distance = 0
       need_torque = 0
       self.desireReady = 0
 
@@ -282,13 +283,15 @@ class DesireHelper:
     if nav_direction == LaneChangeDirection.right:
       if leftBlinker:
         nav_direction = LaneChangeDirection.none
-        self.desireReady = -1
+        if nav_distance < 100:
+          self.desireReady = -1
       else:
         rightBlinker = True
     elif nav_direction == LaneChangeDirection.left:
       if rightBlinker:
         nav_direction = LaneChangeDirection.none
-        self.desireReady = -1
+        if nav_distance < 100:
+          self.desireReady = -1
       else:
         leftBlinker = True
 
@@ -414,7 +417,8 @@ class DesireHelper:
 
         if steering_pressed:
           self.lane_change_state = LaneChangeState.off
-          self.desireReady = -1
+          if nav_distance < 100:
+            self.desireReady = -1
           self.turnState = False
           self.noDetectManDesireTime = 2.0
       # LaneChangeState.laneChangeFinishing
