@@ -328,7 +328,7 @@ class CruiseHelper:
       return safe_speed
     temp = safe_speed*safe_speed + 2*(left_dist - safe_dist)/decel_rate
     dV = (-safe_speed + math.sqrt(temp)) * decel_rate
-    apply_speed = min(current_speed , safe_speed + dV)
+    apply_speed = min(250 , safe_speed + dV)
     return apply_speed
 
   def update_speed_apilot(self, CS, controls):
@@ -367,10 +367,13 @@ class CruiseHelper:
       safeSpeed = CS.speedLimit
       leftDist = CS.speedLimitDistance
 
-    if apNaviSpeed > 0 and apNaviDistance > 0 and apNaviDistance < leftDist:
-      isNoo = True
-      safeSpeed = apNaviSpeed
-      leftDist = apNaviDistance
+    if apNaviSpeed > 0 and apNaviDistance > 0:
+      if leftDist > 0 and apNaviDistance > leftDist:
+        pass
+      else:
+        isNoo = True
+        safeSpeed = apNaviSpeed
+        leftDist = apNaviDistance
 
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
     safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
