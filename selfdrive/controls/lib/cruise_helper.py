@@ -1,6 +1,7 @@
 import copy
 import random
 import numpy as np
+import math
 from common.numpy_fast import clip, interp
 from cereal import car
 from common.realtime import DT_CTRL
