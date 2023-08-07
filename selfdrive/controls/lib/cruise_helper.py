@@ -321,39 +321,14 @@ class CruiseHelper:
     v_cruise_kph = clip(v_cruise_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
-  def calculate_speed_apilot(self, safe_speed, safe_dist, current_speed, decel_rate, left_dist):
-    if left_dist <= safe_dist:
-        return safe_speed
-    else:
-        decel_dist = (current_speed**2 - safe_speed**2) / (2 * decel_rate)
-        if left_dist > safe_dist + decel_dist:
-            return current_speed
-        else:
-            return interp(left_dist, [safe_dist, safe_dist + decel_dist], [safe_speed, current_speed])
-
-  def decelerate_for_speed_camera1(self, safe_speed, safe_dist, current_speed, decel_rate, left_dist):
-    required_dist = (current_speed**2 - safe_speed**2) / (2 * decel_rate)
-        
-    if left_dist <= safe_dist:
-      return safe_speed
-    elif required_dist <= (left_dist - safe_dist):
-      return 255
-    else:
-      available_distance = left_dist - safe_dist
-      apply_speed = ((2 * decel_rate * available_distance + safe_speed**2))**0.5
-      return apply_speed
-      #return interp(left_dist, [safe_dist, left_dist], [safe_speed, current_speed])
-
   def decelerate_for_speed_camera(self, safe_speed, safe_dist, current_speed, decel_rate, left_dist):
 
-    max_speed = 250 / 3.6
-    required_dist = (max_speed**2 - safe_speed**2) / (2 * decel_rate)
-        
     if left_dist <= safe_dist:
       return safe_speed
-    else:
-      apply_speed = interp(left_dist - safe_dist, [0, required_dist], [safe_speed, max_speed])
-      return apply_speed
+    temp = safe_speed*safe_speed + 2*(left_dist - safe_dist)/decel_rate
+    dV = (-safe_speed + math.sqrt(temp)) * decel_rate
+    apply_speed = min(current_speed , safe_speed + dV)
+    return apply_speed
 
   def update_speed_apilot(self, CS, controls):
     v_ego = CS.vEgoCluster
@@ -390,12 +365,14 @@ class CruiseHelper:
     elif CS.speedLimit > 0 and CS.speedLimitDistance > 0 and self.autoNaviSpeedCtrl >= 2:
       safeSpeed = CS.speedLimit
       leftDist = CS.speedLimitDistance
-    elif apNaviSpeed > 0 and apNaviDistance > 0:
+
+    if apNaviSpeed > 0 and apNaviDistance > 0 and apNaviDistance < leftDist:
       isNoo = True
       safeSpeed = apNaviSpeed
       leftDist = apNaviDistance
 
-    safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
+    #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
+    safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
 
     log = ""
     if isSectionLimit:
