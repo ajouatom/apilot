@@ -593,6 +593,7 @@ class RoadSpeedLimiter:
     self.autoNaviSpeedCtrlEnd = 6
     self.autoNaviSpeedBumpDist = 10
     self.autoNaviSpeedBumpSpeed = 30
+    self.autoNaviSpeedSafetyFactor = 1.05
 
   def recv(self):
     try:
@@ -657,7 +658,8 @@ class RoadSpeedLimiter:
       section_left_time = self.roadLimitSpeed.sectionLeftTime
       section_adjust_speed = self.roadLimitSpeed.sectionAdjustSpeed
 
-      camSpeedFactor = clip(self.roadLimitSpeed.camSpeedFactor, 1.0, 1.1)
+      #camSpeedFactor = clip(self.roadLimitSpeed.camSpeedFactor, 1.0, 1.1)
+      camSpeedFactor = self.autoNaviSpeedSafetyFactor 
 
       if False and is_highway is not None:
         if is_highway:

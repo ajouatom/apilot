@@ -1131,6 +1131,16 @@
       "max": 200,
       "default": 100,
       "unit": 10
+    },
+    {
+      "group": "감속제어",
+      "name": "AutoNaviSpeedSafetyFactor",
+      "title": "과속카메라 제한속도적용(105)",
+      "descr": "",
+      "min": 80,
+      "max": 120,
+      "default": 105,
+      "unit": 1
     }
   ]
 }

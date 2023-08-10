@@ -329,8 +329,8 @@ class DesireHelper:
 
     ## 핸들토크가 반대방향으로 가해짐.
     steering_pressed = carstate.steeringPressed and \
-                        ((carstate.steeringTorque > 0 and leftBlinker) or
-                        (carstate.steeringTorque < 0 and rightBlinker))
+                        ((carstate.steeringTorque < 0 and leftBlinker) or
+                        (carstate.steeringTorque > 0 and rightBlinker))
 
     blindspot_detected = ((carstate.leftBlindspot and leftBlinker) or
                           (carstate.rightBlindspot and rightBlinker))

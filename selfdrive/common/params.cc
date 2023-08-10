@@ -254,6 +254,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AutoNaviSpeedBumpDist", PERSISTENT },
     { "AutoNaviSpeedBumpSpeed", PERSISTENT },
     { "AutoNaviSpeedDecelRate", PERSISTENT },
+    { "AutoNaviSpeedSafetyFactor", PERSISTENT },
     { "AutoRoadLimitCtrl", PERSISTENT },
     { "AutoResumeFromBrakeRelease", PERSISTENT },
     { "AutoResumeFromBrakeReleaseDist", PERSISTENT },

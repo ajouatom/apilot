@@ -116,6 +116,7 @@ class CruiseHelper:
     self.autoNaviSpeedBumpDist = float(Params().get("AutoNaviSpeedBumpDist"))
     self.autoNaviSpeedBumpSpeed = float(Params().get("AutoNaviSpeedBumpSpeed"))
     self.autoNaviSpeedDecelRate = float(Params().get("AutoNaviSpeedDecelRate"))*0.01
+    self.autoNaviSpeedSafetyFactor = float(Params().get("AutoNaviSpeedSafetyFactor"))*0.01
     self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
     self.autoResumeFromGasSpeed = float(int(Params().get("AutoResumeFromGasSpeed", encoding="utf8")))
     self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
@@ -200,11 +201,13 @@ class CruiseHelper:
         self.autoNaviSpeedBumpDist = float(Params().get("AutoNaviSpeedBumpDist"))
         self.autoNaviSpeedBumpSpeed = float(Params().get("AutoNaviSpeedBumpSpeed"))
         self.autoNaviSpeedDecelRate = float(Params().get("AutoNaviSpeedDecelRate"))*0.01
+        self.autoNaviSpeedSafetyFactor = float(Params().get("AutoNaviSpeedSafetyFactor"))*0.01
         road_speed_limiter = get_road_speed_limiter()
         road_speed_limiter.autoNaviSpeedCtrlStart = self.autoNaviSpeedCtrlStart
         road_speed_limiter.autoNaviSpeedCtrlEnd = self.autoNaviSpeedCtrlEnd
         road_speed_limiter.autoNaviSpeedBumpDist = self.autoNaviSpeedBumpDist
         road_speed_limiter.autoNaviSpeedBumpSpeed = self.autoNaviSpeedBumpSpeed
+        road_speed_limiter.autoNaviSpeedSafetyFactor = self.autoNaviSpeedSafetyFactor
       elif self.update_params_count == 16:
         self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
         self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
@@ -274,13 +277,13 @@ class CruiseHelper:
 
     button_type = 0
     if enabled:
-      if ButtonCnt:
+      if ButtonCnt > 0:
         ButtonCnt += 1
       for b in buttonEvents:
-        if b.pressed and not ButtonCnt and (b.type == ButtonType.accelCruise or b.type == ButtonType.decelCruise or b.type == ButtonType.gapAdjustCruise):
+        if b.pressed and ButtonCnt==0 and (b.type == ButtonType.accelCruise or b.type == ButtonType.decelCruise or b.type == ButtonType.gapAdjustCruise):
           ButtonCnt = 1
           ButtonPrev = b.type
-        elif not b.pressed and ButtonCnt:
+        elif not b.pressed and ButtonCnt > 0:
           if not LongPressed and b.type == ButtonType.accelCruise:
             v_cruise_kph += button_speed_up_diff if metric else button_speed_up_diff * CV.MPH_TO_KPH
             button_type = ButtonType.accelCruise
@@ -329,6 +332,8 @@ class CruiseHelper:
     temp = safe_speed*safe_speed + 2*(left_dist - safe_dist)/decel_rate
     dV = (-safe_speed + math.sqrt(temp)) * decel_rate
     apply_speed = min(250 , safe_speed + dV)
+    min_speed = current_speed - decel_rate * 2 * DT_CTRL
+    apply_speed = max(apply_speed, min_speed)
     return apply_speed
 
   def update_speed_apilot(self, CS, controls):
@@ -377,6 +382,8 @@ class CruiseHelper:
 
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
     safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
+
+    safeSpeed *= self.autoNaviSpeedSafetyFactor
 
     log = ""
     if isSectionLimit:
