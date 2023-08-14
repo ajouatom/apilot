@@ -353,24 +353,31 @@ class CruiseHelper:
     isSectionLimit = False
     safeSpeed = 0
     leftDist = 0
+    speedLimitType = 0
     
     if camType == 22 or xSignType == 22:
       safeSpeed = self.autoNaviSpeedBumpSpeed
-      isSpeedBump = True
+      isSpeedBump = True      
 
     if msg.xSpdLimit > 0 and msg.xSpdDist > 0:
       safeSpeed = msg.xSpdLimit if safeSpeed <= 0 else safeSpeed
       leftDist = msg.xSpdDist
       isSectionLimit = True if xSignType==165 or leftDist > 3000 or camType == 4 else False
       isSectionLimit = False if leftDist < 50 else isSectionLimit
+      speedLimitType = 2 if not isSectionLimit else 3
     elif msg.camLimitSpeed > 0 and msg.camLimitSpeedLeftDist>0:
       safeSpeed = msg.camLimitSpeed
       leftDist = msg.camLimitSpeedLeftDist
       isSectionLimit = True if leftDist > 3000 or camType == 4 else False
       isSectionLimit = False if leftDist < 50 else isSectionLimit
+      speedLimitType = 2 if not isSectionLimit else 3
     elif CS.speedLimit > 0 and CS.speedLimitDistance > 0 and self.autoNaviSpeedCtrl >= 2:
       safeSpeed = CS.speedLimit
       leftDist = CS.speedLimitDistance
+      speedLimitType = 2 if leftDist > 1 else 3
+
+    if isSpeedBump:
+      speedLimitType = 1 
 
     if apNaviSpeed > 0 and apNaviDistance > 0:
       if leftDist > 0 and apNaviDistance > leftDist:
@@ -379,6 +386,7 @@ class CruiseHelper:
         isNoo = True
         safeSpeed = apNaviSpeed
         leftDist = apNaviDistance
+        speedLimitType = 4
 
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
     safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
@@ -395,7 +403,7 @@ class CruiseHelper:
       applySpeed = 255
 
     controls.debugText1 = log
-    return applySpeed, roadSpeed
+    return applySpeed, roadSpeed, leftDist, speedLimitType
 
   def update_speed_nda(self, CS, controls):
     clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
@@ -421,7 +429,7 @@ class CruiseHelper:
     #controls.debugText1 = str1
     roadSpeed = controls.sm['roadLimitSpeed'].roadLimitSpeed
 
-    return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(roadSpeed, 30, MAX_SET_SPEED_KPH)
+    return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(roadSpeed, 30, MAX_SET_SPEED_KPH), 0, 2
 
   def apilot_driving_mode(self, CS, controls):
     accel_index = interp(CS.aEgo, [-3.0, -2.0, 0.0, 2.0, 3.0], [100.0, 0, 0, 0, 100.0])
@@ -752,9 +760,9 @@ class CruiseHelper:
     self.update_params(self.frame)
 
     if self.autoNaviSpeedCtrlMode == 1:
-      self.naviSpeed, self.roadSpeed = self.update_speed_apilot(CS, controls)
+      self.naviSpeed, self.roadSpeed, leftSpeedDist, speedLimitType = self.update_speed_apilot(CS, controls)
     else:
-      self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
+      self.naviSpeed, self.roadSpeed, leftSpeedDist, speedLimitType = self.update_speed_nda(CS, controls)
     
     self.curveSpeed = 255
     self.apilot_driving_mode(CS, controls)
@@ -855,19 +863,23 @@ class CruiseHelper:
       #controls.debugText1 = 'LC={:3.1f},{:3.1f},RS={:3.1f},SS={:3.1f}'.format( self.leadCarSpeed, vRel*CV.MS_TO_KPH, self.roadSpeed, self.v_cruise_kph_apply)      
 
       ###### naviSpeed, roadSpeed, curveSpeed처리
+      applySpeedLimit = False
       if self.autoNaviSpeedCtrl > 0 and self.naviSpeed > 0:
-        if self.naviSpeed < self.v_cruise_kph_apply:
+        if self.naviSpeed < v_cruise_kph and self.longActiveUser:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)  #시끄러..
+          if speedLimitType in [2]: # 과속카메라인경우에만 HDA깜박, 핸들진동
+            self.ndaActive = 2
           pass
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
-        self.ndaActive = 2 if self.ndaActive == 1 else 0
+        applySpeedLimit = True
+        #self.ndaActive = 2 if self.ndaActive == 1 else self.ndaActive
       if self.roadSpeed > 30 and False: # 로드스피드리밋 사용안함..
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
-      if self.autoCurveSpeedCtrlUse > 0:
-        if self.curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
+      if self.autoCurveSpeedCtrlUse > 0 and (not applySpeedLimit or leftSpeedDist > 100):
+        if self.curveSpeed < v_cruise_kph and self.longActiveUser > 0:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)
           pass
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
