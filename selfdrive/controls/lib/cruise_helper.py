@@ -870,8 +870,8 @@ class CruiseHelper:
           if speedLimitType in [2]: # 과속카메라인경우에만 HDA깜박, 핸들진동
             self.ndaActive = 2
           pass
+          applySpeedLimit = True
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
-        applySpeedLimit = True
         #self.ndaActive = 2 if self.ndaActive == 1 else self.ndaActive
       if self.roadSpeed > 30 and False: # 로드스피드리밋 사용안함..
         if self.autoRoadLimitCtrl == 1:
@@ -882,7 +882,7 @@ class CruiseHelper:
         if self.curveSpeed < v_cruise_kph and self.longActiveUser > 0:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)
           pass
-        if applySpeedLimit and leftSpeedDist < 100: #속도제한중이며, 남은거리가 100M가 안되면... 커브감속을 안하도록..
+        if applySpeedLimit and 0 < leftSpeedDist < 100: #속도제한중이며, 남은거리가 100M가 안되면... 커브감속을 안하도록..
           pass
         else:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
