@@ -380,7 +380,7 @@ class CruiseHelper:
       speedLimitType = 1 
 
     if apNaviSpeed > 0 and apNaviDistance > 0:
-      if leftDist > 0 and apNaviDistance > leftDist:
+      if leftDist > 0 and apNaviSpeed > safeSpeed: #apNaviDistance > leftDist:
         pass
       else:
         isNoo = True
@@ -429,7 +429,7 @@ class CruiseHelper:
     #controls.debugText1 = str1
     roadSpeed = controls.sm['roadLimitSpeed'].roadLimitSpeed
 
-    return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(roadSpeed, 30, MAX_SET_SPEED_KPH), 0, 2
+    return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(roadSpeed, 30, MAX_SET_SPEED_KPH), left_dist, 2
 
   def apilot_driving_mode(self, CS, controls):
     accel_index = interp(CS.aEgo, [-3.0, -2.0, 0.0, 2.0, 3.0], [100.0, 0, 0, 0, 100.0])
@@ -878,11 +878,14 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
-      if self.autoCurveSpeedCtrlUse > 0 and (not applySpeedLimit or leftSpeedDist > 100):
+      if self.autoCurveSpeedCtrlUse > 0:
         if self.curveSpeed < v_cruise_kph and self.longActiveUser > 0:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)
           pass
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
+        if applySpeedLimit and leftSpeedDist < 100: #속도제한중이며, 남은거리가 100M가 안되면... 커브감속을 안하도록..
+          pass
+        else:
+          self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 
