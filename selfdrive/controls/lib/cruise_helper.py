@@ -354,10 +354,11 @@ class CruiseHelper:
     safeSpeed = 0
     leftDist = 0
     speedLimitType = 0
+    safeDist = 0
     
     if camType == 22 or xSignType == 22:
       safeSpeed = self.autoNaviSpeedBumpSpeed
-      isSpeedBump = True      
+      isSpeedBump = True
 
     if msg.xSpdLimit > 0 and msg.xSpdDist > 0:
       safeSpeed = msg.xSpdLimit if safeSpeed <= 0 else safeSpeed
@@ -378,18 +379,27 @@ class CruiseHelper:
 
     if isSpeedBump:
       speedLimitType = 1 
-
+      safeDist = self.autoNaviSpeedBumpDist
+    elif safeSpeed>0 and leftDist>0:
+      safeDist = self.autoNaviSpeedCtrlEnd * v_ego
+      
     if apNaviSpeed > 0 and apNaviDistance > 0:
-      if leftDist > 0 and apNaviSpeed > safeSpeed: #apNaviDistance > leftDist:
-        pass
-      else:
-        isNoo = True
+      isNoo = True
+      safeDistNavi = 30
+      if 0 < leftDist - safeDist and 0 < safeSpeed < 200 and apNaviDistance > safeDistNavi:
+        if (apNaviDistance - safeDistNavi) / apNaviSpeed > (leftDist - safeDist)/safeSpeed:
+      #if (apNaviDistance - safeDistNavi) > (leftDist - safeDist):
+      #if leftDist > 0 and safeSpeed > 0:
+          isNoo = False
+      if isNoo:
         safeSpeed = apNaviSpeed
         leftDist = apNaviDistance
+        safeDist = safeDistNavi
         speedLimitType = 4
 
+
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
-    safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
+    #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
 
     safeSpeed *= self.autoNaviSpeedSafetyFactor
 
@@ -401,6 +411,13 @@ class CruiseHelper:
       log = "ApplySpeed={:.1f},Speed={:.1f},Dist={:.1f},Decel={:.1f},Left={:.0f}".format(applySpeed, safeSpeed, safeDist, self.autoNaviSpeedDecelRate, leftDist)
     else:
       applySpeed = 255
+      
+    log = "{:.1f}<{:.1f}/{:.1f} B{} A{:.1f}/{:.1f} N{:.1f}/{:.1f} C{:.1f}/{:.1f} V{:.1f}/{:.1f} ".format(
+                  applySpeed, safeSpeed, leftDist, 1 if isSpeedBump else 0, 
+                  msg.xSpdLimit, msg.xSpdDist,
+                  msg.camLimitSpeed, msg.camLimitSpeedLeftDist,
+                  CS.speedLimit, CS.speedLimitDistance,
+                  apNaviSpeed, apNaviDistance)
 
     controls.debugText1 = log
     return applySpeed, roadSpeed, leftDist, speedLimitType
@@ -565,9 +582,11 @@ class CruiseHelper:
         longActiveUser = -2
       #  2. 신호감지감속중: cruiseOFF: 신호감지감속이 맘에 안드는 상태, 가속페달을 밟으면 해제
       elif self.xState in [XState.e2eStop, XState.e2eCruise, XState.e2eCruisePrepare] and self.v_ego_kph < v_cruise_kph and (self.trafficState % 10) == 1: #controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: 
+        v_cruise_kph = self.v_ego_kph_set
         longActiveUser = -2
       #  3. 저속주행: cruiseOFF(autoResumeFromGasSpeed 이하): 조건(autoCancelFromGasMode)에 따라 선행차의 유무에 따라 크루즈 해제
       elif self.v_ego_kph < self.autoResumeFromGasSpeed:
+        v_cruise_kph = self.v_ego_kph_set
         if self.autoCancelFromGasMode == 1:
           longActiveUser = -2
         elif self.autoCancelFromGasMode == 2 and self.dRel==0: # mode:2일때는 선행차가 없을때만
@@ -582,6 +601,8 @@ class CruiseHelper:
           if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
             v_cruise_kph = self.autoSyncCruiseSpeedMax
           v_cruise_kph_backup = v_cruise_kph
+      elif self.v_ego_kph < v_cruise_kph: ##시험코드: 가속페달시 현재속도로 세트.. 갑자기 튀어나가는걸 막고싶다~
+        v_cruise_kph = self.v_ego_kph_set
 
       # 앞차를 추월하기 위해 가속한경우, 앞차와의 거리가 감속가능한 거리가 아닌경우 크루즈OFF: 급격한 감속충격을 막기 위해.. (시험해야함)
       if 0 < self.dRel < CS.vEgo * 0.9: # 급정거 t_follow 를 0.9로 가정..
@@ -652,6 +673,7 @@ class CruiseHelper:
             stop_dist = CS.vEgo ** 2 / (2.5 * 2)
             if stop_dist < self.xStop:
               longActiveUser = 3
+              v_cruise_kph = self.v_ego_kph_set
           else:        #속도가 빠르면... pass
             pass
         else:   #그냥 감속한경우, 현재속도세트

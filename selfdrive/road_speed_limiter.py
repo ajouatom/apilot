@@ -279,6 +279,7 @@ def main():
 
   sock_carState = messaging.sub_sock("carState")
   carState = None
+  CS = None
 
   xTurnInfo = -1
   xDistToTurn = -1
@@ -317,6 +318,7 @@ def main():
   prev_recvTime = sec_since_boot()
   autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
   sockWaitTime = 1.0 if autoNaviSpeedCtrl == 3 else 0.2
+  send_time = sec_since_boot()
 
   with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     try:
@@ -339,11 +341,13 @@ def main():
         ret = server.udp_recv(sock, sockWaitTime)
 
         try:
-          dat = messaging.recv_sock(sock_carState, wait=False)
-          if dat is not None:
-            carState = dat.carState
+          carState = messaging.recv_sock(sock_carState, wait=False)
+          if carState is not None:
+            CS = carState.carState
         except:
           pass
+
+        #print(Port.RECEIVE_PORT)
 
         dat = messaging.new_message()
         dat.init('roadLimitSpeed')
@@ -375,8 +379,7 @@ def main():
 
         #print(atype, value)
         delta_dist = 0.0
-        if carState is not None:
-          CS = carState
+        if CS is not None:
           delta_dist = CS.totalDistance - totalDistance
           totalDistance = CS.totalDistance
           if CS.gasPressed:
@@ -443,26 +446,44 @@ def main():
         #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
 
         #for 띠맵
-        if ret or now - prev_recvTime > 1.5: # 수신값이 있거나, 1.5초가 지난경우 데이터를 초기화함.
-          nTBTTurnType = nSdiType = nSdiDist = nSdiSpeedLimit = nSdiPlusType = nSdiPlusDist = nSdiPlusSpeedLimit = nSdiBlockType = -1
-          nSdiBlockSpeed = nSdiBlockDist = nTBTDist = nRoadLimitSpeed = -1
-        else:
-          nSdiDist -= delta_dist
-          nSdiPlusDist -= delta_dist
-          nSdiBlockDist -= delta_dist
+        if ret or now - prev_recvTime > 2.0: # 수신값이 있거나, 2.0초가 지난경우 데이터를 초기화함.
+          nTBTTurnType = nSdiType = nSdiSpeedLimit = nSdiPlusType = nSdiPlusSpeedLimit = nSdiBlockType = -1
+          nSdiBlockSpeed = nRoadLimitSpeed = -1
 
-        nTBTTurnType = int(server.get_apilot_val("nTBTTurnType", nTBTTurnType))
-        nSdiType = int(server.get_apilot_val("nSdiType", nSdiType))
-        nSdiDist = int(server.get_apilot_val("nSdiDist", nSdiDist))
-        nSdiSpeedLimit = int(server.get_apilot_val("nSdiSpeedLimit", nSdiSpeedLimit))
-        nSdiPlusType = int(server.get_apilot_val("nSdiPlusType", nSdiPlusType))
-        nSdiPlusDist = int(server.get_apilot_val("nSdiPlusDist", nSdiPlusDist))
-        nSdiPlusSpeedLimit = int(server.get_apilot_val("nSdiPlusSpeedLimit", nSdiPlusSpeedLimit))
-        nSdiBlockType = int(server.get_apilot_val("nSdiBlockType", nSdiBlockType))
-        nSdiBlockSpeed = int(server.get_apilot_val("nSdiBlockSpeed", nSdiBlockSpeed))
-        nSdiBlockDist = int(server.get_apilot_val("nSdiBlockDist", nSdiBlockDist))
-        nTBTDist = int(server.get_apilot_val("nTBTDist", nTBTDist))
-        nRoadLimitSpeed = int(server.get_apilot_val("nRoadLimitSpeed", nRoadLimitSpeed))
+        nSdiDist -= delta_dist
+        nSdiPlusDist -= delta_dist
+        nSdiBlockDist -= delta_dist
+        nTBTDist -= delta_dist
+
+        #print("I:{:.1f},{:.1f},{:.1f},{:.2f}".format(nSdiDist, nSdiPlusDist, nTBTDist, delta_dist))
+
+        if ret:
+          nTBTTurnType = int(server.get_apilot_val("nTBTTurnType", nTBTTurnType))
+          nSdiType = int(server.get_apilot_val("nSdiType", nSdiType))
+          nSdiDist = float(server.get_apilot_val("nSdiDist", nSdiDist))
+          nSdiSpeedLimit = int(server.get_apilot_val("nSdiSpeedLimit", nSdiSpeedLimit))
+          nSdiPlusType = int(server.get_apilot_val("nSdiPlusType", nSdiPlusType))
+          nSdiPlusDist = float(server.get_apilot_val("nSdiPlusDist", nSdiPlusDist))
+          nSdiPlusSpeedLimit = int(server.get_apilot_val("nSdiPlusSpeedLimit", nSdiPlusSpeedLimit))
+          nSdiBlockType = int(server.get_apilot_val("nSdiBlockType", nSdiBlockType))
+          nSdiBlockSpeed = int(server.get_apilot_val("nSdiBlockSpeed", nSdiBlockSpeed))
+          nSdiBlockDist = float(server.get_apilot_val("nSdiBlockDist", nSdiBlockDist))
+          nTBTDist = float(server.get_apilot_val("nTBTDist", nTBTDist))
+          nRoadLimitSpeed = int(server.get_apilot_val("nRoadLimitSpeed", nRoadLimitSpeed))
+
+        #print("O:{:.1f},{:.1f},{:.1f},{:.2f}".format(nSdiDist, nSdiPlusDist, nTBTDist, delta_dist))
+
+        sdiDebugText = ":"
+        if nSdiType >= 0:
+          sdiDebugText += "S-{}/{}/{} ".format(nSdiType, int(nSdiDist), nSdiSpeedLimit)
+        if nSdiPlusType >= 0:
+          sdiDebugText += "P-{}/{}/{} ".format(nSdiPlusType, int(nSdiPlusDist), nSdiPlusSpeedLimit)
+        if nSdiBlockType >= 0:
+          sdiDebugText += "B-{}/{}/{} ".format(nSdiBlockType, int(nSdiBlockDist), nSdiBlockSpeed)
+        if nTBTTurnType >= 0:
+          sdiDebugText += "T-{}/{} ".format(nTBTTurnType, int(nTBTDist))
+        if ret:
+          print(sdiDebugText)
 
         if nTBTTurnType in [12, 16]:
           xTurnInfo = 1  # turn left
@@ -499,6 +520,8 @@ def main():
           xSpdLimit = 35
           xSpdDist = nSdiPlusDist if nSdiPlusType == 22 else nSdiDist
           sdiType = 22
+        elif nSdiType in [7]: #이동식카메라
+          xSpdLimit = xSpdDist = -1
         elif sdi_valid and nSdiSpeedLimit <= 0 and not mappyMode: # 데이터는 수신되었으나, sdi 수신이 없으면, 감속중 다른곳으로 빠진경우... 초기화...
           xSpdLimit = xSpdDist = sdiType = -1
 
@@ -512,25 +535,16 @@ def main():
         sdi_valid_count -= 1
         if sdi_valid:
           sdi_valid_count = 10
-        sdiDebugText = ":"
-        if nSdiType >= 0:
-          sdiDebugText += "S-{}/{}/{} ".format(nSdiType, nSdiDist, nSdiSpeedLimit)
-        if nSdiPlusType >= 0:
-          sdiDebugText += "P-{}/{}/{} ".format(nSdiPlusType, nSdiPlusDist, nSdiPlusSpeedLimit)
-        if nSdiBlockType >= 0:
-          sdiDebugText += "B-{}/{}/{} ".format(nSdiBlockType, nSdiBlockDist, nSdiBlockSpeed)
-        if ret:
-          print(sdiDebugText)
         apm_valid_count -= 1
         if apm_valid:
           apm_valid_count = 10
 
-        if xTurnInfo >= 0:
+        if False and xTurnInfo >= 0:
           xDistToTurn -= delta_dist
           if xDistToTurn < 0:
             xTurnInfo = -1
 
-        if xSpdLimit >= 0:
+        if False and xSpdLimit >= 0:
           xSpdDist -= delta_dist
           if xSpdDist < 0:
             xSpdLimit = -1
@@ -572,9 +586,11 @@ def main():
         dat.roadLimitSpeed.xRoadName = xRoadName + sdiDebugText
 
         roadLimitSpeed.send(dat.to_bytes())
-        server.send_sdp(sock)
+        if now - send_time > 1.0:
+          server.send_sdp(sock)
+          send_time = now
         server.check()
-        time.sleep(0.03)
+        #time.sleep(0.03)
 
     except Exception as e:
       print(e)

@@ -255,7 +255,6 @@ class LongitudinalMpc:
     self.stopDist = 0.0
     self.e2eCruiseCount = 0
     self.mpcEvent = 0
-    self.lightSensor = 0
     self.prev_x = 0
 
     self.t_follow = T_FOLLOW
@@ -410,11 +409,9 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.max_a = max_a
 
-  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint, light_sensor):
+  def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
 
     self.update_params()
-    if light_sensor >= 0:
-      self.lightSensor = light_sensor
     v_ego = self.x0[1]
     a_ego = carstate.aEgo
 
@@ -466,7 +463,7 @@ class LongitudinalMpc:
 
       #self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
       #  self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
-      self.debugLongText1 = "L{},A{:3.2f},L0{:5.1f},C{:5.1f},X{:5.1f},S{:5.1f}".format(self.lightSensor, self.max_a, lead_0_obstacle[0], cruise_obstacle[0], x2[0], self.stopDist)
+      self.debugLongText1 = "A{:3.2f},L0{:5.1f},C{:5.1f},X{:5.1f},S{:5.1f}".format(self.max_a, lead_0_obstacle[0], cruise_obstacle[0], x2[0], self.stopDist)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
@@ -851,7 +848,7 @@ class LongitudinalMpc:
     elif stop_x == 1000.0:
       self.stopDist = 0.0
     elif self.stopDist > 0:
-      stop_dist = v_ego ** 2 / (2.0 * 2) # 2.0m/s^2 으로 감속할경우 필요한 거리.
+      stop_dist = v_ego ** 2 / (1.8 * 2) # 1.8m/s^2 으로 감속할경우 필요한 거리.
       self.stopDist = self.stopDist if self.stopDist > stop_dist else stop_dist
       stop_x = 0.0
 #    else:

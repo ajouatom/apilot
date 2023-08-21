@@ -202,12 +202,7 @@ class LongitudinalPlanner:
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error, v_ego, self.autoTurnControl)
 
-    lightSensor = -1
-    if sm.updated['sensorEvents']:
-      for sensor in sm['sensorEvents']:
-        if sensor.type == 5:
-          lightSensor = sensor.light
-    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint, lightSensor)
+    self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 
     self.v_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.a_solution)
