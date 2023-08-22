@@ -130,6 +130,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     stopStop @127; #ajouatom
     audioLaneChange @130; #ajouatom
     audioTurn @131; #ajouatom
+    pedalInterceptorNoBrake @132;
+
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;

@@ -919,10 +919,11 @@ class CruiseHelper:
 
     self.blinker = CS.rightBlinker or CS.leftBlinker
 
+    brakePressed = CS.brakePressed or CS.regenBraking
     longActiveUser, v_cruise_kph, self.v_cruise_kph_backup = self.button_control(enabled, controls, CS, v_cruise_kph, buttonEvents, metric)
     if controls.enabled:      
 
-      if CS.brakePressed:
+      if brakePressed:
         longActiveUser = -2
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
@@ -931,7 +932,7 @@ class CruiseHelper:
         self.longActiveUserReady, v_cruise_kph, temp = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.gasPressed and self.gasPressedCount > 0:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_gas_cruise_on(CS, v_cruise_kph)
-      elif not CS.brakePressed and self.preBrakePressed:
+      elif not brakePressed and self.preBrakePressed:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_brake_cruise_on(CS, v_cruise_kph)
       elif self.userCruisePaused:
         if self.v_ego_kph > 3.0 and self.dRel > 0 and self.vRel < 0:          
@@ -942,7 +943,7 @@ class CruiseHelper:
           longActiveUser = 3
         pass
 
-      if longActiveUser <= 0 and not CS.brakePressed and not CS.gasPressed:
+      if longActiveUser <= 0 and not brakePressed and not CS.gasPressed:
         cruiseOnDist = abs(self.cruiseOnDist)
         if cruiseOnDist > 0.0 and CS.vEgo > 0.2 and self.vRel < 0 and self.dRel < cruiseOnDist:
           self.send_apilot_event(controls, EventName.stopStop, 10.0)
@@ -994,7 +995,7 @@ class CruiseHelper:
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 
-    self.preBrakePressed = CS.brakePressed
+    self.preBrakePressed = brakePressed
     self.xState_prev = self.xState
     if self.v_ego_kph < 20.0:
       self.slowSpeedFrameCount += 1
