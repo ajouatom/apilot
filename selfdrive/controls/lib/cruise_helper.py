@@ -470,9 +470,9 @@ class CruiseHelper:
     #curvature = abs(controls.sm['modelV2'].orientationRate.z[20] / clip(CS.vEgo, 0.1, 100.0))
     orientationRates = np.array(controls.sm['modelV2'].orientationRate.z, dtype=np.float32)
     # 계산된 결과로, oritetationRates를 나누어 조금더 curvature값이 커지도록 함.
-    speed = min(self.turnSpeed_prev / 3.6, clip(CS.vEgo, 0.5, 100.0))
-    # 12: 약1.4초 미래의 curvature를 계산함.
-    curvature = np.max(np.abs(orientationRates[12:])) / speed
+    speed = min(self.turnSpeed_prev / 3.6, clip(CS.vEgo, 0.5, 100.0))    
+    #curvature = np.max(np.abs(orientationRates[12:])) / speed  # 12: 약1.4초 미래의 curvature를 계산함.
+    curvature = np.max(np.abs(orientationRates[12:20])) / speed  # 12: 약1.4~3.5초 미래의 curvature를 계산함.
     curvature = self.curvatureFilter.process(curvature) * self.autoCurveSpeedFactor
     turnSpeed = 300
     if abs(curvature) > 0.0001:
@@ -525,7 +525,7 @@ class CruiseHelper:
        self.apilotEventWait = waiting
 
   ######################
-  # Gas(엑셀) 놓는 시점
+  # Gas(엑셀) 밟고 있거나, 놓는 시점
     #### CruiseOFF상태이면
       #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
     #### CruiseON상태이면
@@ -537,6 +537,67 @@ class CruiseHelper:
       #  6. 크루즈속도보다 높을때: 크루즈속도 현재속도셋 : autoSyncCruiseSpeedMax까지
   #####################
   def check_gas_cruise_on(self, CS, v_cruise_kph):
+    longActiveUser = self.longActiveUser
+    resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
+    v_cruise_kph_backup = self.v_cruise_kph_backup
+
+    if self.v_cruise_kph_backup < self.v_ego_kph_set:
+      self.v_cruise_kph_backup = self.v_ego_kph_set
+    #  페달을 0.6초이내 뗀경우: 속도증가 autoSyncCruiseSpeedMax까지: 가속페달로 속도를 증가시킴
+    if self.gasPressedCount * DT_CTRL < 0.6:
+      if not CS.gasPressed  and self.preGasPressedMax > 0.03:
+        if v_cruise_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
+          v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, self.roadSpeed)
+          if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
+            v_cruise_kph = self.autoSyncCruiseSpeedMax
+          v_cruise_kph_backup = v_cruise_kph
+
+    
+    #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
+    #    - autoResumeFromGasSpeedMode에 따라 속도 설정(기존속도, 현재속도)
+    elif ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas:
+      if self.preGasPressedMax >= 0.6: # 60%이상 GAS를 밟으면.. 기존속도..
+        v_cruise_kph = self.v_cruise_kph_backup 
+      elif self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
+        v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+      elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
+          v_cruise_kph = self.v_cruise_kph_backup 
+      elif self.autoResumeFromGasSpeedMode == 2:   #레이더가 검출될때만 기존속도..
+        if 60 > self.dRel > 0:
+          if self.leadCarSpeed  < self.v_ego_kph_set:
+            v_cruise_kph = self.v_ego_kph_set
+          else:
+            v_cruise_kph = self.v_cruise_kph_backup 
+        else:
+          v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+      elif self.autoResumeFromGasSpeedMode == 3: # 60M이상 직선도로일때 기존속도. 1초이상 페달밟음.
+        if self.xStop > 60.0 and self.gasPressedCount * DT_CTRL > 1.0: 
+          if 60 > self.dRel > 0:
+            if self.leadCarSpeed  < self.v_ego_kph_set:
+              v_cruise_kph = self.v_ego_kph_set
+            else:
+              v_cruise_kph = self.v_cruise_kph_backup 
+          else:
+            v_cruise_kph = self.v_cruise_kph_backup 
+        else:
+          v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+      if self.longCruiseGap != 5: 
+        longActiveUser = 3
+    else:
+      longActiveUser = -2
+      
+    # 앞차를 추월하기 위해 가속한경우, 앞차와의 거리가 감속가능한 거리가 아닌경우 크루즈OFF: 급격한 감속충격을 막기 위해.. (시험해야함)
+    if 0 < self.dRel < CS.vEgo * 0.9: # 급정거 t_follow 를 0.9로 가정..
+      longActiveUser = -2
+    #  6. 크루즈속도보다 높을때: 크루즈속도 현재속도셋 : autoSyncCruiseSpeedMax까지
+    if self.v_ego_kph_set > v_cruise_kph and self.autoSyncCruiseSpeedMax > self.autoResumeFromGasSpeed:
+      if self.autoResumeFromGasSpeed < self.v_ego_kph_set: # < self.autoSyncCruiseSpeedMax: # 오토크루즈 ON속도보다 높고, 130키로보다 작을때만 싱크
+        v_cruise_kph = self.v_ego_kph_set if self.v_ego_kph_set < self.autoSyncCruiseSpeedMax else self.autoSyncCruiseSpeedMax
+        v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
+
+    return longActiveUser, v_cruise_kph, v_cruise_kph_backup
+
+  def check_gas_cruise_on_old(self, CS, v_cruise_kph):
     resume_cond = abs(CS.steeringAngleDeg) < 20 # and not CS.steeringPressed
     longActiveUser = self.longActiveUser
     v_cruise_kph_backup = self.v_cruise_kph_backup
@@ -843,10 +904,10 @@ class CruiseHelper:
         longActiveUser = -2
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
-        self.longActiveUserReady,temp,temp = self.check_brake_cruise_on(CS, v_cruise_kph)
+        self.longActiveUserReady, v_cruise_kph, temp = self.check_brake_cruise_on(CS, v_cruise_kph)
       elif CS.gasPressed:  
-        self.longActiveUserReady,temp,temp = self.check_gas_cruise_on(CS, v_cruise_kph)
-      elif not CS.gasPressed and self.gasPressedCount > 2:
+        self.longActiveUserReady, v_cruise_kph, temp = self.check_gas_cruise_on(CS, v_cruise_kph)
+      elif not CS.gasPressed and self.gasPressedCount > 0:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.brakePressed and self.preBrakePressed:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_brake_cruise_on(CS, v_cruise_kph)

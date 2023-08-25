@@ -238,6 +238,9 @@ class DesireHelper:
             need_torque = 1
             nav_turn = False
             nav_direction = direction
+          else:
+            nav_turn = False
+            nav_direction = LaneChangeDirection.none
         elif nav_distance < 180: # and self.navActive == 0: # 차로변경시작
           need_torque = 2
           nav_direction = direction
@@ -250,7 +253,7 @@ class DesireHelper:
     else:
       nav_turn = False
       self.desireReady = 0
-      direction = LaneChangeDirection.none
+      nav_direction = LaneChangeDirection.none
       self.apNaviDistance = 0
       self.apNaviSpeed = 0
 
@@ -431,6 +434,7 @@ class DesireHelper:
 
         if steering_pressed:
           self.lane_change_state = LaneChangeState.off
+          self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:
             self.desireReady = -1
           self.turnState = 0
@@ -442,7 +446,6 @@ class DesireHelper:
         self.lane_change_ll_prob = min(self.lane_change_ll_prob + DT_MDL, 1.0) 
 
         if self.lane_change_ll_prob > 0.5: # 0.5초로변경함... 0.99: # 차선변경완료 후 1초동안 기다림. (왜?)
-          self.lane_change_direction = LaneChangeDirection.none
           self.lane_change_state = LaneChangeState.off
           self.turnState = 0
           if one_blinker:

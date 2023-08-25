@@ -380,6 +380,7 @@ class CarInterface(CarInterfaceBase):
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_CAMERA_SCC
       if ret.sccBus == 2:
         ret.openpilotLongitudinalControl = True
+        ret.radarUnavailable = False
         ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiLegacy)]
 
     if ret.openpilotLongitudinalControl:
