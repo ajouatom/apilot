@@ -454,6 +454,16 @@ def main():
         nSdiBlockDist -= delta_dist
         nTBTDist -= delta_dist
 
+        if xSpdLimit >= 0:
+          xSpdDist -= delta_dist
+          if xSpdDist < 0:
+            xSpdLimit = -1
+
+        if xTurnInfo >= 0:
+          xDistToTurn -= delta_dist
+          if xDistToTurn < 0:
+            xTurnInfo = -1
+
         #print("I:{:.1f},{:.1f},{:.1f},{:.2f}".format(nSdiDist, nSdiPlusDist, nTBTDist, delta_dist))
 
         if ret:
@@ -537,16 +547,6 @@ def main():
         apm_valid_count -= 1
         if apm_valid:
           apm_valid_count = 10
-
-        if False and xTurnInfo >= 0:
-          xDistToTurn -= delta_dist
-          if xDistToTurn < 0:
-            xTurnInfo = -1
-
-        if False and xSpdLimit >= 0:
-          xSpdDist -= delta_dist
-          if xSpdDist < 0:
-            xSpdLimit = -1
 
         if xBumpDistance > 0:
           xBumpDistance -= delta_dist
