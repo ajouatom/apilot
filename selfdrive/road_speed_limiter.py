@@ -455,6 +455,16 @@ def main():
         nSdiBlockDist -= delta_dist
         nTBTDist -= delta_dist
 
+        if xSpdLimit >= 0:
+          xSpdDist -= delta_dist
+          if xSpdDist < 0:
+            xSpdLimit = -1
+
+        if xTurnInfo >= 0:
+          xDistToTurn -= delta_dist
+          if xDistToTurn < 0:
+            xTurnInfo = -1
+
         #print("I:{:.1f},{:.1f},{:.1f},{:.2f}".format(nSdiDist, nSdiPlusDist, nTBTDist, delta_dist))
 
         if ret:
@@ -510,18 +520,18 @@ def main():
         # 20:SchoolZoneStart, 21:SchoolZoneEnd, 22:SpeedBump, 23:LpgStation, 24:TunnelArea, 
         # 25:ServiceArea
         # 66:ChangableSpeedBlockStartPos, 67:ChangableSpeedBlockEndPos
-        if nSdiType in [0,1,2,3,4,8] and nSdiSpeedLimit > 0: # SpeedLimitPos, nSdiSection: 2,
+        if nSdiType in [0,1,2,3,4,7,8] and nSdiSpeedLimit > 0: # SpeedLimitPos, nSdiSection: 2,
           xSpdLimit = nSdiSpeedLimit
           xSpdDist = nSdiDist
           sdiType = nSdiType
           if sdiType == 4: ## 구간단속
             xSpdDist = nSdiBlockDist if nSdiBlockDist > 0 else 80
+          elif sdiType == 7: ##이동식카메라?
+            xSpdLimit = xSpdDist = -1
         elif nSdiPlusType == 22 or nSdiType == 22: # SpeedBump
           xSpdLimit = 35
           xSpdDist = nSdiPlusDist if nSdiPlusType == 22 else nSdiDist
           sdiType = 22
-        elif nSdiType in [7]: #이동식카메라
-          xSpdLimit = xSpdDist = -1
         elif sdi_valid and nSdiSpeedLimit <= 0 and not mappyMode: # 데이터는 수신되었으나, sdi 수신이 없으면, 감속중 다른곳으로 빠진경우... 초기화...
           xSpdLimit = xSpdDist = sdiType = -1
 
@@ -538,16 +548,6 @@ def main():
         apm_valid_count -= 1
         if apm_valid:
           apm_valid_count = 10
-
-        if False and xTurnInfo >= 0:
-          xDistToTurn -= delta_dist
-          if xDistToTurn < 0:
-            xTurnInfo = -1
-
-        if False and xSpdLimit >= 0:
-          xSpdDist -= delta_dist
-          if xSpdDist < 0:
-            xSpdLimit = -1
 
         if xBumpDistance > 0:
           xBumpDistance -= delta_dist
