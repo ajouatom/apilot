@@ -97,6 +97,9 @@ class CruiseHelper:
     self.apilotEventPrev = 0
     self.drivingModeIndex = 0.0
 
+    self.isNoo = False
+    self.nooExperimentalMode = False
+
     self.leadCarSpeed = 0.
 
     self.update_params_count = 0
@@ -108,6 +111,8 @@ class CruiseHelper:
     self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self.autoCurveSpeedFactorIn = float(int(Params().get("AutoCurveSpeedFactorIn", encoding="utf8")))*0.01
+    self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
+    self.autoTurnControlTurnEnd = int(Params().get("AutoTurnControlTurnEnd", encoding="utf8"))
     self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
     self.autoNaviSpeedCtrlMode = int(Params().get("AutoNaviSpeedCtrlMode"))
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
@@ -145,6 +150,9 @@ class CruiseHelper:
     self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
     self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
 
+    self.myDrivingMode_backup = self.myDrivingMode
+
+
   def update_params(self, frame):
     if frame % 20 == 0:
       self.update_params_count += 1
@@ -155,6 +163,8 @@ class CruiseHelper:
         self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
         self.autoCurveSpeedFactorIn = float(int(Params().get("AutoCurveSpeedFactorIn", encoding="utf8")))*0.01
       elif self.update_params_count == 1:
+        self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
+        self.autoTurnControlTurnEnd = int(Params().get("AutoTurnControlTurnEnd", encoding="utf8"))
         self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
         self.autoNaviSpeedCtrlMode = int(Params().get("AutoNaviSpeedCtrlMode"))
         self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
@@ -385,7 +395,7 @@ class CruiseHelper:
       
     if apNaviSpeed > 0 and apNaviDistance > 0:
       isNoo = True
-      safeDistNavi = 30
+      safeDistNavi = self.autoTurnControlTurnEnd * v_ego
       if 0 < leftDist - safeDist and 0 < safeSpeed < 200 and apNaviDistance > safeDistNavi:
         if (apNaviDistance - safeDistNavi) / apNaviSpeed > (leftDist - safeDist)/safeSpeed:
       #if (apNaviDistance - safeDistNavi) > (leftDist - safeDist):
@@ -397,6 +407,18 @@ class CruiseHelper:
         safeDist = safeDistNavi
         speedLimitType = 4
 
+    if isNoo and not self.isNoo:
+      self.myDrivingMode_backup = self.myDrivingMode
+    elif not isNoo and self.isNoo:
+      self.myDrivingMode = self.myDrivingMode_backup
+
+    self.isNoo = isNoo
+    if self.isNoo and leftDist < 60:
+      self.myDrivingMode = 4
+
+    self.nooExperimentalMode = False
+    if self.isNoo and leftDist < 60:
+      self.nooExperimentalMode = True
 
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
     #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6

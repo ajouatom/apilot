@@ -913,6 +913,8 @@ class Controls:
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
     controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
     controlsState.curveSpeed = self.cruise_helper.curveSpeed
+    if 0 < self.cruise_helper.naviSpeed < self.cruise_helper.curveSpeed:
+      controlsState.curveSpeed = -self.cruise_helper.naviSpeed
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)
@@ -978,6 +980,9 @@ class Controls:
 
     self.is_metric = self.params.get_bool("IsMetric")
     self.experimental_mode = self.params.get_bool("ExperimentalMode")
+    #if self.cruise_helper.autoTurnControl == 4:
+    #  self.experimental_mode = self.cruise_helper.nooExperimentalMode
+
     #self.experimental_mode = self.experimental_mode or self.sm['lateralPlan'].desireReady != 0
     #self.experimental_mode = self.sm['longitudinalPlan'].xState in [XState.e2eStop, XState.e2eCruisePrepare]
 

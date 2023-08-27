@@ -417,6 +417,9 @@ class DesireHelper:
         # fade out over .5s
         self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2 * DT_MDL, 0.0) ## *2씩 뺐으니, 0.5초,
 
+        #if not nav_turn and self.turnState==0 and torque_applied:
+        #  self.turnState = 1
+
         if nav_turn or self.turnState>0:
           self.desire = log.LateralPlan.Desire.turnLeft if self.lane_change_direction == LaneChangeDirection.left else log.LateralPlan.Desire.turnRight
           lane_change_prob = turn_prob
@@ -432,7 +435,7 @@ class DesireHelper:
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01: # 0.5초가 지난후부터 차선변경이 완료되었는지확인.
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-        if steering_pressed:
+        if steering_pressed or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:

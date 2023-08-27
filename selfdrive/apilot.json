@@ -436,9 +436,9 @@
       "group": "조향일반",
       "name": "AutoTurnControl",
       "title": "NOO Helper(0)",
-      "descr": "0:사용안함,1:Navi Helper, 2:자동차로변경, 3:자동속도제어",
+      "descr": "0:사용안함,1:Navi Helper, 2:자동차로변경, 3:자동속도제어, 4:실험모드",
       "min": 0,
-      "max": 3,
+      "max": 4,
       "default": 0,
       "unit": 1
     },
@@ -461,6 +461,16 @@
       "max": 100,
       "default": 20,
       "unit": 5
+    },
+    {
+      "group": "조향일반",
+      "name": "AutoTurnControlTurnEnd",
+      "title": "NOO Helper 시간거리(3)",
+      "descr": "NOO완료 시간거리(속도*시간)",
+      "min": 0,
+      "max": 30,
+      "default": 3,
+      "unit": 1
     },
     {
       "group": "조향일반",

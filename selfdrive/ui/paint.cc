@@ -1156,6 +1156,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
                 if (brake_hold || soft_hold) {
                     //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                    sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
+                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
                 }
                 else {
                     sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
@@ -1360,6 +1362,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
         float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
         float curveSpeed = controls_state.getCurveSpeed();
+        bool speedCtrlActive = false;
+        if (curveSpeed < 0) {
+            speedCtrlActive = true;
+            curveSpeed = -curveSpeed;
+        }
+        
         //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
@@ -1514,7 +1522,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (true) {
             if (enabled && curveSpeed > 0 && curveSpeed < 150) {
                 sprintf(str, "%d", (int)(curveSpeed + 0.5));
-                ui_draw_text(s, bx + 140, by + 110, str, 50, COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
+                ui_draw_text(s, bx + 140, by + 110, str, 50, (speedCtrlActive)?COLOR_RED:COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
             }
         }
 

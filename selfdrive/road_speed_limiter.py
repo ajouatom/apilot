@@ -114,7 +114,9 @@ class RoadLimitSpeedServer:
         struct.pack('256s', 'wlan0'.encode('utf-8'))
       )[20:24]
 
-      return socket.inet_ntoa(ip)
+      broadcast_address = socket.inet_ntoa(ip)
+      s.close()
+      return broadcast_address
     except:
       return None
 

@@ -2261,6 +2261,7 @@ struct Event {
     magnetometer @95 :SensorEventData;
     lightSensor @96 :SensorEventData;
     temperatureSensor @97 :SensorEventData;
+    temperatureSensor2 @123 :SensorEventData;
     pandaStates @81 :List(PandaState);
     peripheralState @80 :PeripheralState;
     radarState @13 :RadarState;
@@ -2326,7 +2327,7 @@ struct Event {
     userFlag @93 :UserFlag;
     uiDebug @102 :UIDebug;
     # neokii
-    roadLimitSpeed @123 :RoadLimitSpeed;
+    roadLimitSpeed @124 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;

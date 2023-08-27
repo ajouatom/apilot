@@ -246,6 +246,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AutoTurnControl", PERSISTENT },
     { "AutoTurnControlSpeedLaneChange", PERSISTENT },
     { "AutoTurnControlSpeedTurn", PERSISTENT },
+    { "AutoTurnControlTurnEnd", PERSISTENT },
     { "AutoLaneChangeSpeed", PERSISTENT },
     { "AutoNaviSpeedCtrl", PERSISTENT },
     { "AutoNaviSpeedCtrlMode", PERSISTENT },
@@ -334,6 +335,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralTorqueFriction", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
+
 };
 
 } // namespace
