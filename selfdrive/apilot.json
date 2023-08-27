@@ -464,6 +464,16 @@
     },
     {
       "group": "조향일반",
+      "name": "AutoTurnControlTurnEnd",
+      "title": "NOO Helper 시간거리(3)",
+      "descr": "NOO완료 시간거리(속도*시간)",
+      "min": 0,
+      "max": 30,
+      "default": 3,
+      "unit": 1
+    },
+    {
+      "group": "조향일반",
       "name": "AutoLaneChangeSpeed",
       "title": "자동차선변경속도(30)",
       "descr": "해당속도 이상에서만 자동차선변경",

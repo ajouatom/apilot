@@ -230,7 +230,7 @@ class CarState(CarStateBase):
     self.scc11 = cp_cruise.vl["SCC11"]
     self.scc12 = cp_cruise.vl["SCC12"]
     self.scc13 = cp_cruise.vl["SCC13"] if "SCC13" in cp_cruise.vl else None
-    self.scc14 = cp_cruise.vl["SCC14"]
+    self.scc14 = cp_cruise.vl["SCC14"] if "SCC14" in cp_cruise.vl else None
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
     decimal = cp.vl["CLU11"]["CF_Clu_VanzDecimal"]
     if 0. < decimal < 0.5:

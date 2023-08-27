@@ -443,9 +443,10 @@ void update_model(UIState *s,
   // update road edges
   const auto road_edges = model.getRoadEdges();
   const auto road_edge_stds = model.getRoadEdgeStds();
+  int max_idx_road_edge = get_path_length_idx(lane_lines[0], 100);
   for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
     scene.road_edge_stds[i] = road_edge_stds[i];
-    update_line_data(s, road_edges[i], 0.15, 0.0, 0.0, &scene.road_edge_vertices[i], max_idx);
+    update_line_data(s, road_edges[i], 0.15, 0.0, 0.0, &scene.road_edge_vertices[i], max_idx_road_edge);
   }
 
   // update path

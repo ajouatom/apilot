@@ -915,6 +915,8 @@ class Controls:
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
     controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
     controlsState.curveSpeed = self.cruise_helper.curveSpeed
+    if 0 < self.cruise_helper.naviSpeed < self.cruise_helper.curveSpeed:
+      controlsState.curveSpeed = -self.cruise_helper.naviSpeed
 
     #C2#controlsState.upAccelCmd = float(self.LoC.pid.p)
     #C2#controlsState.uiAccelCmd = float(self.LoC.pid.i)

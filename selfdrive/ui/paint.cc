@@ -376,7 +376,9 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     if (s->show_lane_info > 1) {
         for (int i = 0; i < std::size(scene.road_edge_vertices); ++i) {
             //color = nvgRGBAf(1.0, 0.0, 1.0, std::clamp<float>(3.0 - scene.road_edge_stds[i], 0.0, 1.0));
-            color = nvgRGBAf(1.0, 0.0, 1.0, (scene.road_edge_stds[i]<2.0)?1.0:0.0);
+            //color = nvgRGBAf(1.0, 0.0, 1.0, (scene.road_edge_stds[i] < 2.0) ? 1.0 : 0.0);
+            float temp_f = std::clamp<float>(scene.road_edge_stds[i] / 2., 0.0, 1.0);
+            color = nvgRGBAf(1.0 - temp_f, 0.0, temp_f, 1.0);
             ui_draw_line(s, scene.road_edge_vertices[i], &color, nullptr);
         }
     }
@@ -1154,6 +1156,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
                 if (brake_hold || soft_hold) {
                     //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                    sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
+                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
                 }
                 else {
                     sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
@@ -1358,6 +1362,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
         float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
         float curveSpeed = controls_state.getCurveSpeed();
+        bool speedCtrlActive = false;
+        if (curveSpeed < 0) {
+            speedCtrlActive = true;
+            curveSpeed = -curveSpeed;
+        }
+        
         //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
@@ -1493,7 +1503,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (true) {
             if (enabled && curveSpeed > 0 && curveSpeed < 150) {
                 sprintf(str, "%d", (int)(curveSpeed + 0.5));
-                ui_draw_text(s, bx + 140, by + 110, str, 50, COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
+                ui_draw_text(s, bx + 140, by + 110, str, 50, (speedCtrlActive)?COLOR_RED:COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
             }
         }
 
