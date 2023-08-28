@@ -2105,8 +2105,8 @@ DBC = {
   CAR.KIA_OPTIMA_H: dbc_dict('hyundai_kia_generic', None),
   CAR.KIA_SELTOS: dbc_dict('hyundai_kia_generic', None),
   CAR.KIA_SORENTO: dbc_dict('hyundai_kia_generic', None), # Has 0x5XX messages, but different format
-  CAR.KIA_STINGER: dbc_dict('hyundai_kia_generic', None),
-  CAR.KIA_STINGER_2022: dbc_dict('hyundai_kia_generic', None),
+  CAR.KIA_STINGER: dbc_dict('hyundai_kia_generic', 'hyundai_kia_mando_front_radar_generated'),
+  CAR.KIA_STINGER_2022: dbc_dict('hyundai_kia_generic', 'hyundai_kia_mando_front_radar_generated'),
   CAR.KONA: dbc_dict('hyundai_kia_generic', None),
   CAR.KONA_EV: dbc_dict('hyundai_kia_generic', None),
   CAR.KONA_EV_2022: dbc_dict('hyundai_kia_generic', None),
