@@ -27,6 +27,10 @@ class CarState(CarStateBase):
     self.loopback_lka_steering_cmd_ts_nanos = 0
     self.pt_lka_steering_cmd_counter = 0
     self.cam_lka_steering_cmd_counter = 0
+    # 벌트용 3단 크루즈갭
+    self.prev_distance_button = 0
+    self.distance_button = 0
+    self.cruise_Gap = 2
     self.buttons_counter = 0
 
     self.single_pedal_mode = False
@@ -53,6 +57,10 @@ class CarState(CarStateBase):
     if self.CP.networkLocation == NetworkLocation.fwdCamera and not self.CP.flags & GMFlags.NO_CAMERA.value:
       self.pt_lka_steering_cmd_counter = pt_cp.vl["ASCMLKASteeringCmd"]["RollingCounter"]
       self.cam_lka_steering_cmd_counter = cam_cp.vl["ASCMLKASteeringCmd"]["RollingCounter"]
+
+    # 벌트용 3단 크루즈갭
+    self.prev_distance_button = self.distance_button
+    self.distance_button = pt_cp.vl["ASCMSteeringButton"]["DistanceButton"]
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["EBCMWheelSpdFront"]["FLWheelSpd"],
@@ -140,7 +148,9 @@ class CarState(CarStateBase):
 
     # TODO: APILOT
     ret.accFaulted = False ## for Test...
-    ret.cruiseGap = 1
+	
+    # 벌트용 3단 크루즈갭
+    ret.cruiseGap = self.cruise_Gap
     #ret.tpms =
     ret.vCluRatio = 1.0
     #ret.driverOverride
