@@ -97,9 +97,6 @@ class CruiseHelper:
     self.apilotEventPrev = 0
     self.drivingModeIndex = 0.0
 
-    self.isNoo = False
-    self.nooExperimentalMode = False
-
     self.leadCarSpeed = 0.
 
     self.update_params_count = 0
@@ -124,7 +121,7 @@ class CruiseHelper:
     self.autoNaviSpeedSafetyFactor = float(Params().get("AutoNaviSpeedSafetyFactor"))*0.01
     self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
     self.autoResumeFromGasSpeed = float(int(Params().get("AutoResumeFromGasSpeed", encoding="utf8")))
-    self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
+    self.autoResumeFromGas = int(Params().get("AutoResumeFromGas", encoding="utf8"))
     self.autoResumeFromBrakeRelease = Params().get_bool("AutoResumeFromBrakeRelease")
     self.autoSyncCruiseSpeedMax = int(Params().get("AutoSyncCruiseSpeedMax"))
     self.autoResumeFromBrakeReleaseDist = float(int(Params().get("AutoResumeFromBrakeReleaseDist", encoding="utf8")))
@@ -150,9 +147,6 @@ class CruiseHelper:
     self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
     self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
 
-    self.myDrivingMode_backup = self.myDrivingMode
-
-
   def update_params(self, frame):
     if frame % 20 == 0:
       self.update_params_count += 1
@@ -173,7 +167,7 @@ class CruiseHelper:
       elif self.update_params_count == 3:
         self.autoResumeFromGasSpeed = float(int(Params().get("AutoResumeFromGasSpeed", encoding="utf8")))
       elif self.update_params_count == 4:
-        self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
+        self.autoResumeFromGas = int(Params().get("AutoResumeFromGas", encoding="utf8"))
         self.autoResumeFromBrakeRelease = Params().get_bool("AutoResumeFromBrakeRelease")
       elif self.update_params_count == 5:
         self.autoSyncCruiseSpeedMax = int(Params().get("AutoSyncCruiseSpeedMax"))
@@ -349,8 +343,8 @@ class CruiseHelper:
   def update_speed_apilot(self, CS, controls):
     v_ego = CS.vEgoCluster
     msg = self.roadLimitSpeed = controls.sm['roadLimitSpeed']
-    apNaviSpeed = controls.sm['lateralPlan'].apNaviSpeed
-    apNaviDistance = controls.sm['lateralPlan'].apNaviDistance
+    apTbtSpeed = controls.sm['lateralPlan'].apNaviSpeed
+    apTbtDistance = controls.sm['lateralPlan'].apNaviDistance
 
     active = msg.active
     self.ndaActive = 1 if active > 0 else 0
@@ -359,7 +353,6 @@ class CruiseHelper:
     xSignType = msg.xSignType
 
     isSpeedBump = False
-    isNoo = False
     isSectionLimit = False
     safeSpeed = 0
     leftDist = 0
@@ -392,36 +385,6 @@ class CruiseHelper:
       safeDist = self.autoNaviSpeedBumpDist
     elif safeSpeed>0 and leftDist>0:
       safeDist = self.autoNaviSpeedCtrlEnd * v_ego
-      
-    if apNaviSpeed > 0 and apNaviDistance > 0:
-      isNoo = True
-      safeDistNavi = self.autoTurnControlTurnEnd * v_ego
-      if 0 < leftDist - safeDist and 0 < safeSpeed < 200 and apNaviDistance > safeDistNavi:
-        if (apNaviDistance - safeDistNavi) / apNaviSpeed > (leftDist - safeDist)/safeSpeed:
-      #if (apNaviDistance - safeDistNavi) > (leftDist - safeDist):
-      #if leftDist > 0 and safeSpeed > 0:
-          isNoo = False
-      if isNoo:
-        safeSpeed = apNaviSpeed
-        leftDist = apNaviDistance
-        safeDist = safeDistNavi
-        speedLimitType = 4
-
-    if isNoo and not self.isNoo:
-      self.myDrivingMode_backup = self.myDrivingMode
-    elif not isNoo and self.isNoo:
-      self.myDrivingMode = self.myDrivingMode_backup
-
-    self.isNoo = isNoo
-    if self.isNoo and leftDist < 60:
-      self.myDrivingMode = 4
-
-    self.nooExperimentalMode = False
-    if self.isNoo and leftDist < 60:
-      self.nooExperimentalMode = True
-
-    #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * v_ego
-    #safeDist = self.autoNaviSpeedBumpDist if isSpeedBump else 30 if isNoo else self.autoNaviSpeedCtrlEnd * safeSpeed/3.6
 
     safeSpeed *= self.autoNaviSpeedSafetyFactor
 
@@ -430,16 +393,28 @@ class CruiseHelper:
       applySpeed = safeSpeed
     elif leftDist > 0 and safeSpeed > 0 and safeDist > 0:
       applySpeed = self.decelerate_for_speed_camera(safeSpeed/3.6, safeDist, self.v_cruise_kph_apply/3.6, self.autoNaviSpeedDecelRate, leftDist) * 3.6
-      log = "ApplySpeed={:.1f},Speed={:.1f},Dist={:.1f},Decel={:.1f},Left={:.0f}".format(applySpeed, safeSpeed, safeDist, self.autoNaviSpeedDecelRate, leftDist)
     else:
       applySpeed = 255
+
+    ## NOO Helper
+    if apTbtSpeed > 0 and apTbtDistance > 0:
+      safeTbtDist = self.autoTurnControlTurnEnd * v_ego
+      applyTbtSpeed = self.decelerate_for_speed_camera(apTbtSpeed/3.6, safeTbtDist, self.v_cruise_kph_apply/3.6, self.autoNaviSpeedDecelRate, apTbtDistance) * 3.6
+      if applyTbtSpeed < applySpeed:
+        applySpeed = applyTbtSpeed
+        safeSpeed = apTbtSpeed
+        leftDist = apTbtDistance
+        safeDist = safeTbtDist
+        speedLimitType = 4
+
+    ## NOO Helper-End
       
     log = "{:.1f}<{:.1f}/{:.1f} B{} A{:.1f}/{:.1f} N{:.1f}/{:.1f} C{:.1f}/{:.1f} V{:.1f}/{:.1f} ".format(
                   applySpeed, safeSpeed, leftDist, 1 if isSpeedBump else 0, 
                   msg.xSpdLimit, msg.xSpdDist,
                   msg.camLimitSpeed, msg.camLimitSpeedLeftDist,
                   CS.speedLimit, CS.speedLimitDistance,
-                  apNaviSpeed, apNaviDistance)
+                  apTbtSpeed, apTbtDistance)
 
     controls.debugText1 = log
     return applySpeed, roadSpeed, leftDist, speedLimitType
@@ -471,7 +446,7 @@ class CruiseHelper:
     return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(roadSpeed, 30, MAX_SET_SPEED_KPH), left_dist, 2
 
   def apilot_driving_mode(self, CS, controls):
-    accel_index = interp(CS.aEgo, [-3.0, -2.0, 0.0, 2.0, 3.0], [100.0, 0, 0, 0, 100.0])
+    accel_index = interp(CS.aEgo, [-3.0, -1.0, 0.0, 1.0, 3.0], [100.0, 0, 0, 0, 100.0])
     velocity_index = interp(self.v_ego_kph, [0, 5.0, 50.0], [100.0, 80.0, 0.0])
     if 0 < self.dRel < 50:
       total_index = accel_index * 3. + velocity_index
@@ -568,16 +543,19 @@ class CruiseHelper:
     #  페달을 0.6초이내 뗀경우: 속도증가 autoSyncCruiseSpeedMax까지: 가속페달로 속도를 증가시킴
     if self.gasPressedCount * DT_CTRL < 0.6:
       if not CS.gasPressed  and self.preGasPressedMax > 0.03:
-        if v_cruise_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
+        if longActiveUser <= 0:
+          if self.autoResumeFromGas > 1:
+            longActiveUser = 3
+            v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
+        elif v_cruise_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
           v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, self.roadSpeed)
           if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
             v_cruise_kph = self.autoSyncCruiseSpeedMax
           v_cruise_kph_backup = v_cruise_kph
-
     
     #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
     #    - autoResumeFromGasSpeedMode에 따라 속도 설정(기존속도, 현재속도)
-    elif ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas:
+    elif ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas > 0:
       if self.preGasPressedMax >= 0.6: # 60%이상 GAS를 밟으면.. 기존속도..
         v_cruise_kph = self.v_cruise_kph_backup 
       elif self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
@@ -628,7 +606,7 @@ class CruiseHelper:
     if self.longActiveUser <= 0:
       #  1. 가속페달 CruiseON (autoResumeFromGas) & 신호적색아님 & (autoResumeFromGasSpeed보다 빠거나 60%이상 밟으면
       #    - autoResumeFromGasSpeedMode에 따라 속도 설정(기존속도, 현재속도)
-      if ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas:
+      if ((resume_cond and (self.v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and (self.trafficState % 10) != 1 and self.autoResumeFromGas > 0:
         if self.preGasPressedMax >= 0.6: # 60%이상 GAS를 밟으면.. 기존속도..
           v_cruise_kph = self.v_cruise_kph_backup 
         elif self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트

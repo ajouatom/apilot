@@ -373,7 +373,11 @@ class DesireHelper:
                   need_torque = 2
                 self.lane_change_state = LaneChangeState.laneChangeStarting
             else: # 네비..
-              if blindspot_detected or roadedge_detected:
+              if steering_pressed:
+                self.lane_change_state = LaneChangeState.off
+                self.lane_change_direction = LaneChangeDirection.none
+                self.desireReady = -1
+              elif blindspot_detected or roadedge_detected:
                 if need_torque > 0 or self.needTorque: # 이벤트때문에.... 
                   self.lane_change_state = LaneChangeState.laneChangeStarting
                 pass
@@ -413,21 +417,18 @@ class DesireHelper:
         #  self.turnState = 1
 
         if nav_turn or self.turnState>0:
-          self.desire = log.LateralPlan.Desire.turnLeft if self.lane_change_direction == LaneChangeDirection.left else log.LateralPlan.Desire.turnRight
           lane_change_prob = turn_prob
           if self.turnState == 1:
             if turn_prob < 0.2:
               self.lane_change_ll_prob = 1.0
             else:
               self.turnState = 2
-        else:
-          self.desire = log.LateralPlan.Desire.laneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else log.LateralPlan.Desire.laneChangeRight
 
         # 98% certainty
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01: # 0.5초가 지난후부터 차선변경이 완료되었는지확인.
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-        if steering_pressed or (0 < nav_distance < 100 and carstate.gasPressed):
+        if steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:
@@ -449,6 +450,12 @@ class DesireHelper:
           else:
             self.lane_change_state = LaneChangeState.off
             self.lane_change_direction = LaneChangeDirection.none
+
+    if self.lane_change_state == LaneChangeState.laneChangeStarting:
+      if nav_turn or self.turnState>0:
+        self.desire = log.LateralPlan.Desire.turnLeft if self.lane_change_direction == LaneChangeDirection.left else log.LateralPlan.Desire.turnRight
+      else:
+        self.desire = log.LateralPlan.Desire.laneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else log.LateralPlan.Desire.laneChangeRight
 
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.preLaneChange) or nav_turn or self.turnState>0:
       self.lane_change_timer = 0.0

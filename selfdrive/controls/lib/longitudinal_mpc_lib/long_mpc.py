@@ -819,6 +819,8 @@ class LongitudinalMpc:
       if self.status:
         self.xState = XState.lead
         stop_x = 1000.0
+      elif abs(carstate.steeringAngleDeg) > 5:
+        pass
       elif self.trafficState == 1 and not carstate.gasPressed:
         self.xState = XState.e2eStop
         self.mpcEvent = EventName.trafficStopping
