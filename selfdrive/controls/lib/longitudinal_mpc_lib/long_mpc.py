@@ -435,9 +435,13 @@ class LongitudinalMpc:
     applyStopDistance = self.stopDistance * (2.0 - self.mySafeModeFactor)
 
     # 벌트용 3단 크루즈갭
-    cruise_gap = int(clip(carstate.cruiseGap, 1., 3.))
-    tr = interp(float(cruise_gap), CRUISE_GAP_BP, CRUISE_GAP_V)
-    self.t_follow = tr
+    selected_car = Params().get("SelectedCar", encoding="utf8")
+    if selected_car == ("CHEVROLET VOLT PREMIER 2017"):
+      cruise_gap = int(clip(carstate.cruiseGap, 1., 3.))
+      tr = interp(float(cruise_gap), CRUISE_GAP_BP, CRUISE_GAP_V)
+      self.t_follow = tr
+    else:
+      pass
 
 
     # To estimate a safe distance from a moving lead, we calculate how much stopping
