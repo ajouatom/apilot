@@ -324,7 +324,7 @@ class CarInterface(CarInterfaceBase):
       ret.buttonEvents = create_button_events(self.CS.cruise_buttons, self.CS.prev_cruise_buttons, BUTTONS_DICT,
                                               unpressed_btn=CruiseButtons.UNPRESS)
     if self.CS.distance_button_pressed != self.distance_button_pressed_prev:
-      buttonEvents.append(car.CarState.ButtonEvent(pressed=self.CS.distance_button_pressed, type=ButtonType.gapAdjustCruise))
+      ret.buttonEvents.append(car.CarState.ButtonEvent(pressed=self.CS.distance_button_pressed, type=ButtonType.gapAdjustCruise))
       self.distance_button_pressed_prev = self.CS.distance_button_pressed
 
 
