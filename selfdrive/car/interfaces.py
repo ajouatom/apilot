@@ -76,6 +76,8 @@ class CarInterfaceBase(ABC):
 
     self.keepEngage = Params().get_bool("KeepEngage")
 
+    self.distance_button_pressed_prev = False  # for GM
+
     if CarState is not None:
       self.CS = CarState(CP)
 
