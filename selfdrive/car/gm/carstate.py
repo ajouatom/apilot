@@ -46,6 +46,9 @@ class CarState(CarStateBase):
     moving_forward = pt_cp.vl["EBCMWheelSpdRear"]["MovingForward"] != 0
     self.moving_backward = (pt_cp.vl["EBCMWheelSpdRear"]["MovingBackward"] != 0) and not moving_forward
 
+    if self.cruise_buttons in [CruiseButtons.UNPRESS, CruiseButtons.INIT] and self.distance_button_pressed:
+      self.cruise_buttons = CruiseButtons.GAP_DIST
+
     # Variables used for avoiding LKAS faults
     self.loopback_lka_steering_cmd_updated = len(loopback_cp.vl_all["ASCMLKASteeringCmd"]["RollingCounter"]) > 0
     if self.loopback_lka_steering_cmd_updated:

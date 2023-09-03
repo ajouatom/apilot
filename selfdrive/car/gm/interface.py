@@ -16,7 +16,8 @@ GearShifter = car.CarState.GearShifter
 TransmissionType = car.CarParams.TransmissionType
 NetworkLocation = car.CarParams.NetworkLocation
 BUTTONS_DICT = {CruiseButtons.RES_ACCEL: ButtonType.accelCruise, CruiseButtons.DECEL_SET: ButtonType.decelCruise,
-                CruiseButtons.MAIN: ButtonType.altButton3, CruiseButtons.CANCEL: ButtonType.cancel}
+                CruiseButtons.MAIN: ButtonType.altButton3, CruiseButtons.CANCEL: ButtonType.cancel,
+                CruiseButtons.GAP_DIST: ButtonType.gapAdjustCruise}
 
 PEDAL_MSG = 0x201
 CAM_MSG = 0x320  # AEBCmd
@@ -323,10 +324,6 @@ class CarInterface(CarInterfaceBase):
     if self.CS.cruise_buttons != CruiseButtons.UNPRESS or self.CS.prev_cruise_buttons != CruiseButtons.INIT:
       ret.buttonEvents = create_button_events(self.CS.cruise_buttons, self.CS.prev_cruise_buttons, BUTTONS_DICT,
                                               unpressed_btn=CruiseButtons.UNPRESS)
-    if self.CS.distance_button_pressed != self.distance_button_pressed_prev:
-      ret.buttonEvents.append(car.CarState.ButtonEvent(pressed=self.CS.distance_button_pressed, type=ButtonType.gapAdjustCruise))
-      self.distance_button_pressed_prev = self.CS.distance_button_pressed
-
 
     # The ECM allows enabling on falling edge of set, but only rising edge of resume
     events = self.create_common_events(ret, extra_gears=[GearShifter.sport, GearShifter.low,
