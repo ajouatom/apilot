@@ -51,6 +51,9 @@ LEAD_DANGER_FACTOR = 0.75
 LIMIT_COST = 1e6
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
+# 벌트용 3단 크루즈갭
+CRUISE_GAP_BP = [1., 2., 3.]
+CRUISE_GAP_V = [0.9, 1.8, 2.7]
 
 # Fewer timestamps don't hurt performance and lead to
 # much better convergence of the MPC with low iterations
@@ -430,6 +433,16 @@ class LongitudinalMpc:
     #self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
     applyStopDistance = self.stopDistance * (2.0 - self.mySafeModeFactor)
+
+    # 벌트용 3단 크루즈갭
+    selected_car = Params().get("SelectedCar", encoding="utf8")
+    if selected_car == ("CHEVROLET VOLT PREMIER 2017"):
+      cruise_gap = int(clip(carstate.cruiseGap, 1., 3.))
+      tr = interp(float(cruise_gap), CRUISE_GAP_BP, CRUISE_GAP_V)
+      self.t_follow = tr
+    else:
+      pass
+
 
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
