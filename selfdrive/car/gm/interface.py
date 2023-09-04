@@ -318,7 +318,7 @@ class CarInterface(CarInterfaceBase):
 
   # returns a car.CarState
   def _update(self, c):
-    ret = self.CS.update(self.cp, self.cp_cam, self.cp_loopback)
+    ret = self.CS.update(self.cp, self.cp_cam, self.cp_loopback, self.cp_chassis)
 
     ret.engineRpm = self.CS.engineRPM
     # Don't add event if transitioning from INIT, unless it's to an actual button

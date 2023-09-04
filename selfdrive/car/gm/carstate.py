@@ -29,6 +29,9 @@ class CarState(CarStateBase):
     self.cam_lka_steering_cmd_counter = 0
 
 
+    # brakeLights
+    self.regenPaddlePressed = False
+
     # engineRpm
     self.engineRPM = 0
 
@@ -42,7 +45,7 @@ class CarState(CarStateBase):
 
     self.totalDistance = 0.0
 
-  def update(self, pt_cp, cam_cp, loopback_cp):
+  def update(self, pt_cp, cam_cp, loopback_cp, chassis_cp): # brakeLights
     ret = car.CarState.new_message()
 
     self.distance_button_pressed = pt_cp.vl["ASCMSteeringButton"]["DistanceButton"] != 0
@@ -94,6 +97,12 @@ class CarState(CarStateBase):
       ret.brake = pt_cp.vl["EBCMBrakePedalPosition"]["BrakePedalPosition"] / 0xd0
     else:
       ret.brake = pt_cp.vl["ECMAcceleratorPos"]["BrakePedalPos"]
+
+    # Regen braking is braking
+    if self.CP.transmissionType == TransmissionType.direct:
+      ret.regenBraking = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0
+      self.regenPaddlePressed = ret.regenBraking
+      self.single_pedal_mode = ret.gearShifter == GearShifter.low or pt_cp.vl["EVDriveMode"]["SinglePedalModeActive"] == 1
     if self.CP.networkLocation == NetworkLocation.fwdCamera:
       ret.brakePressed = pt_cp.vl["ECMEngineStatus"]["BrakePressed"] != 0
     else:
@@ -101,12 +110,7 @@ class CarState(CarStateBase):
       # that the brake is being intermittently pressed without user interaction.
       # To avoid a cruise fault we need to use a conservative brake position threshold
       # https://static.nhtsa.gov/odi/tsbs/2017/MC-10137629-9999.pdf
-      ret.brakePressed = ret.brake >= 8
-
-    # Regen braking is braking
-    if self.CP.transmissionType == TransmissionType.direct:
-      ret.regenBraking = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0
-      self.single_pedal_mode = ret.gearShifter == GearShifter.low or pt_cp.vl["EVDriveMode"]["SinglePedalModeActive"] == 1
+      ret.brakePressed = (ret.brake >= 8 or self.regenPaddlePressed)
 
     if self.CP.enableGasInterceptor:
       ret.gas = (pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
@@ -162,6 +166,10 @@ class CarState(CarStateBase):
     #Engine Rpm
     self.engineRPM = pt_cp.vl["ECMEngineStatus"]["EngineRPM"]
     ret.accFaulted = False # 벌트는 accFault를 체크하지 않는 걸로...
+
+    # brakeLight
+    ret.brakeLights = chassis_cp.vl["EBCMFrictionBrakeStatus"]["FrictionBrakePressure"] != 0 or ret.brakePressed
+
     ret.cruiseGap = 1
     #ret.tpms = 벌트에 해당되는 tpms 캔 주소를 찾아야 됨
 
@@ -244,3 +252,11 @@ class CarState(CarStateBase):
     ]
 
     return CANParser(DBC[CP.carFingerprint]["pt"], messages, CanBus.LOOPBACK)
+
+  # brakeLight
+  @staticmethod
+  def get_chassis_can_parser(CP):
+    messages = [
+      ("EBCMFrictionBrakeStatus", 100),
+    ]
+    return CANParser(DBC[CP.carFingerprint]["chassis"], messages, CanBus.CHASSIS)
