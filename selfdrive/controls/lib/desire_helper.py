@@ -324,27 +324,6 @@ class DesireHelper:
       else:
         leftBlinker = True
 
-    # 깜박이 없이 핸들에 1초이상 힘을 가한경우..
-    ## 사용안함.... 이상해.. ㅠㅠ
-    if False and not leftBlinker and not rightBlinker and self.lane_change_state == LaneChangeState.off:
-      if False and md.laneLineProbs[1] > 0.5 and md.laneLineProbs[1]:
-        car_lane_pos = md.laneLines[1].y[0] + md.laneLines[2].y[0]  # -값이면 오른쪽 치우침.
-      else:
-        car_lane_pos = 0.0
-      if self.left_steering_torque_timer > 1.0:
-        if md.meta.desireState[3] > 0.01 or car_lane_pos > 1.0:  #내차의 중심이 차선중심보다 0.5M 벗어났을때..
-          leftBlinker = True
-        elif md.meta.desireState[1] > 0.01:
-          leftBlinker = True
-          self.turnState = 1
-      elif self.right_steering_torque_timer > 1.0:
-        if md.meta.desireState[4] > 0.01 or car_lane_pos < -1.0:
-          rightBlinker = True
-        elif md.meta.desireState[2] > 0.01:
-          rightBlinker = True
-          self.turnState = 1
-      #print("BL:{}{},md:{:.1f},{:.1f},{:.1f},{:.1f},T:{:.1f}{:.1f}".format(leftBlinker, rightBlinker, md.meta.desireState[1],md.meta.desireState[2],md.meta.desireState[3],md.meta.desireState[4],self.left_steering_torque_timer, self.right_steering_torque_timer))
-
     ## nav것과 carstate것과 같이 사용함.
     one_blinker = leftBlinker != rightBlinker
     ## 네비가 켜지면 강제로 상태변경
@@ -385,9 +364,10 @@ class DesireHelper:
           self.lane_change_direction = LaneChangeDirection.none
           self.turnState = 0
         else:
-          if nav_turn or self.turnState > 0:
+          if nav_turn:
             self.lane_change_state = LaneChangeState.laneChangeStarting
             self.needTorque = False
+            self.turnState = 1
           else:
             if nav_direction == LaneChangeDirection.none: # 수동깜박이
               if blindspot_detected:
