@@ -28,6 +28,10 @@ class CarState(CarStateBase):
     self.pt_lka_steering_cmd_counter = 0
     self.cam_lka_steering_cmd_counter = 0
 
+
+    # engineRpm
+    self.engineRPM = 0
+
     self.use_cluster_speed = True # Params().get_bool('UseClusterSpeed')
 
     self.buttons_counter = 0
@@ -155,13 +159,12 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = pt_cp.vl["ECMCruiseControl"]["CruiseActive"] != 0
 
     # TODO: APILOT
-    ret.accFaulted = False ## for Test...
+    #Engine Rpm
+    self.engineRPM = pt_cp.vl["ECMEngineStatus"]["EngineRPM"]
+    ret.accFaulted = False # 벌트는 accFault를 체크하지 않는 걸로...
     ret.cruiseGap = 1
-    #ret.tpms =
-    ret.vCluRatio = 1.0
-    #ret.driverOverride
-    #ret.chargeMeter
-    #ret.motorRpm
+    #ret.tpms = 벌트에 해당되는 tpms 캔 주소를 찾아야 됨
+
     self.totalDistance += ret.vEgo * DT_CTRL # 후진할때는?
     ret.totalDistance = self.totalDistance
     ret.speedLimit = 0
