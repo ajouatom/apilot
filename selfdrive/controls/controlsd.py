@@ -601,7 +601,7 @@ class Controls:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
           self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode)
-          self.cruise_helper.longActiveUser = 1 if self.enableAutoEngage == 2 else 0           
+          self.cruise_helper.longActiveUser = 1 if self.enableAutoEngage in [0,2] else 0           
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
