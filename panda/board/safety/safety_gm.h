@@ -79,6 +79,7 @@ bool gm_has_acc = true;
 bool gm_cc_long = false;
 bool gm_skip_relay_check = false;
 bool gm_force_ascm = false;
+bool brake_pressed_x = false;
 
 static int gm_rx_hook(CANPacket_t *to_push) {
 
@@ -123,11 +124,11 @@ static int gm_rx_hook(CANPacket_t *to_push) {
     // Reference for brake pressed signals:
     // https://github.com/commaai/openpilot/blob/master/selfdrive/car/gm/carstate.py
     if ((addr == 190) && (gm_hw == GM_ASCM)) {
-      //brake_pressed = GET_BYTE(to_push, 1) >= 8U;
+      brake_pressed_x = GET_BYTE(to_push, 1) >= 8U;
     }
 
     if ((addr == 201) && (gm_hw == GM_CAM)) {
-      //brake_pressed = GET_BIT(to_push, 40U) != 0U;
+      brake_pressed_x = GET_BIT(to_push, 40U) != 0U;
     }
 
     if (addr == 452) {
@@ -233,6 +234,8 @@ static int gm_tx_hook(CANPacket_t *to_send) {
     // Allow apply bit in pre-enabled and overriding states
     violation |= !controls_allowed && apply;
     violation |= longitudinal_gas_checks(gas_regen, *gm_long_limits);
+
+    violation |= brake_pressed_x;
 
     if (violation) {
       tx = 0;
