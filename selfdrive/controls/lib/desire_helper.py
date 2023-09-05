@@ -160,15 +160,28 @@ class DesireHelper:
     return 0
 
   def detect_road_edge_apilot(self, md, lane_width):
-    alpha = 0.1
+    alpha = 0.3
+    # 왼쪽엣지 - 왼쪽차선
+    self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[0].y[0]) * alpha
+    self.right_road_edge_width = self.right_road_edge_width * (1-alpha) + (md.roadEdges[1].y[0] - md.laneLines[3].y[0]) * alpha
+
+    road_edge_stat = 0
+    if self.left_road_edge_width < 0.5: #lane_width * 0.2:
+      road_edge_stat += 1 # left road edge
+    if self.right_road_edge_width < 0.5: #lane_width * 0.2:
+      road_edge_stat += 2 # right road edge
+    return road_edge_stat
+
+  def detect_road_edge_apilot2(self, md, lane_width):
+    alpha = 0.3
     # 왼쪽엣지 - 왼쪽차선
     self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1].y[0]) * alpha
     self.right_road_edge_width = self.right_road_edge_width * (1-alpha) + (md.roadEdges[1].y[0] - md.laneLines[2].y[0]) * alpha
 
-    left_lane_left_exist = True if md.laneLineProbs[0] > 0.3 else False
-    left_lane_exist = True if md.laneLineProbs[1] > 0.3 else False
-    right_lane_exist = True if md.laneLineProbs[1] > 0.3 else False
-    right_lane_right_exist = True if md.laneLineProbs[3] > 0.3 else False
+    left_lane_left_exist = True if md.laneLineProbs[0] > 0.15 else False
+    left_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
+    right_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
+    right_lane_right_exist = True if md.laneLineProbs[3] > 0.15 else False
 
     left_lane_left = md.laneLines[0].y[0]
     left_lane = md.laneLines[1].y[0]

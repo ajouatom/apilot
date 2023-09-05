@@ -545,7 +545,8 @@ class CruiseHelper:
       if not CS.gasPressed  and self.preGasPressedMax > 0.03:
         if longActiveUser <= 0:
           if self.autoResumeFromGas > 1:
-            longActiveUser = 3
+            if self.longCruiseGap != 5: 
+              longActiveUser = 3
             v_cruise_kph = self.v_ego_kph_set  # 현재속도로 세트~
         elif v_cruise_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
           v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, self.roadSpeed)
