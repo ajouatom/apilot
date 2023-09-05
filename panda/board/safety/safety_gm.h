@@ -235,7 +235,7 @@ static int gm_tx_hook(CANPacket_t *to_send) {
     violation |= !controls_allowed && apply;
     violation |= longitudinal_gas_checks(gas_regen, *gm_long_limits);
 
-    violation |= brake_pressed_x;
+    //violation |= brake_pressed_x;
 
     if (violation) {
       tx = 0;
