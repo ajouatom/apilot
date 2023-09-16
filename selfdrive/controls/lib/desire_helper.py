@@ -159,7 +159,7 @@ class DesireHelper:
       return -1 #left roadedge detected
     return 0
 
-  def detect_road_edge_apilot(self, md, lane_width):
+  def detect_road_edge_apilot2(self, md, lane_width):
     alpha = 0.3
     # 왼쪽엣지 - 왼쪽차선
     self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[0].y[0]) * alpha
@@ -172,7 +172,7 @@ class DesireHelper:
       road_edge_stat += 2 # right road edge
     return road_edge_stat
 
-  def detect_road_edge_apilot2(self, md, lane_width):
+  def detect_road_edge_apilot(self, md, lane_width):
     alpha = 0.3
     # 왼쪽엣지 - 왼쪽차선
     self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1].y[0]) * alpha

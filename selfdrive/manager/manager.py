@@ -144,6 +144,7 @@ def manager_init() -> None:
     ("ApplyDynamicTFollowDecel", "100"), 
     ("SccConnectedBus2", "0"),   
     ("TFollowRatio", "110"),
+    ("JerkStartLimit", "10"),    
     ("JerkUpperLowerLimit", "8"),    
     ("KeepEngage", "1"),
     ("UseLaneLineSpeed", "0"),    

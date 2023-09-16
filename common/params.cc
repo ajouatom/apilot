@@ -317,6 +317,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ApplyDynamicTFollowDecel", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
     { "TFollowRatio", PERSISTENT },
+    { "JerkStartLimit", PERSISTENT },
     { "JerkUpperLowerLimit", PERSISTENT },
     { "KeepEngage", PERSISTENT },
     { "UseLaneLineSpeed", PERSISTENT },

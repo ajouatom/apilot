@@ -9,8 +9,11 @@ from openpilot.common.params import Params
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
 
+### apilot
+# planned_stop조건인데..... accel은 이미 stoppingAccel보다 낮은상태... 이상태로 stopping으로 진입하면.. 너무 많은 -accel로 정지하게 됨.
+# accel이 -값에서 0에 가까와질때까지 기다릴 필요가 있음.... 20230911
 def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
-                             v_target_1sec, brake_pressed, cruise_standstill, softHold):
+                             v_target_1sec, brake_pressed, cruise_standstill, softHold, output_accel):
   # Ignore cruise standstill if car has a gas interceptor
   cruise_standstill = cruise_standstill and not CP.enableGasInterceptor
   accelerating = v_target_1sec > (v_target + 0.01)
@@ -33,7 +36,7 @@ def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
   else:
     if long_control_state in (LongCtrlState.off, LongCtrlState.pid):
       long_control_state = LongCtrlState.pid
-      if stopping_condition:
+      if stopping_condition and output_accel > -0.5:  ### pid출력이 급정지(-accel) 상태에서 stopping으로 들어가면... 차량이 너무 급하게 섬.. 기다려보자.... 시험 230911
         long_control_state = LongCtrlState.stopping
 
     elif long_control_state == LongCtrlState.stopping:
@@ -146,7 +149,7 @@ class LongControl:
 
     self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        v_target, v_target_1sec, CS.brakePressed,
-                                                       CS.cruiseState.standstill, CC.hudControl.softHold)
+                                                       CS.cruiseState.standstill, CC.hudControl.softHold, output_accel)
 
     if self.long_control_state == LongCtrlState.off:
       self.reset(CS.vEgo)

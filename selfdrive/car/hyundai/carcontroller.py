@@ -1,6 +1,6 @@
 from cereal import car
 from openpilot.common.conversions import Conversions as CV
-from openpilot.common.numpy_fast import clip
+from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
 from openpilot.selfdrive.car import apply_driver_steer_torque_limits, common_fault_avoidance
@@ -62,6 +62,7 @@ class CarController:
     self.send_lfa_mfa_lkas = CP.flags & HyundaiFlags.SEND_LFA.value
     self.last_button_frame = 0
     self.pcmCruiseButtonDelay = 0
+    self.jerkStartLimit = 1.0
     self.jerkUpperLowerLimit = 12.0       
     self.speedCameraHapticEndFrame = 0
     self.hapticFeedbackWhenSpeedCamera = 0
@@ -72,6 +73,7 @@ class CarController:
     self.steerDeltaUp = 3
     self.steerDeltaDown = 7
     self.button_wait = 12
+    self.jerk_count = 0
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
@@ -124,6 +126,7 @@ class CarController:
 
     # *** common hyundai stuff ***
     if self.frame % 100 == 0:
+      self.jerkStartLimit = float(int(Params().get("JerkStartLimit", encoding="utf8"))) * 0.1
       self.jerkUpperLowerLimit = float(int(Params().get("JerkUpperLowerLimit", encoding="utf8")))
       self.hapticFeedbackWhenSpeedCamera = int(Params().get("HapticFeedbackWhenSpeedCamera", encoding="utf8"))
       self.maxAngleFrames = int(Params().get("MaxAngleFrames", encoding="utf8"))
@@ -224,14 +227,23 @@ class CarController:
         can_sends.append(hyundaican.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
-        if False: #sunnyhaibin, smoother stop test
-          stopping = stopping and CS.out.vEgoRaw < 0.05
         # TODO: unclear if this is needed
-        startingJerk = 1
-        if self.CP.carFingerprint in (CAR.KONA, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022):
-          startingJerk = 5      
-        if accel < 0:
-          jerk_l = max(1, -accel, - actuators.jerk * 2)
+        startingJerk = self.jerkStartLimit
+        if actuators.longControlState == LongCtrlState.off:
+          jerk_u = jerk_l = self.jerkUpperLowerLimit
+          self.jerk_count = 0
+        elif actuators.longControlState == LongCtrlState.stopping:
+          jerk_u = 0
+          jerk_l = self.jerkUpperLowerLimit
+          self.jerk_count = 0
+        elif True:
+          self.jerk_count += DT_CTRL
+          jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, self.jerkUpperLowerLimit])
+          #self.jerk_max = min(self.jerk_max + 1.5 * DT_CTRL, self.jerkUpperLowerLimit) #pid제어시작시, 급격한 가속/감속을 막기위해... jerk로 제한... 시험
+          jerk_l = min(max(1.0 if actuators.jerk < 0 else 0, -accel * 1.5 + 0.1, - actuators.jerk * 2.0), jerk_max)
+          jerk_u = min(max(1.0 if actuators.jerk >= 0 else 0, accel * 1. + 0.1, actuators.jerk * 1.0), jerk_max)
+        elif accel < 0 or actuators.jerk <= 0:
+          jerk_l = max(1, -accel, - actuators.jerk * 1)
           jerk_u = 0 if actuators.jerk < 0 else self.jerkUpperLowerLimit #max(1, accel)
         else:
           jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid,LongCtrlState.stopping] else startingJerk  #comma: jerk=1

@@ -60,7 +60,8 @@ class KalmanParams:
 
 
 class Track:
-  def __init__(self, v_lead: float, kalman_params: KalmanParams):
+  def __init__(self, identifier: int, v_lead: float, kalman_params: KalmanParams):
+    self.identifier = identifier
     self.cnt = 0
     self.aLeadTau = _LEAD_ACCEL_TAU
     self.K_A = kalman_params.A
@@ -108,11 +109,12 @@ class Track:
       "vLead": float(self.vLead),
       "vLeadK": float(self.vLeadK),
       "aLeadK": float(self.aLeadK),
+      "aLeadTau": float(self.aLeadTau),
       "status": True,
       "fcw": self.is_potential_fcw(model_prob),
       "modelProb": model_prob,
       "radar": True,
-      "aLeadTau": float(self.aLeadTau)
+      "radarTrackId": self.identifier,
     }
   
   def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
@@ -129,11 +131,12 @@ class Track:
       "vLead": float(self.vLead),
       "vLeadK": float(self.vLeadK),
       "aLeadK": aLeadK,
+      "aLeadTau": float(self.aLeadTau),
       "status": True,
       "fcw": self.is_potential_fcw(model_prob),
       "modelProb": model_prob,
       "radar": True,
-      "aLeadTau": float(self.aLeadTau)
+      "radarTrackId": self.identifier,
     }
 
 
@@ -251,8 +254,9 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
     "aLeadTau": 0.3,
     "fcw": False,
     "modelProb": float(lead_msg.prob),
+    "status": True,
     "radar": False,
-    "status": True
+    "radarTrackId": -1,
   }
 
 
@@ -335,7 +339,7 @@ class RadarD:
 
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
-        self.tracks[ids] = Track(v_lead, self.kalman_params)
+        self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
       self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3])
 
     # *** publish radarState ***

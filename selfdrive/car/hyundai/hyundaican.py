@@ -207,7 +207,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     "DriverAlertDisplay": 0,
     }
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
-  else:
+  elif CS.scc11 is not None:
     values = CS.scc11
     values["MainMode_ACC"] = 1 if enabled else 0 
     values["TauGapSet"] = cruiseGap
@@ -236,7 +236,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     scc12_values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
 
     commands.append(packer.make_can_msg("SCC12", 0, scc12_values))
-  else:
+  elif CS.scc12 is not None:
     values = CS.scc12
     values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
     values["StopReq"] = stopReq
@@ -262,7 +262,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
       "ObjGap2" : objGap2,
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
-  else:
+  elif CS.scc14 is not None:
     values = CS.scc14
     values["ComfortBandUpper"] = comfortBandUpper
     values["ComfortBandLower"] = comfortBandLower
@@ -309,6 +309,13 @@ def create_acc_commands(packer, enabled, accel, upper_jerk, idx, lead_visible, s
     "aReqValue": accel,  # stock ramps up and down respecting jerk limit until it reaches aReqRaw
     "CR_VSM_Alive": idx % 0xF,
   }
+
+  # show AEB disabled indicator on dash with SCC12 if not sending FCA messages.
+  # these signals also prevent a TCS fault on non-FCA cars with alpha longitudinal
+  if not use_fca:
+    scc12_values["CF_VSM_ConfMode"] = 1
+    scc12_values["AEB_Status"] = 1  # AEB disabled
+
   scc12_dat = packer.make_can_msg("SCC12", 0, scc12_values)[2]
   scc12_values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
 

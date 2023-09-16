@@ -63,7 +63,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     driverUnresponsive @45;
     belowSteerSpeed @46;
     lowBattery @48;
-    vehicleModelInvalid @50;
     accFaulted @51;
     sensorDataInvalid @52;
     commIssue @53;
@@ -106,7 +105,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     roadCameraError @100;
     driverCameraError @101;
     wideRoadCameraError @102;
-    localizerMalfunction @103;
     highCpuUsage @105;
     cruiseMismatch @106;
     lkasDisabled @107;
@@ -115,11 +113,13 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     resumeBlocked @113;
     steerTimeLimit @115;
     vehicleSensorsInvalid @116;
+    locationdTemporaryError @103;
+    locationdPermanentError @118;
+    paramsdTemporaryError @50;
+    paramsdPermanentError @119;
 
     cruisePaused @128; #ajouatom
     cruiseResume @129; #ajouatom
-    trafficSignGreen @118; #ajouatom
-    trafficSignChanged @119; #ajouatom
     autoHold @120; #ajouatom
     trafficStopping @121; #ajouatom
     trafficError @122; #ajouatom
@@ -131,6 +131,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     audioLaneChange @130; #ajouatom
     audioTurn @131; #ajouatom
     pedalInterceptorNoBrake @132;
+    trafficSignGreen @133; #ajouatom
+    trafficSignChanged @134; #ajouatom
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
@@ -523,8 +525,8 @@ struct CarParams {
   lateralParams @48 :LateralParams;
   lateralTuning :union {
     pid @26 :LateralPIDTuning;
-    indi @27 :LateralINDITuning;
-    lqr @40 :LateralLQRTuning;
+    indiDEPRECATED @27 :LateralINDITuning;
+    lqrDEPRECATED @40 :LateralLQRTuning;
     torque @67 :LateralTorqueTuning;
   }
 

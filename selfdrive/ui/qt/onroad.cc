@@ -239,7 +239,6 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 ExperimentalButton::ExperimentalButton(QWidget *parent) : experimental_mode(false), engageable(false), QPushButton(parent) {
   setFixedSize(btn_size, btn_size);
 
-  params = Params();
   //engage_img = loadPixmap("../assets/img_chffr_wheel.png", { img_size, img_size });
   engage_img = loadPixmap("../assets/img_apilot.png", { img_size, img_size });
   experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size, img_size});
