@@ -1,6 +1,6 @@
 from cereal import car
 from common.conversions import Conversions as CV
-from common.numpy_fast import clip
+from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_driver_steer_torque_limits
