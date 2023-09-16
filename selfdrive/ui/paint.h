@@ -21,7 +21,7 @@ public:
 public:
 	void drawLaneLines(const UIState* s);
 	void drawLeadApilot(const UIState* s);
-	void drawDebugText(UIState* s);
-	void drawDeviceState(UIState* s);
+	void drawDebugText(UIState* s, bool show);
+	void drawDeviceState(UIState* s, bool show);
 
 };

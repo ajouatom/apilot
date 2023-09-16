@@ -1647,7 +1647,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     brake_valid = brake_valid;
     longActiveUserReady = longActiveUserReady;
 }
-void DrawApilot::drawDeviceState(UIState* s) {
+void DrawApilot::drawDeviceState(UIState* s, bool show) {
     const SubMaster& sm = *(s->sm);
     auto deviceState = sm["deviceState"].getDeviceState();
     char  str[128];
@@ -1670,21 +1670,26 @@ void DrawApilot::drawDeviceState(UIState* s) {
         cpuTemp = cpuTemp / (float)std::size(cpuTempC);
     }
     auto car_state = sm["carState"].getCarState();
+    //const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     sprintf(str, "MEM: %d%% STORAGE: %.0f%% CPU: %.0f°C AMBIENT: %.0f°C", memoryUsagePercent, freeSpacePercent, cpuTemp, ambientTemp);
     int r = interp<float>(cpuTemp, { 50.f, 90.f }, { 200.f, 255.f }, false);
     int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
     NVGcolor textColor = nvgRGBA(r, g, 200, 255);
-    if (s->fb_w > 1200) {
+    if (s->fb_w > 1200 && show) {
         ui_draw_text(s, s->fb_w - 20, 35, str, 35, textColor, BOLD);
         float engineRpm = car_state.getEngineRpm();
         float motorRpm = car_state.getMotorRpm();
         sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%                      ", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         ui_draw_text(s, s->fb_w - 20, 90, str, 35, textColor, BOLD);
     }
+    qstr = QString::fromStdString(deviceState.getWifiIpAddress().cStr());
+    nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
+    ui_draw_text(s, s->fb_w - 20, s->fb_h - 15, qstr.toStdString().c_str(), 30, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 }
-void DrawApilot::drawDebugText(UIState* s) {
+void DrawApilot::drawDebugText(UIState* s, bool show) {
     if (s->fb_w < 1200) return;
+    if (show == false) return;
     const SubMaster& sm = *(s->sm);
     char  str[128];
     QString qstr;
@@ -1764,8 +1769,8 @@ void ui_draw(UIState *s, int w, int h) {
   nvgScissor(s->vg, 0, 0, s->fb_w, s->fb_h);
   drawApilot->drawLaneLines(s);
   drawApilot->drawLeadApilot(s);
-  if (s->show_debug) drawApilot->drawDebugText(s);
-  if (s->show_device_stat) drawApilot->drawDeviceState(s);
+  drawApilot->drawDebugText(s, s->show_debug);
+  drawApilot->drawDeviceState(s, s->show_device_stat);
 
   ui_draw_text_a2(s);
 

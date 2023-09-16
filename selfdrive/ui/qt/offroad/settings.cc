@@ -683,7 +683,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedDecelRate", "SpeedCameraDecelRatex0.01m/s^2(100)", "", ".. / assets / offroad / icon_road.png", 10, 200, 10));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedSafetyFactor", "SpeedCameraSafetyFactor(105%)", "", ".. / assets / offroad / icon_road.png", 80, 120, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedBumpDist", "SpeedBumpDistance(10M)", "", ".. / assets / offroad / icon_road.png", 1, 50, 1));
-  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedBumpSpeed", "SpeedBumpSpeed(35Km/h)", "", ".. / assets / offroad / icon_road.png", 10, 50, 1));
+  toggleLayout->addWidget(new CValueControl("AutoNaviSpeedBumpSpeed", "SpeedBumpSpeed(35Km/h)", "", ".. / assets / offroad / icon_road.png", 10, 100, 5));
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Notify sound 0:OFF,1:Half, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "Keep Enagage mode", "", "../assets/offroad/icon_shell.png", this));
@@ -761,7 +761,8 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("SteerDeltaDown", "LAT: SteerDeltaDown(7)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerRatioApply", "LAT: SteerRatio적용(0x0.1)", "0:사용안함", "../assets/offroad/icon_road.png", 0, 300, 2));
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new CValueControl("JerkUpperLowerLimit", "LONG: JERK(8)", "값이 커지면 가감속반응이 빨라지지만, 기분이 안좋음.", "../assets/offroad/icon_road.png", 1, 50, 1));
+    toggleLayout->addWidget(new CValueControl("JerkStartLimit", "LONG: JERK START(10)x0.1", "Starting Jerk.", "../assets/offroad/icon_road.png", 1, 50, 1));
+    toggleLayout->addWidget(new CValueControl("JerkUpperLowerLimit", "LONG: JERK(5)", "값이 커지면 가감속반응이 빨라지지만, 기분이 안좋음.", "../assets/offroad/icon_road.png", 1, 50, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKpV", "LONG: P Gain(100)", "(시험용) ", "../assets/offroad/icon_road.png", 50, 150, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKiV", "LONG: I Gain(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 2000, 5));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "LONG: FF Gain(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 200, 1));
