@@ -229,25 +229,22 @@ class CarController:
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed
         startingJerk = self.jerkStartLimit
+        self.jerk_count += DT_CTRL
+        jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, self.jerkUpperLowerLimit])
         if actuators.longControlState == LongCtrlState.off:
-          jerk_u = jerk_l = self.jerkUpperLowerLimit
+          jerk_u = self.jerkUpperLowerLimit
+          jerk_l = 0
           self.jerk_count = 0
         elif actuators.longControlState == LongCtrlState.stopping:
-          jerk_u = 0
+          jerk_u = 0.5
           jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
-        elif True:
-          self.jerk_count += DT_CTRL
-          jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, self.jerkUpperLowerLimit])
-          #self.jerk_max = min(self.jerk_max + 1.5 * DT_CTRL, self.jerkUpperLowerLimit) #pid제어시작시, 급격한 가속/감속을 막기위해... jerk로 제한... 시험
-          jerk_l = min(max(1.0 if actuators.jerk < 0 else 0, -accel * 1.5 + 0.1, - actuators.jerk * 2.0), jerk_max)
-          jerk_u = min(max(1.0 if actuators.jerk >= 0 else 0, accel * 1. + 0.1, actuators.jerk * 1.0), jerk_max)
         elif accel < 0 or actuators.jerk <= 0:
-          jerk_l = max(1, -accel, - actuators.jerk * 1)
-          jerk_u = 0 if actuators.jerk < 0 else self.jerkUpperLowerLimit #max(1, accel)
+          #jerk_l = min(max(1, -accel * 2.0, - actuators.jerk * 1), jerk_max)
+          jerk_l = jerk_max
+          jerk_u = 0 if actuators.jerk < 0 else jerk_max
         else:
-          jerk = self.jerkUpperLowerLimit if actuators.longControlState in [LongCtrlState.pid,LongCtrlState.stopping] else startingJerk  #comma: jerk=1
-          jerk_u = jerk
+          jerk_u = jerk_max
           jerk_l = 0.5 #jerk
         #if actuators.jerk <= 0:
         #  jerk_l = max(1, - actuators.jerk * 2)
