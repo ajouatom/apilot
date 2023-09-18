@@ -239,6 +239,8 @@ class CarController:
           jerk_u = 0.5
           jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
+        elif abs(actuators.jerk) < 0.2:
+          jerk_u = jerk_l = jerk_max
         elif accel < 0 or actuators.jerk <= 0:
           #jerk_l = min(max(1, -accel * 2.0, - actuators.jerk * 1), jerk_max)
           jerk_l = jerk_max
