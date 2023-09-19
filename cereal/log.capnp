@@ -2008,6 +2008,9 @@ struct RoadLimitSpeed {
     xRoadSignType @17 : Int16;
     xRoadLimitSpeed @18 : Int16;
     xRoadName @19 : Text;
+    xCmd @20 : Text;
+    xArg @21 : Text;
+    xIndex @22 : Int16;
 }
 
 struct Event {

@@ -373,6 +373,10 @@ def main():
         except:
           value_int = -100
 
+        xCmd = server.get_apilot_val("apilot_cmd")
+        xArg = server.get_apilot_val("apilot_arg")
+        xIndex = value_int
+
         now = sec_since_boot()
         if ret:
           prev_recvTime = now
@@ -441,6 +445,7 @@ def main():
           pass
         elif atype == 'apilotman':
           server.active_apilot = 1
+          xIndex = value_int
         else:
           print("unknown{}={}".format(atype, value))
         #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
@@ -584,6 +589,10 @@ def main():
         if xRoadLimitSpeed > 0:
           dat.roadLimitSpeed.roadLimitSpeed = int(xRoadLimitSpeed)
         dat.roadLimitSpeed.xRoadName = xRoadName + sdiDebugText
+
+        dat.roadLimitSpeed.xCmd = "" if xCmd is None else xCmd
+        dat.roadLimitSpeed.xArg = "" if xArg is None else xArg
+        dat.roadLimitSpeed.xIndex = xIndex
 
         roadLimitSpeed.send(dat.to_bytes())
         if now - send_time > 1.0:

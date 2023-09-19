@@ -60,6 +60,7 @@ class DesireHelper:
     self.latDebugText = ""
     self.apNaviDistance = 0
     self.apNaviSpeed = 0
+    self.xIndex = 0
 
 
   def update_(self, carstate, lateral_active, lane_change_prob):
@@ -160,15 +161,15 @@ class DesireHelper:
     return 0
 
   def detect_road_edge_apilot(self, md, lane_width):
-    alpha = 0.1
+    alpha = 0.3
     # 왼쪽엣지 - 왼쪽차선
     self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1].y[0]) * alpha
     self.right_road_edge_width = self.right_road_edge_width * (1-alpha) + (md.roadEdges[1].y[0] - md.laneLines[2].y[0]) * alpha
 
-    left_lane_left_exist = True if md.laneLineProbs[0] > 0.3 else False
-    left_lane_exist = True if md.laneLineProbs[1] > 0.3 else False
-    right_lane_exist = True if md.laneLineProbs[1] > 0.3 else False
-    right_lane_right_exist = True if md.laneLineProbs[3] > 0.3 else False
+    left_lane_left_exist = True if md.laneLineProbs[0] > 0.15 else False
+    left_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
+    right_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
+    right_lane_right_exist = True if md.laneLineProbs[3] > 0.15 else False
 
     left_lane_left = md.laneLines[0].y[0]
     left_lane = md.laneLines[1].y[0]
@@ -269,6 +270,14 @@ class DesireHelper:
 
     leftBlinker = carstate.leftBlinker
     rightBlinker = carstate.rightBlinker
+
+    if roadLimitSpeed.xIndex > 0:
+      if roadLimitSpeed.xCmd == "LANECHANGE":
+        if roadLimitSpeed.xArg == "RIGHT":
+          rightBlinker = True
+        elif roadLimitSpeed.xArg == "LEFT":
+          leftBlinker = True
+
     trig_leftBlinker = True if carstate.leftBlinker and not self.prev_leftBlinker else False
     trig_rightBlinker = True if carstate.rightBlinker and not self.prev_rightBlinker else False
 
@@ -297,27 +306,6 @@ class DesireHelper:
           self.desireReady = -1
       else:
         leftBlinker = True
-
-    # 깜박이 없이 핸들에 1초이상 힘을 가한경우..
-    ## 사용안함.... 이상해.. ㅠㅠ
-    if False and not leftBlinker and not rightBlinker and self.lane_change_state == LaneChangeState.off:
-      if False and md.laneLineProbs[1] > 0.5 and md.laneLineProbs[1]:
-        car_lane_pos = md.laneLines[1].y[0] + md.laneLines[2].y[0]  # -값이면 오른쪽 치우침.
-      else:
-        car_lane_pos = 0.0
-      if self.left_steering_torque_timer > 1.0:
-        if md.meta.desireState[3] > 0.01 or car_lane_pos > 1.0:  #내차의 중심이 차선중심보다 0.5M 벗어났을때..
-          leftBlinker = True
-        elif md.meta.desireState[1] > 0.01:
-          leftBlinker = True
-          self.turnState = 1
-      elif self.right_steering_torque_timer > 1.0:
-        if md.meta.desireState[4] > 0.01 or car_lane_pos < -1.0:
-          rightBlinker = True
-        elif md.meta.desireState[2] > 0.01:
-          rightBlinker = True
-          self.turnState = 1
-      #print("BL:{}{},md:{:.1f},{:.1f},{:.1f},{:.1f},T:{:.1f}{:.1f}".format(leftBlinker, rightBlinker, md.meta.desireState[1],md.meta.desireState[2],md.meta.desireState[3],md.meta.desireState[4],self.left_steering_torque_timer, self.right_steering_torque_timer))
 
     ## nav것과 carstate것과 같이 사용함.
     one_blinker = leftBlinker != rightBlinker
@@ -359,9 +347,10 @@ class DesireHelper:
           self.lane_change_direction = LaneChangeDirection.none
           self.turnState = 0
         else:
-          if nav_turn or self.turnState > 0:
+          if nav_turn:
             self.lane_change_state = LaneChangeState.laneChangeStarting
             self.needTorque = False
+            self.turnState = 1
           else:
             if nav_direction == LaneChangeDirection.none: # 수동깜박이
               if blindspot_detected:
@@ -428,7 +417,7 @@ class DesireHelper:
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01: # 0.5초가 지난후부터 차선변경이 완료되었는지확인.
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-        if steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
+        if carstate.steeringPressed: #steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:
