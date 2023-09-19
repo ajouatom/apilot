@@ -60,6 +60,7 @@ class DesireHelper:
     self.latDebugText = ""
     self.apNaviDistance = 0
     self.apNaviSpeed = 0
+    self.xIndex = 0
 
 
   def update_(self, carstate, lateral_active, lane_change_prob):
@@ -308,6 +309,14 @@ class DesireHelper:
 
     leftBlinker = carstate.leftBlinker
     rightBlinker = carstate.rightBlinker
+
+    if roadLimitSpeed.xIndex > 0:
+      if roadLimitSpeed.xCmd == "LANECHANGE":
+        if roadLimitSpeed.xArg == "RIGHT":
+          rightBlinker = True
+        elif roadLimitSpeed.xArg == "LEFT":
+          leftBlinker = True
+
     trig_leftBlinker = True if carstate.leftBlinker and not self.prev_leftBlinker else False
     trig_rightBlinker = True if carstate.rightBlinker and not self.prev_rightBlinker else False
 
@@ -447,7 +456,7 @@ class DesireHelper:
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01: # 0.5초가 지난후부터 차선변경이 완료되었는지확인.
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-        if steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
+        if carstate.steeringPressed: #steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:
