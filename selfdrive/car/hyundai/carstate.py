@@ -244,8 +244,8 @@ class CarState(CarStateBase):
     #self.scc12 = copy.copy(cp_cruise.vl["SCC12"])
     #self.scc13 = copy.copy(cp_cruise.vl["SCC13"]) if "SCC13" in cp_cruise.vl else None
     #self.scc14 = copy.copy(cp_cruise.vl["SCC14"])
-    self.scc11 = cp_cruise.vl["SCC11"]
-    self.scc12 = cp_cruise.vl["SCC12"]
+    self.scc11 = cp_cruise.vl["SCC11"] if "SCC11" in cp_cruise.vl else None
+    self.scc12 = cp_cruise.vl["SCC12"] if "SCC12" in cp_cruise.vl else None
     self.scc13 = cp_cruise.vl["SCC13"] if "SCC13" in cp_cruise.vl else None
     self.scc14 = cp_cruise.vl["SCC14"] if "SCC14" in cp_cruise.vl else None
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
