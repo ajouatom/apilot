@@ -15,8 +15,8 @@ RADAR_MSG_COUNT = 32
 def get_radar_can_parser(CP):
 
   if CP.openpilotLongitudinalControl and (CP.sccBus == 0 or Params().get_bool("EnableRadarTracks")):
-    if DBC[CP.carFingerprint]['radar'] is None:
-      return None
+    #if DBC[CP.carFingerprint]['radar'] is None:
+    #  return None
 
     messages = [(f"RADAR_TRACK_{addr:x}", 50) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
     
