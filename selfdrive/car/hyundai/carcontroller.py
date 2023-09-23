@@ -114,6 +114,7 @@ class CarController:
     elif self.frame % self.blinking_frame == self.blinking_frame / 2:
       self.blinking_signal = False
 
+    jerk = self.jerkFilter.process(actuators.jerk)
     can_sends = []
 
     # *** common hyundai stuff ***
