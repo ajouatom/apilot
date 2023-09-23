@@ -146,12 +146,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     #kona_ev 데이터 보고 만들어낸 식~
     comfortBandUpper = 0.9 + accel * 0.2
     comfortBandLower = 0.8 + accel * 0.2
-    #comfortBandUpper = 0.9 + accel * 0.2 if CP.carFingerprint in (CAR.KONA_EV) else 0
-    #comfortBandLower = 0.8 + accel * 0.2 if CP.carFingerprint in (CAR.KONA_EV) else 0
-    #comfortBandUpper = 50 if CP.carFingerprint in (CAR.KONA_EV) else 0
-    #comfortBandLower = 50 if CP.carFingerprint in (CAR.KONA_EV) else 0
     jerkUpperLimit = upper_jerk
-    jerkLowerLimit = lower_jerk #upper_jerk #5.0
+    jerkLowerLimit = lower_jerk
   else:
     scc12_accMode = 0
     scc14_accMode = 0
@@ -178,7 +174,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     "DriverAlertDisplay": 0,
     }
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
-  else:
+  elif CS.scc11 is not None:
     values = CS.scc11
     values["MainMode_ACC"] = 1 if enabled else 0 
     values["TauGapSet"] = cruiseGap
@@ -207,7 +203,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     scc12_values["CR_VSM_ChkSum"] = 0x10 - sum(sum(divmod(i, 16)) for i in scc12_dat) % 0x10
 
     commands.append(packer.make_can_msg("SCC12", 0, scc12_values))
-  else:
+  elif CS.scc12 is not None:
     values = CS.scc12
     values["ACCMode"] = scc12_accMode #0 if brakePressed else 2 if enabled and long_override else 1 if longEnabled else 0
     values["StopReq"] = stopReq
@@ -233,7 +229,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
       "ObjGap2" : objGap2,
     }
     commands.append(packer.make_can_msg("SCC14", 0, scc14_values))
-  else:
+  elif CS.scc14 is not None:
     values = CS.scc14
     values["ComfortBandUpper"] = comfortBandUpper
     values["ComfortBandLower"] = comfortBandLower
