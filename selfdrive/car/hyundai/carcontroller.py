@@ -9,7 +9,7 @@ from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerPar
 import random
 from random import randint
 from common.params import Params
-from openpilot.common.filter_simple import StreamingMovingAverage
+from common.filter_simple import StreamingMovingAverage
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
