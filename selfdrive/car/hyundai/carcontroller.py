@@ -11,6 +11,7 @@ from openpilot.selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarCon
 import random
 from random import randint
 from openpilot.common.params import Params
+from openpilot.common.filter_simple import StreamingMovingAverage
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -74,6 +75,8 @@ class CarController:
     self.steerDeltaDown = 7
     self.button_wait = 12
     self.jerk_count = 0
+    self.jerkFilter = StreamingMovingAverage(3)
+    self.jerk_prev = 0.0
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
@@ -122,6 +125,7 @@ class CarController:
     elif self.frame % self.blinking_frame == self.blinking_frame / 2:
       self.blinking_signal = False
 
+    jerk = self.jerkFilter.process(actuators.jerk)
     can_sends = []
 
     # *** common hyundai stuff ***
@@ -239,15 +243,17 @@ class CarController:
           jerk_u = 0.5
           jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
-        elif abs(actuators.jerk) < 0.2:
+        elif abs(jerk) < 0.05:
           jerk_u = jerk_l = jerk_max
-        elif accel < 0 or actuators.jerk <= 0:
-          #jerk_l = min(max(1, -accel * 2.0, - actuators.jerk * 1), jerk_max)
+        elif accel < 0: # or jerk < 0:
           jerk_l = jerk_max
-          jerk_u = 0 if actuators.jerk < 0 else jerk_max
+          #jerk_u = 0 if actuators.jerk < 0 else jerk_max
+          #jerk_u = 0 if jerk < self.jerk_prev else 1.0 if jerk < 0 else jerk_max
+          jerk_u = 0 if jerk < self.jerk_prev else jerk_max
         else:
           jerk_u = jerk_max
-          jerk_l = 0.5 #jerk
+          #jerk_l = 0.5 #jerk
+          jerk_l = jerk_max if jerk < self.jerk_prev else 0.5
         #if actuators.jerk <= 0:
         #  jerk_l = max(1, - actuators.jerk * 2)
         #  jerk_u = 0
@@ -278,6 +284,8 @@ class CarController:
     new_actuators.steer = apply_steer / self.params.STEER_MAX
     new_actuators.steerOutputCan = apply_steer
     new_actuators.accel = accel
+
+    self.jerk_prev = jerk
 
     self.frame += 1
     return new_actuators, can_sends
