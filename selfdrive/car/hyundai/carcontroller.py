@@ -249,20 +249,23 @@ class CarController:
         jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, self.jerkUpperLowerLimit])
         if actuators.longControlState == LongCtrlState.off:
           jerk_u = self.jerkUpperLowerLimit
-          jerk_l = 0
+          jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
         elif actuators.longControlState == LongCtrlState.stopping:
           jerk_u = 0.5
           jerk_l = self.jerkUpperLowerLimit
-          self.jerk_count = 0
-        elif abs(jerk) < 0.05:
-          jerk_u = jerk_l = jerk_max
-        elif accel < 0: # or jerk < 0:
-          jerk_u = jerk_max if jerk > 0 else 0.5
-          jerk_l = jerk_max
-        else:
-          jerk_u = jerk_max
-          jerk_l = jerk_max if jerk < 0 else 0.5
+          #self.jerk_count = 0
+        elif True:
+          jerk_u = interp(jerk, [-0.1, 0, 0.2], [0, 1.0, jerk_max])
+          jerk_l = interp(jerk, [-0.1, 0, 0.5], [jerk_max, 0.5, 0.5])
+        #elif abs(jerk) < 0.05:
+        #  jerk_u = jerk_l = jerk_max
+        #elif accel < 0: # or jerk < 0:
+        #  jerk_u = jerk_max if jerk > 0 else 0.5
+        #  jerk_l = jerk_max
+        #else:
+        #  jerk_u = jerk_max
+        #  jerk_l = jerk_max if jerk < 0 else 0.5
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk_u, jerk_l, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode))
         self.accel_last = accel
