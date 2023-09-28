@@ -238,6 +238,7 @@ class DesireHelper:
   def nav_update(self, carstate, navInstruction, roadLimitSpeed, road_edge_stat):
     direction = nav_direction = LaneChangeDirection.none
     nav_turn = False
+    nav_speedDown = False
     nav_event = 0
     need_torque = 0
     if self.autoTurnControl > 0:
@@ -251,16 +252,14 @@ class DesireHelper:
         nav_distance = roadLimitSpeed.xDistToTurn
         nav_type = roadLimitSpeed.xTurnInfo
         nav_turn = True if nav_type in [1,2] else False
+        nav_speedDown = True if nav_turn or nav_type == 5 else False
         direction = LaneChangeDirection.left if nav_type in [1,3] else LaneChangeDirection.right if nav_type in [2,4,43] else LaneChangeDirection.none
   
     nav_direction = LaneChangeDirection.none
+
     if 5 < nav_distance < 300 and direction != LaneChangeDirection.none:
       if self.desireReady >= 0: # -1이면 현재의 네비정보는 사용안함.
         self.desireReady = 1
-        if self.autoTurnControl >= 3:
-          self.apNaviDistance = nav_distance
-          self.apNaviSpeed = self.autoTurnControlSpeedTurn if nav_turn else self.autoTurnControlSpeedLaneChange
-
         if nav_turn:
           if nav_distance < 60: # 턴시작
             nav_direction = direction
@@ -278,13 +277,17 @@ class DesireHelper:
         nav_event = EventName.audioTurn if nav_turn else EventName.audioLaneChange
       else:
         nav_turn = False
-        self.apNaviDistance = 0
-        self.apNaviSpeed = 0
 
     else:
       nav_turn = False
       self.desireReady = 0
       nav_direction = LaneChangeDirection.none
+
+    if self.autoTurnControl >= 3 and self.desireReady >= 0:
+      if nav_turn or nav_speedDown or direction != LaneChangeDirection.none:
+        self.apNaviDistance = nav_distance
+        self.apNaviSpeed = self.autoTurnControlSpeedTurn if nav_turn or nav_speedDown else self.autoTurnControlSpeedLaneChange
+    else:
       self.apNaviDistance = 0
       self.apNaviSpeed = 0
 
