@@ -806,7 +806,7 @@ class Controls:
     #hudControl.rightLaneVisible = True
     #hudControl.leftLaneVisible = True
 
-    hudControl.cruiseGap = int(self.sm['longitudinalPlan'].cruiseGap) #CS.cruiseGap
+    hudControl.cruiseGap = clip(int(self.sm['longitudinalPlan'].cruiseGap), 1, 3) #CS.cruiseGap
     hudControl.objDist = int(self.cruise_helper.dRel)
     hudControl.objRelSpd = self.cruise_helper.vRel
 
@@ -905,7 +905,7 @@ class Controls:
     #ajouatom
     controlsState.debugText1 = self.debugText1
     #self.debugText2 = self.LoC.debugLoCText
-    self.debugText2 = self.LaC.latDebugText
+    #self.debugText2 = self.LaC.latDebugText
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady

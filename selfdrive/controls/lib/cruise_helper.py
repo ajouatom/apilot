@@ -456,12 +456,12 @@ class CruiseHelper:
       total_index = 0
     self.drivingModeIndex = self.drivingModeIndex * 0.999 + total_index * 0.001
 
-    if self.initMyDrivingMode == 5:
+    if self.initMyDrivingMode == 5 and self.drivingModeIndex > 0:
       if self.myDrivingMode in [2,4]:
         pass
-      elif self.drivingModeIndex < 30:
+      elif self.drivingModeIndex < 20:
         self.myDrivingMode = 3 #일반
-      elif self.drivingModeIndex > 70:
+      elif self.drivingModeIndex > 80:
         self.myDrivingMode = 1 #연비
 
   def apilot_curve(self, CS, controls):
@@ -483,7 +483,7 @@ class CruiseHelper:
     self.turnSpeed_prev = turnSpeed
     speed_diff = max(0, CS.vEgo*3.6 - turnSpeed)
     turnSpeed = turnSpeed - speed_diff * self.autoCurveSpeedFactorIn
-    #controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f},mode={:3.2f}'.format(self.turnSpeed_prev, curvature, self.drivingModeIndex)
+    controls.debugText2 = 'CURVE={:5.1f},curvature={:5.4f},mode={:3.1f}'.format(self.turnSpeed_prev, curvature, self.drivingModeIndex)
     return turnSpeed
 
   def apilot_curve_old(self, CS, controls):
@@ -778,6 +778,7 @@ class CruiseHelper:
       elif button == ButtonType.gapAdjustCruise:  ##안먹네.... 나중에 보자~
         #myDrivingMode = int(Params().get("MyDrivingMode"))
         self.myDrivingMode = self.myDrivingMode + 1 if self.myDrivingMode < 4 else 1
+        self.drivingModeIndex = -100.0
         #Params().put("MyDrivingMode", str(myDrivingMode))
     else:
       self.cruiseButtons = button

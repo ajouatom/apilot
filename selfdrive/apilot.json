@@ -516,7 +516,7 @@
       "group": "버튼설정",
       "name": "GapButtonMode",
       "title": "크루즈갭버튼 작동모드(0)",
-      "descr": "0:1~4, 1:1~5, 2:4~5, 3:4~5(크루즈OFF모드) (4:Auto, 5:크루즈ON제한모드)",
+      "descr": "0:1~4, 1:1~5, 2:4~5, 3:4~5(크루즈OFF모드)",
       "min": 0,
       "max": 3,
       "default": 0,
@@ -1004,43 +1004,53 @@
     },
     {
       "group": "차량간격",
-      "name": "ApplyDynamicTFollow",
-      "title": "상대속도-(100%)",
-      "descr": "점점가까와지면 간격을 증가하도록 함",
+      "name": "TFollowSpeedRatio",
+      "title": "차량간격시간 속도별 증감율 (110%)",
+      "descr": "속도에따라 차간거리 증가, 정지(100%) - 100km/h(설정값)",
       "min": 100,
       "max": 300,
-      "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "차량간격",
-      "name": "ApplyDynamicTFollowApart",
-      "title": "상대속도+(95%)",
-      "descr": "멀어지면 간격을 줄이도록 함",
-      "min": 20,
-      "max": 100,
-      "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "차량간격",
-      "name": "ApplyDynamicTFollowDecel",
-      "title": "감속(100%)",
-      "descr": "감속도에 따라 간격을 증가하도록 함",
-      "min": 100,
-      "max": 200,
-      "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "차량간격",
-      "name": "TFollowRatio",
-      "title": "위험:차량간격비율(100%)",
-      "descr": "100%이하로 하면 위험~",
-      "min": 70,
-      "max": 150,
       "default": 110,
-      "unit": 1
+      "unit": 5
+    },
+    {
+      "group": "차량간격",
+      "name": "TFollowGap1",
+      "title": "차량간격시간 1단계 x0.01초(110)",
+      "descr": "단계별 차간 시간거리 설정",
+      "min": 90,
+      "max": 300,
+      "default": 110,
+      "unit": 5
+    },
+    {
+      "group": "차량간격",
+      "name": "TFollowGap2",
+      "title": "차량간격시간 2단계 x0.01초(120)",
+      "descr": "단계별 차간 시간거리 설정",
+      "min": 90,
+      "max": 300,
+      "default": 120,
+      "unit": 5
+    },
+    {
+      "group": "차량간격",
+      "name": "TFollowGap3",
+      "title": "차량간격시간 3단계 x0.01초(160)",
+      "descr": "단계별 차간 시간거리 설정",
+      "min": 90,
+      "max": 300,
+      "default": 160,
+      "unit": 5
+    },
+    {
+      "group": "차량간격",
+      "name": "TFollowGap4",
+      "title": "차량간격시간 4단계 x0.01초(120)",
+      "descr": "단계별 차간 시간거리 설정",
+      "min": 90,
+      "max": 300,
+      "default": 120,
+      "unit": 5
     },
     {
       "group": "감속제어",
