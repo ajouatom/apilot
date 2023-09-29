@@ -236,11 +236,12 @@ class LongitudinalMpc:
     self.trafficStopAccel = 1.
     self.trafficStopModelSpeed = True
     self.trafficStopMode = 1
-    self.applyDynamicTFollow = 1.0
-    self.applyDynamicTFollowApart = 1.0
-    self.applyDynamicTFollowDecel = 1.0
     self.softHoldMode = 1
-    self.tFollowRatio = 1.0
+    self.tFollowSpeedRatio = 1.2
+    self.tFollowGap1 = 1.1
+    self.tFollowGap2 = 1.2
+    self.tFollowGap3 = 1.6
+    self.tFollowGap4 = 1.2
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.lo_timer = 0 
@@ -584,12 +585,14 @@ class LongitudinalMpc:
       self.trafficStopMode = int(Params().get("TrafficStopMode", encoding="utf8"))
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     elif self.lo_timer == 100:
-      self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
+      self.tFollowSpeedRatio = float(int(Params().get("TFollowSpeedRatio", encoding="utf8"))) / 100.
+      self.tFollowGap1 = float(int(Params().get("TFollowGap1", encoding="utf8"))) / 100.
+      self.tFollowGap2 = float(int(Params().get("TFollowGap2", encoding="utf8"))) / 100.
+      self.tFollowGap3 = float(int(Params().get("TFollowGap3", encoding="utf8"))) / 100.
+      self.tFollowGap4 = float(int(Params().get("TFollowGap4", encoding="utf8"))) / 100.
     elif self.lo_timer == 120:
-      self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
-      self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
+      pass
     elif self.lo_timer == 140:
-      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
       self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
     elif self.lo_timer == 160:
       self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
@@ -597,33 +600,36 @@ class LongitudinalMpc:
 
   def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
     v_ego_kph = v_ego * CV.MS_TO_KPH
-    if controls.longCruiseGap >= 4:
-      if v_ego_kph > self.v_ego_kph_prev:  ##감속할때 gap을 줄이면.. 앞차로 너무 다가가는 경향이... 가속할때만... 자동gap
-        self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
-      cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
-      self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
-    else:
-      self.applyCruiseGap = float(controls.longCruiseGap)
-      cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
+    #if controls.longCruiseGap >= 4:
+    #  if v_ego_kph > self.v_ego_kph_prev:  ##감속할때 gap을 줄이면.. 앞차로 너무 다가가는 경향이... 가속할때만... 자동gap
+    #    self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
+    #  cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
+    #  self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
+    #else:
+    #  self.applyCruiseGap = float(controls.longCruiseGap)
+    #  cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
+
+    if v_ego_kph >= self.v_ego_kph_prev: # 감속일때는 t_follow(gap) 계산안함.
+      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 4)
+      cruiseGap_dict = {
+        1: self.tFollowGap1,
+        2: self.tFollowGap2,
+        3: self.tFollowGap3,
+        4: self.tFollowGap4,
+        }
+      tf = cruiseGap_dict[self.applyCruiseGap]
+      cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 
+      self.t_follow = max(0.9, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
 
     self.v_ego_kph_prev = v_ego_kph
 
-    self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
-
-
     # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
     if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
-      #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-      # 선행차감속도* 내차감속도 : 둘다감속이 심하면 더 t_follow를 크게..
-      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
-      self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 내차의 감속도에 추가 적용
-
       if not self.openpilotLongitudinalControl:
         if v_ego_kph < 0.1:
           self.applyCruiseGap = 1
         else:
-          self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [4, self.applyCruiseGap]))
+          self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [3, self.applyCruiseGap]))
 
   def update_stop_dist(self, stop_x):
     stop_x = self.xStopFilter.process(stop_x, median = True)

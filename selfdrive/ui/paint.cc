@@ -1213,7 +1213,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     int active = controls_state.getActive();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float gap = lp.getCruiseGap();
-    //float tFollow = lp.getTFollow();
+    float tFollow = lp.getTFollow();
     int gap1 = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
 #ifdef __TEST
     myDrivingMode = 3;
@@ -1229,7 +1229,11 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     }
 
     int dxGap = -128 - 10 - 40;
-    if(s->show_gap_info >= 0) ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    if (s->show_gap_info >= 0) {
+        sprintf(str, "%.2f", tFollow);
+        ui_draw_text(s, x + dxGap + 15 - 60, y + 120.0, str, 30, COLOR_WHITE, BOLD);
+        ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    }
     static int _myDrivingMode = 0;
     if (_myDrivingMode != myDrivingMode) ui_draw_text_a(s, x + dxGap + 15, y + 120, strDrivingMode, 30, COLOR_WHITE, BOLD);
     _myDrivingMode = myDrivingMode;

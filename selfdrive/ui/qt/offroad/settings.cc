@@ -776,11 +776,12 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LeadDangerFactor", "LEAD_DANGER_FACTOR(80)", "", "../assets/offroad/icon_road.png", 75, 100, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "GAP: Dynamic Control(0)", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", this));
-    toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "GAP:REL.Speed-(100%)", "선행차와 점점 가까와지면 차량거리를 안전하게 증가시키도록 합니다.", "../assets/offroad/icon_road.png", 100, 300, 1));
-    toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollowApart", "GAP: REL.Speed+(100%)", "선행차와 점점 멀어지면 차량거리를 줄이도록 합니다.", "../assets/offroad/icon_road.png", 20, 100, 1));
-    toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollowDecel", "GAP: DECEL.Speed(100%)", "차량이 급감속 할 수록 차량간격을 벌리도록 제어합니다.", "../assets/offroad/icon_road.png", 100, 300, 1));
-    toggleLayout->addWidget(new CValueControl("TFollowRatio", "GAP: Apply ratio: Caution(110%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 70, 150, 1));
-    
+    toggleLayout->addWidget(new CValueControl("TFollowSpeedRatio", "GAP: Dynamic Gap adjust (110%)", "Dynamic Gap adjust based on speed", "../assets/offroad/icon_road.png", 100, 300, 5));
+    toggleLayout->addWidget(new CValueControl("TFollowGap1", "GAP1: Apply TFollow (110)x0.01s", "선행차와의 간격1단계, 속도x시간", "../assets/offroad/icon_road.png", 90, 300, 5));
+    toggleLayout->addWidget(new CValueControl("TFollowGap1", "GAP2: Apply TFollow (120)x0.01s", "선행차와의 간격2단계, 속도x시간", "../assets/offroad/icon_road.png", 90, 300, 5));
+    toggleLayout->addWidget(new CValueControl("TFollowGap1", "GAP3: Apply TFollow (160)x0.01s", "선행차와의 간격3단계, 속도x시간", "../assets/offroad/icon_road.png", 90, 300, 5));
+    toggleLayout->addWidget(new CValueControl("TFollowGap1", "GAP4: Apply TFollow (120)x0.01s", "선행차와의 간격4단계, 속도x시간", "../assets/offroad/icon_road.png", 90, 300, 5));
+
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("TrafficStopMode", "STOPPING: Traffice Stop Mode (1)", "0:사용안함,1:사용함,2:APilot모드", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "STOPPING: DECEL. rate (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));

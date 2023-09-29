@@ -1,3 +1,6 @@
+230929 - APILOT
+* TR(Gap) control방식 변경
+
 230919 - APILOT
 * Dynamic Jerk control (HKG only)
 * VOO service (APM required)

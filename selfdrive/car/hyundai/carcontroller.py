@@ -256,8 +256,8 @@ class CarController:
           jerk_l = self.jerkUpperLowerLimit
           #self.jerk_count = 0
         elif True:
-          jerk_u = interp(jerk, [-0.1, 0, 0.2], [0, 1.0, jerk_max])
-          jerk_l = interp(jerk, [-0.1, 0, 0.5], [jerk_max, 0.5, 0.5])
+          jerk_u = interp(jerk, [-0.1, 0, 0.2], [0, 1.0, jerk_max])  #jerk_u가 0이 아니면, KONA_EV는 감속을 안함.
+          jerk_l = interp(jerk, [-0.1, 0, 0.5], [jerk_max, 0.5, 0.5])  #jerk_l이 0.5가 아니면 가속도가 안올라감.
         #elif abs(jerk) < 0.05:
         #  jerk_u = jerk_l = jerk_max
         #elif accel < 0: # or jerk < 0:
