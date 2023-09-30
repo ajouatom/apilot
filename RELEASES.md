@@ -1,3 +1,6 @@
+230930 - APILOT
+* KONA전용 Jerk dynamic control 적용
+
 230929 - APILOT
 * TR(Gap) control방식 변경
 

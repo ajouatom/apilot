@@ -166,10 +166,10 @@ class DesireHelper:
     self.left_road_edge_width = self.left_road_edge_width * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1].y[0]) * alpha
     self.right_road_edge_width = self.right_road_edge_width * (1-alpha) + (md.roadEdges[1].y[0] - md.laneLines[2].y[0]) * alpha
 
-    left_lane_left_exist = True if md.laneLineProbs[0] > 0.15 else False
-    left_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
-    right_lane_exist = True if md.laneLineProbs[1] > 0.15 else False
-    right_lane_right_exist = True if md.laneLineProbs[3] > 0.15 else False
+    left_lane_left_exist = True if md.laneLineProbs[0] > 0.2 else False
+    left_lane_exist = True if md.laneLineProbs[1] > 0.2 else False
+    right_lane_exist = True if md.laneLineProbs[1] > 0.2 else False
+    right_lane_right_exist = True if md.laneLineProbs[3] > 0.2 else False
 
     left_lane_left = md.laneLines[0].y[0]
     left_lane = md.laneLines[1].y[0]

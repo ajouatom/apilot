@@ -284,6 +284,16 @@
     },
     {
       "group": "주행튜닝",
+      "name": "DynamicJerk",
+      "title": "JERK DYNAMIC(0)",
+      "descr": "KONA EV만 해당됨.",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "주행튜닝",
       "name": "JerkStartLimit",
       "title": "JERK START(10)x0.1",
       "descr": "값이 커지면 출발응답성이 빨라집니다.",
