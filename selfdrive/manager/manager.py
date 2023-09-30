@@ -145,6 +145,7 @@ def manager_init() -> None:
     ("TFollowGap2", "120"),
     ("TFollowGap3", "160"),
     ("TFollowGap4", "120"),
+    ("DynamicJerk", "0"),    
     ("JerkStartLimit", "10"),    
     ("JerkUpperLowerLimit", "8"),    
     ("KeepEngage", "1"),

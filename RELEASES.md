@@ -1,3 +1,9 @@
+230930 - APILOT
+* KONA전용 Jerk dynamic control 적용
+
+230929 - APILOT
+* TR(Gap) control방식 변경
+
 230919 - APILOT
 * Dynamic Jerk control (HKG only)
 * VOO service (APM required)
