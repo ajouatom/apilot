@@ -53,7 +53,7 @@ def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
 
     if softHold:
       long_control_state = LongCtrlState.stopping
-  return long_control_state
+  return long_control_state, planned_stop
 
 
 class LongControl:
@@ -148,7 +148,7 @@ class LongControl:
 
     output_accel = self.last_output_accel
 
-    self.long_control_state = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
+    self.long_control_state, planned_stop = long_control_state_trans(self.CP, active, self.long_control_state, CS.vEgo,
                                                        v_target, v_target_1sec, CS.brakePressed,
                                                        CS.cruiseState.standstill, CC.hudControl.softHold, a_target_now)
 
@@ -189,4 +189,4 @@ class LongControl:
     #self.debugLoCText = "T:{:.2f} V:{:.2f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format(t_since_plan, (self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
     self.debugLoCText = "pid={},vego={:.2f},vt={:.2f},{:.2f},vStop={:.2f}".format(self.long_control_state, CS.vEgo, v_target, v_target_1sec, self.CP.vEgoStopping)
 
-    return self.last_output_accel, j_target
+    return self.last_output_accel, -1.0 if planned_stop else j_target

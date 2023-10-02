@@ -242,14 +242,14 @@ class CarController:
           jerk_u = self.jerkUpperLowerLimit
           jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
-        #elif actuators.longControlState == LongCtrlState.stopping:
-        #  jerk_u = 0.0 #0.5
-        #  jerk_l = self.jerkUpperLowerLimit
-        #  #self.jerk_count = 0
-        #elif True:
+        elif actuators.longControlState == LongCtrlState.stopping:
+          jerk_u = 0.5
+          jerk_l = self.jerkUpperLowerLimit
+          self.jerk_count = 0
         elif self.dynamicJerk == 1:
-          if actuators.longControlState == LongCtrlState.stopping:
-            jerk = -2.0
+          jerk_u = min(max(0.5, jerk * 2.0), self.jerkUpperLowerLimit)
+          jerk_l = min(max(1.0, -jerk * 2.0), self.jerkUpperLowerLimit)
+        elif self.dynamicJerk == 3:
           jerk_max_u = interp(a_diff, [-0.5, 0.5], [jerk_max, 0.5])
           jerk_max_l = interp(a_diff, [-0.5, 0.5], [0.5, jerk_max])
           jerk_u = interp(jerk, [-0.1, 0, 0.2], [0.0, 1.0, jerk_max_u])  #jerk_u가 0이 아니면, KONA_EV는 감속을 안함. over감속:upper를 +로 하면? 230930
