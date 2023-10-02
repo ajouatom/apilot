@@ -1185,12 +1185,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         px[6] = path_x - path_width / 2;
         py[0] = path_y;
         py[1] = path_y;
-        py[2] = path_y - 5;
-        py[3] = path_y - 10;
+        py[2] = path_y - 7;
+        py[3] = path_y - 17;
         py[4] = path_y - 0;
-        py[5] = path_y - 10;
-        py[6] = path_y - 5;
-        NVGcolor  pcolor = no_radar ? COLOR_ORANGE : radar_detected ? COLOR_RED : COLOR_BLUE;
+        py[5] = path_y - 17;
+        py[6] = path_y - 7;
+        NVGcolor  pcolor = no_radar ? ((trafficMode == 1)?COLOR_RED:COLOR_GREEN) : radar_detected ? COLOR_RED : COLOR_BLUE;
         ui_draw_line2(s, px, py, 7, &pcolor, nullptr, 3.0f);
         if (s->show_path_end > 0 && disp_dist > 0.0) {
             px[0] = path_x - path_width / 2 - 10;
@@ -1232,6 +1232,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     if (s->show_gap_info >= 0) {
         sprintf(str, "%.2f", tFollow);
         ui_draw_text(s, x + dxGap + 15 - 60, y + 120.0, str, 30, COLOR_WHITE, BOLD);
+        sprintf(str, "%.0fM", tFollow * v_ego + 6.0);
+        ui_draw_text(s, x + dxGap + 15 - 60, y + 155.0, str, 30, COLOR_WHITE, BOLD);
+
         ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
     }
     static int _myDrivingMode = 0;

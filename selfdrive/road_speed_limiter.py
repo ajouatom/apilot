@@ -172,7 +172,7 @@ class RoadLimitSpeedServer:
       if ret:
         data, self.remote_addr = sock.recvfrom(2048)
         json_obj = json.loads(data.decode())
-        print(json_obj)
+        #print(json_obj)
 
         if 'cmd' in json_obj:
           try:
@@ -497,8 +497,8 @@ def main():
           sdiDebugText += "B-{}/{}/{} ".format(nSdiBlockType, int(nSdiBlockDist), nSdiBlockSpeed)
         if nTBTTurnType >= 0:
           sdiDebugText += "T-{}/{} ".format(nTBTTurnType, int(nTBTDist))
-        if ret:
-          print(sdiDebugText)
+        #if ret:
+        #  print(sdiDebugText)
 
         if nTBTTurnType in [12, 16]:
           xTurnInfo = 1  # turn left
@@ -592,7 +592,7 @@ def main():
         dat.roadLimitSpeed.xRoadLimitSpeed = int(xRoadLimitSpeed)
         if xRoadLimitSpeed > 0:
           dat.roadLimitSpeed.roadLimitSpeed = int(xRoadLimitSpeed)
-        dat.roadLimitSpeed.xRoadName = xRoadName + sdiDebugText
+        dat.roadLimitSpeed.xRoadName = xRoadName # + sdiDebugText
 
         dat.roadLimitSpeed.xCmd = "" if xCmd is None else xCmd
         dat.roadLimitSpeed.xArg = "" if xArg is None else xArg
