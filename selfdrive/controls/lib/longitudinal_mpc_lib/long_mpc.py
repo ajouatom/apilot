@@ -773,7 +773,7 @@ class LongitudinalMpc:
             self.stopDist = 0.0
             v_cruise = 0.0
             stop_x = 0.0
-        elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 4.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..  2->4M : 즉 정지선이 앞차보다 4M뒤에 있다면 앞차안봄..
+        elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 2.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..  2: 즉 정지선이 앞차보다 2M뒤에 있다면 앞차안봄..
           self.xState = XState.lead
           stop_x = 1000.0
         elif cruiseButtonCounterDiff > 0:
@@ -789,7 +789,9 @@ class LongitudinalMpc:
               self.xState = XState.e2eCruisePrepare
               stop_x = 1000.0
             else:
-              self.stopDist = self.xStop  * interp(self.xStop, [0, 100], [1.0, self.trafficStopAdjustRatio])  ##남은거리에 따라 정지거리 비율조정
+              stop_dist = self.xStop  * interp(self.xStop, [0, 100], [1.0, self.trafficStopAdjustRatio])  ##남은거리에 따라 정지거리 비율조정
+              if stop_dist > 5.0:
+                self.stopDist = stop_dist
               stop_x = 0.0
           self.fakeCruiseDistance = 0 if self.stopDist > 10.0 else 10.0
     ## e2eCruisePrepare 일시정지중
@@ -825,6 +827,7 @@ class LongitudinalMpc:
       elif self.trafficState == 1 and not carstate.gasPressed:
         self.xState = XState.e2eStop
         self.mpcEvent = EventName.trafficStopping
+        self.stopDist = self.xStop
       else:
         self.xState = XState.e2eCruise
         if carstate.brakePressed and v_ego_kph < 1.0  and self.softHoldMode > 0:
@@ -851,7 +854,7 @@ class LongitudinalMpc:
     elif stop_x == 1000.0:
       self.stopDist = 0.0
     elif self.stopDist > 0:
-      stop_dist = v_ego ** 2 / (1.8 * 2)
+      stop_dist = v_ego ** 2 / (2.0 * 2)
       self.stopDist = self.stopDist if self.stopDist > stop_dist else stop_dist
       stop_x = 0.0
 #    else:
