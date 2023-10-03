@@ -250,6 +250,7 @@ class CarController:
         self.jerk_count += DT_CTRL
         jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, self.jerkUpperLowerLimit])
         a_diff = CS.out.aEgo - accel # (+)인경우 내려야, 
+        speed_diff = CS.out.vEgo - actuators.speed
         if actuators.longControlState == LongCtrlState.off:
           jerk_u = self.jerkUpperLowerLimit
           jerk_l = self.jerkUpperLowerLimit
@@ -273,7 +274,7 @@ class CarController:
           jerk_u = jerk_l = jerk_max
 
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk_u, jerk_l, int(self.frame / 2),
-                                                      hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode))
+                                                      hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode, speed_diff))
         self.accel_last = accel
 
       # 20 Hz LFA MFA message
