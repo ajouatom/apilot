@@ -3,6 +3,8 @@ import copy
 import crcmod
 from openpilot.selfdrive.car.hyundai.values import CAR, CHECKSUM, CAMERA_SCC_CAR
 
+from openpilot.common.numpy_fast import clip
+
 hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 
 def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, steer_req,
@@ -144,7 +146,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode, speed_diff):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
@@ -173,8 +175,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
       stopReq = 1
     
     #kona_ev 데이터 보고 만들어낸 식~
-    comfortBandUpper = 0.9 + accel * 0.2
-    comfortBandLower = 0.8 + accel * 0.2
+    #comfortBandUpper = 0.9 + accel * 0.2
+    #comfortBandLower = 0.8 + accel * 0.2
+    comfortBandUpper = clip(-speed_diff, 0, 0.2)
+    comfortBandLower = clip(speed_diff, 0, 0.2)
     jerkUpperLimit = upper_jerk
     jerkLowerLimit = lower_jerk
   else:
