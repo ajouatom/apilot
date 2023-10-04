@@ -260,8 +260,8 @@ class CarController:
           jerk_l = self.jerkUpperLowerLimit
           self.jerk_count = 0
         elif self.dynamicJerk == 1:
-          jerk_u = min(max(0.5, jerk * 2.0), self.jerkUpperLowerLimit)
-          jerk_l = min(max(1.0, -jerk * 2.0), self.jerkUpperLowerLimit)
+          jerk_u = min(max(0.5, jerk * 2.0), jerk_max)
+          jerk_l = min(max(1.0, -jerk * 2.0), jerk_max)
         elif self.dynamicJerk == 3:
           jerk_max_u = interp(a_diff, [-0.5, 0.5], [jerk_max, 0.5])
           jerk_max_l = interp(a_diff, [-0.5, 0.5], [0.5, jerk_max])
