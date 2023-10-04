@@ -1,7 +1,7 @@
 # ruff: noqa: E501
 from collections import defaultdict
 from dataclasses import dataclass
-from enum import Enum, IntFlag
+from enum import Enum, StrEnum, IntFlag
 from typing import Dict, List, Union
 
 from cereal import car
@@ -74,8 +74,7 @@ class CarControllerParams:
     self.EV_GAS_LOOKUP_BP = [gas_brake_threshold, max(0., gas_brake_threshold), self.ACCEL_MAX]
     self.EV_BRAKE_LOOKUP_BP = [self.ACCEL_MIN, gas_brake_threshold]
 
-
-class CAR:
+class CAR(StrEnum):
   HOLDEN_ASTRA = "HOLDEN ASTRA RS-V BK 2017"
   VOLT = "CHEVROLET VOLT PREMIER 2017"
   CADILLAC_ATS = "CADILLAC ATS Premium Performance 2018"
