@@ -542,8 +542,12 @@ class CruiseHelper:
 
     if self.v_cruise_kph_backup < self.v_ego_kph_set:
       self.v_cruise_kph_backup = self.v_ego_kph_set
+
+    # softHold상태: cruiseOFF: 엑셀로 밟으면 크루즈해제
+    if self.xState == XState.softHold:
+      longActiveUser = -2
     #  페달을 0.6초이내 뗀경우: 속도증가 autoSyncCruiseSpeedMax까지: 가속페달로 속도를 증가시킴
-    if self.gasPressedCount * DT_CTRL < 0.6:
+    elif self.gasPressedCount * DT_CTRL < 0.6:
       if not CS.gasPressed  and self.preGasPressedMax > 0.03:
         if longActiveUser <= 0:
           if self.autoResumeFromGas > 1:
@@ -587,28 +591,23 @@ class CruiseHelper:
       if self.longCruiseGap != 5: 
         longActiveUser = 3
     else:
-      ## 엑셀 ON조건이 아닌경우.. OFF함..
-      ## 그런데... 이미 크루즈가 ON되어 있는경우 유지할지 OFF할지...
-      if self.autoCancelFromGasMode == 0:
-        longActiveUser = -2
+      if self.autoCancelFromGasMode == 0: #[엑셀크루즈OFF:모드]
+        pass #현재상태유지..
       elif longActiveUser > 0:
-        #  1. softHold상태: cruiseOFF: 엑셀로 밟으면 크루즈해제
-        if self.xState == XState.softHold:
-          longActiveUser = -2
-        #  2. 신호감지감속중: cruiseOFF: 신호감지감속이 맘에 안드는 상태, 가속페달을 밟으면 해제
-        elif self.xState in [XState.e2eStop, XState.e2eCruise, XState.e2eCruisePrepare] and self.v_ego_kph < v_cruise_kph and (self.trafficState % 10) == 1: #controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: 
-          #v_cruise_kph = self.v_ego_kph_set
-          longActiveUser = -2
-        #  3. 저속주행: cruiseOFF(autoResumeFromGasSpeed 이하): 조건(autoCancelFromGasMode)에 따라 선행차의 유무에 따라 크루즈 해제
-        elif self.v_ego_kph < self.autoResumeFromGasSpeed:
+        #  2. 저속주행: cruiseOFF(autoResumeFromGasSpeed 이하): 조건(autoCancelFromGasMode)에 따라 선행차의 유무에 따라 크루즈 해제
+        if self.v_ego_kph < self.autoResumeFromGasSpeed:
           #v_cruise_kph = self.v_ego_kph_set
           if self.autoCancelFromGasMode == 1:
             longActiveUser = -2
-          elif self.autoCancelFromGasMode == 2 and self.dRel==0: # mode:2일때는 선행차가 없을때만
+          elif self.autoCancelFromGasMode == 2 and self.dRel==0 or self.dRel > 80: # mode:2일때는 선행차가 없을때만
             longActiveUser = -2
+        #  3. 신호감지감속중: cruiseOFF: 신호감지감속이 맘에 안드는 상태, 가속페달을 밟으면 해제
+        elif self.xState in [XState.e2eStop, XState.e2eCruise, XState.e2eCruisePrepare] and self.v_ego_kph < v_cruise_kph and (self.trafficState % 10) == 1:
+          #v_cruise_kph = self.v_ego_kph_set
+          longActiveUser = -2
       
     # 앞차를 추월하기 위해 가속한경우, 앞차와의 거리가 감속가능한 거리가 아닌경우 크루즈OFF: 급격한 감속충격을 막기 위해.. (시험해야함)
-    if 0 < self.dRel < CS.vEgo * 0.9: # 급정거 t_follow 를 0.9로 가정..
+    if 0 < self.dRel < CS.vEgo * 0.8 and self.autoCancelFromGasMode != 0: # 급정거 t_follow 를 0.8로 가정..
       longActiveUser = -2
     #  6. 크루즈속도보다 높을때: 크루즈속도 현재속도셋 : autoSyncCruiseSpeedMax까지
     if self.v_ego_kph_set > v_cruise_kph and self.autoSyncCruiseSpeedMax > self.autoResumeFromGasSpeed:

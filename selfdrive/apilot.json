@@ -586,9 +586,9 @@
       "group": "크루즈",
       "name": "AutoCancelFromGasMode",
       "title": "엑셀 크루즈OFF:모드",
-      "descr": "엑셀크루즈ON속도 이하에서 엑셀을 밟으면 크루즈가 해제 1:항상, 2:레이더OFF시에만",
+      "descr": "0:유지, 1:항상, 2:레이더OFF시에만",
       "min": 0,
-      "max": 140,
+      "max": 2,
       "default": 0,
       "unit": 1
     },
