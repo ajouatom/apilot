@@ -130,6 +130,8 @@ def manager_init() -> None:
     ("LongitudinalTuningKpV", "100"),     
     ("LongitudinalTuningKiV", "200"),     
     ("LongitudinalTuningKf", "100"),     
+    ("LongitudinalActuatorDelayUpperBound", "50"),     
+    ("LongitudinalActuatorDelayLowerBound", "50"),     
     ("EnableRadarTracks", "0"),      
     ("EnableAutoEngage", "0"),      
     ("SccConnectedBus2", "0"),   
