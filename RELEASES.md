@@ -1,3 +1,12 @@
+231008 - APILOT
+* 설정고정
+  * Jerk dynamic control: 고정
+  * Longitudinal lower/upper bound: 0.5로 고정
+  * A_CHANGE_COST: 200
+  * LEAD_DANGER_FACTOR: 0.8
+  * Jer limit: 5.0 
+* Hotspot on boot기능 추가
+
 231002 - APILOT
 * Jerk dynamic control 2가지 방법시험중(HKG only)
   * 0: COMMA Default 일정값적용
