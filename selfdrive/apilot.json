@@ -284,33 +284,13 @@
     },
     {
       "group": "주행튜닝",
-      "name": "DynamicJerk",
-      "title": "JERK DYNAMIC(0)",
-      "descr": "0:Normal,1:Jerk cmd, 2:Accel diff",
-      "min": 0,
-      "max": 2,
-      "default": 0,
-      "unit": 1
-    },
-    {
-      "group": "주행튜닝",
       "name": "JerkStartLimit",
-      "title": "JERK START(10)x0.1",
+      "title": "JERK START(10)x0.1(20)",
       "descr": "값이 커지면 출발응답성이 빨라집니다.",
       "min": 1,
       "max": 50,
       "default": 10,
       "unit": 5
-    },
-    {
-      "group": "주행튜닝",
-      "name": "JerkUpperLowerLimit",
-      "title": "JERK값 (8)",
-      "descr": "값이 커지면 가감속반응이 빨라집니다.",
-      "min": 1,
-      "max": 50,
-      "default": 8,
-      "unit": 1
     },
     {
       "group": "주행튜닝",
@@ -321,26 +301,6 @@
       "max": 150,
       "default": 100,
       "unit": 1
-    },
-    {
-      "group": "주행튜닝",
-      "name": "LongitudinalActuatorDelayLowerBound",
-      "title": "_LADLowerBound(30)",
-      "descr": "낮추면 정지력증가, 가속력감소",
-      "min": 10,
-      "max": 100,
-      "default": 50,
-      "unit": 10
-    },
-    {
-      "group": "주행튜닝",
-      "name": "LongitudinalActuatorDelayUpperBound",
-      "title": "_LADUpperBound(60)",
-      "descr": "올리면 감속력 증가",
-      "min": 10,
-      "max": 100,
-      "default": 50,
-      "unit": 10
     },
     {
       "group": "주행튜닝",
@@ -361,36 +321,6 @@
       "max": 200,
       "default": 100,
       "unit": 1
-    },
-    {
-      "group": "주행튜닝",
-      "name": "AChangeCost",
-      "title": "A_CHANGE_COST(200)",
-      "descr": "적으면 선행차에 대한 반응이 빨라집니다.",
-      "min": 20,
-      "max": 400,
-      "default": 150,
-      "unit": 10
-    },
-    {
-      "group": "주행튜닝",
-      "name": "LeadDangerFactor",
-      "title": "LEAD_DANGER_FACTOR(80)",
-      "descr": "",
-      "min": 75,
-      "max": 100,
-      "default": 80,
-      "unit": 1
-    },
-    {
-      "group": "주행튜닝",
-      "name": "DangerZoneCost",
-      "title": "DANGER_ZONE_COST(100)",
-      "descr": "",
-      "min": 0,
-      "max": 400,
-      "default": 100,
-      "unit": 10
     },
     {
       "group": "감속제어",
@@ -415,7 +345,7 @@
     {
       "group": "감속제어",
       "name": "ApplyModelDistOrder",
-      "title": "신호정지 감속모델선택 (32)",
+      "title": "신호정지 감속모델선택 (30)",
       "descr": "숫자가 작을수록 감속을 미리합니다.",
       "min": 1,
       "max": 32,
@@ -1165,8 +1095,8 @@
     {
       "group": "감속제어",
       "name": "AutoNaviSpeedDecelRate",
-      "title": "과속카메라 감속율 x0.01m/s^2(100)",
-      "descr": "",
+      "title": "과속카메라 감속율 x0.01m/s^2(80)",
+      "descr": "낮으면 멀리서부터 감속함",
       "min": 10,
       "max": 200,
       "default": 100,

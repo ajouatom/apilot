@@ -45,7 +45,7 @@ J_EGO_COST = 5.0
 A_CHANGE_COST = 200.
 DANGER_ZONE_COST = 100.
 CRASH_DISTANCE = .25
-LEAD_DANGER_FACTOR = 0.75
+LEAD_DANGER_FACTOR = 0.8 #0.75
 LIMIT_COST = 1e6
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
@@ -226,11 +226,6 @@ class LongitudinalMpc:
     self.debugLongText1 = ""
     self.debugLongText2 = ""
     self.trafficState = 0
-    self.XEgoObstacleCost = 3.
-    self.JEgoCost = 5.
-    self.AChangeCost = 200.
-    self.DangerZoneCost = 100.
-    self.leadDangerFactor = LEAD_DANGER_FACTOR
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
@@ -350,14 +345,14 @@ class LongitudinalMpc:
 
   def set_weights(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
     if self.mode == 'acc':
-      a_change_cost = self.AChangeCost if prev_accel_constraint else 40
+      a_change_cost = A_CHANGE_COST if prev_accel_constraint else 40
       if self.applyLongDynamicCost:
         cost_mulitpliers = self.get_cost_multipliers(v_lead0, v_lead1)
-        cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost * cost_mulitpliers[0], self.JEgoCost * cost_mulitpliers[1]]
-        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost * cost_mulitpliers[2]]
+        cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost * cost_mulitpliers[0], J_EGO_COST * cost_mulitpliers[1]]
+        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST * cost_mulitpliers[2]]
       else:
-        cost_weights = [self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, self.JEgoCost]
-        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, self.DangerZoneCost]
+        cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost, J_EGO_COST]
+        constraint_cost_weights = [LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST]
     elif self.mode == 'blended':
       a_change_cost = 40.0 if prev_accel_constraint else 40
       cost_weights = [0., 0.1, 0.2, 5.0, a_change_cost, 1.0]
@@ -447,7 +442,7 @@ class LongitudinalMpc:
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
-      self.params[:,5] = self.leadDangerFactor #LEAD_DANGER_FACTOR
+      self.params[:,5] = LEAD_DANGER_FACTOR
 
       x2 = stop_x * np.ones(N+1) + self.trafficStopDistanceAdjust
 
@@ -569,13 +564,9 @@ class LongitudinalMpc:
     self.lo_timer += 1
     if self.lo_timer > 200:
       self.lo_timer = 0
-      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
-      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
     elif self.lo_timer == 20:
-      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
-      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+      pass
     elif self.lo_timer == 40:
-      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
       self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
     elif self.lo_timer == 60:
       self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
