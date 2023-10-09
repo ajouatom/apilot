@@ -394,9 +394,6 @@ class DesireHelper:
         #if not nav_turn and self.turnState==0 and torque_applied:
         #  self.turnState = 1
 
-        if turn_prob > 0.02: #깜박이 켜고.. turn상태로 변경되면... 
-          self.turnState = 1
-
         if nav_turn or self.turnState>0:
           lane_change_prob = turn_prob
           if self.turnState == 1:
@@ -409,7 +406,10 @@ class DesireHelper:
         if turn_prob < 0.02 and lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01: # 0.5초가 지난후부터 차선변경이 완료되었는지확인.
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-        if carstate.steeringPressed and (nav_turn or self.turnState>0): #steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
+        if torque_applied:
+          #self.turnState = 1
+          pass
+        elif carstate.steeringPressed and (nav_turn or self.turnState>0): #steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
           if nav_distance < 100:
