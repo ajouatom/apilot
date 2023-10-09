@@ -445,7 +445,8 @@ class DesireHelper:
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
         if torque_applied:
-          self.turnState = 1
+          #self.turnState = 1
+          pass
         elif carstate.steeringPressed and (nav_turn or self.turnState>0): #steering_pressed: # or (0 < nav_distance < 100 and carstate.gasPressed):
           self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
