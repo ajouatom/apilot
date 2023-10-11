@@ -9,7 +9,7 @@ const int HYUNDAI_PARAM_ALT_LIMITS = 64; // TODO: shift this down with the rest 
 const int HYUNDAI_PARAM_AUTO_ENGAGE = 128;
 
 const uint8_t HYUNDAI_PREV_BUTTON_SAMPLES = 8;  // roughly 160 ms
-const uint32_t HYUNDAI_STANDSTILL_THRSLD = 30;  // ~1kph
+const uint32_t HYUNDAI_STANDSTILL_THRSLD = 12;  // 0.375 kph
 
 enum {
   HYUNDAI_BTN_NONE = 0,
@@ -24,9 +24,6 @@ bool hyundai_hybrid_gas_signal = false;
 bool hyundai_longitudinal = false;
 bool hyundai_camera_scc = false;
 bool hyundai_alt_limits = false;
-bool main_engaged_prev = false;
-bool set_engaged_prev = false;
-bool button_engaged_prev = false;
 bool hyundai_auto_engage = false;
 uint8_t hyundai_last_button_interaction;  // button messages since the user pressed an enable button
 
@@ -46,45 +43,22 @@ void hyundai_common_init(uint16_t param) {
   hyundai_auto_engage = GET_FLAG(param, HYUNDAI_PARAM_AUTO_ENGAGE);
 }
 
-void hyundai_common_cruise_state_check(const int main_engaged) {
-    // some newer HKG models can re-enable after spamming cancel button,
-    // so keep track of user button presses to deny engagement if no interaction
+void hyundai_common_cruise_state_check(const int cruise_engaged) {
+  // some newer HKG models can re-enable after spamming cancel button,
+  // so keep track of user button presses to deny engagement if no interaction
 
-    // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
-    if (1 || !hyundai_longitudinal) {
-        if (main_engaged && !main_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
-            if (controls_allowed == 0) {
-                controls_allowed = 1;
-                set_engaged_prev = true;
-                puts("[hyundai_common_cruise_state_check] controls_allowed = 1\n");
-            }
-        }
-
-        if (!main_engaged && !button_engaged_prev && !hyundai_longitudinal) {            
-            controls_allowed = 0;
-            set_engaged_prev = false;
-            button_engaged_prev = false;
-            puts("[hyundai_common_cruise_state_check] controls_allowed = 0\n");
-        }
-        main_engaged_prev = main_engaged;
+  // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
+  if (!hyundai_longitudinal) {
+    if (cruise_engaged && !cruise_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
+      controls_allowed = true;
     }
-}
-void hyundai_common_cruise_state_check2(const int cruise_engaged) {
-    // some newer HKG models can re-enable after spamming cancel button,
-    // so keep track of user button presses to deny engagement if no interaction
 
-    // enter controls on rising edge of ACC and recent user button press, exit controls when ACC off
-    if (1 || !hyundai_longitudinal) {
-        if (cruise_engaged && !cruise_engaged_prev && (hyundai_last_button_interaction < HYUNDAI_PREV_BUTTON_SAMPLES)) {
-            controls_allowed = 1;
-            puts("[hyundai_common_cruise_state_check2] controls_allowed = 1\n");
-        }
-
-        if (!cruise_engaged) {
-            //controls_allowed = 0;
-        }
-        cruise_engaged_prev = cruise_engaged;
-    }
+    //if (!cruise_engaged) {
+    //  controls_allowed = false;
+    //}
+    controls_allowed = true;
+    cruise_engaged_prev = cruise_engaged;
+  }
 }
 
 void hyundai_common_cruise_buttons_check(const int cruise_button, const int main_button) {
@@ -96,24 +70,17 @@ void hyundai_common_cruise_buttons_check(const int cruise_button, const int main
   }
 
   if (hyundai_longitudinal) {
-    // exit controls on cancel press
-    if (cruise_button == HYUNDAI_BTN_CANCEL) {
-      if(controls_allowed) puts("[hyundai_common_cruise_buttons_check] controls_allowed = 0\n");
-      controls_allowed = 0;
-      button_engaged_prev = false;
-      set_engaged_prev = false;
+    // enter controls on falling edge of resume or set
+    bool set = (cruise_button != HYUNDAI_BTN_SET) && (cruise_button_prev == HYUNDAI_BTN_SET);
+    bool res = (cruise_button != HYUNDAI_BTN_RESUME) && (cruise_button_prev == HYUNDAI_BTN_RESUME);
+    if (set || res) {
+      controls_allowed = true;
     }
 
-    // enter controls on falling edge of resume or set
-    bool set = (cruise_button == HYUNDAI_BTN_NONE) && (cruise_button_prev == HYUNDAI_BTN_SET);
-    bool res = (cruise_button == HYUNDAI_BTN_NONE) && (cruise_button_prev == HYUNDAI_BTN_RESUME);
-    if (set || res) {
-        if (controls_allowed == 0) {
-            controls_allowed = 1;
-            button_engaged_prev = true;
-            puts("[hyundai_common_cruise_buttons_check] controls_allowed = 1\n");
-        }
-    }
+    // exit controls on cancel press
+    //if (cruise_button == HYUNDAI_BTN_CANCEL) {
+    //  controls_allowed = false;
+    //}
 
     cruise_button_prev = cruise_button;
   }
