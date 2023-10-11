@@ -325,7 +325,6 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
       //tx = 0;
       puts("violation[LKAS11, 832]\n");
     }
-    else LKAS11_forwarding = false;
   }
 
   // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
