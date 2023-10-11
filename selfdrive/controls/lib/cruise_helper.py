@@ -324,7 +324,7 @@ class CruiseHelper:
       if ButtonCnt > 40:
         LongPressed = True
         V_CRUISE_DELTA = 10
-        if b.type == ButtonType.cancel:
+        if ButtonPrev == ButtonType.cancel:
            controls.events.add(EventName.buttonCancel)
         elif ButtonPrev == ButtonType.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
