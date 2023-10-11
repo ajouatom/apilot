@@ -1673,6 +1673,25 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     brake_valid = brake_valid;
     longActiveUserReady = longActiveUserReady;
 }
+
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+char ip_address[64] = "";
+void read_ip_address() {
+    int     fd;
+    struct ifreq ifr;
+
+    const char* iface = "wlan0";
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, iface, IFNAMSIZ - 1);
+    ioctl(fd, SIOCGIFADDR, &ifr);
+    close(fd);
+
+    strcpy(ip_address, inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+    printf("ip_address= %s\n", ip_address);
+}
 void DrawApilot::drawDeviceState(UIState* s, bool show) {
     const SubMaster& sm = *(s->sm);
     auto deviceState = sm["deviceState"].getDeviceState();
@@ -1687,6 +1706,9 @@ void DrawApilot::drawDeviceState(UIState* s, bool show) {
     float cpuTemp = 0.f;
     //float gpuTemp = 0.f;
 
+    static int read_ip_count = 100;
+    if(read_ip_count == 100) read_ip_address();
+    if (read_ip_count-- < 0) read_ip_count = 100;
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
 
     if (std::size(cpuTempC) > 0) {
@@ -1708,9 +1730,8 @@ void DrawApilot::drawDeviceState(UIState* s, bool show) {
         sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%                      ", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         ui_draw_text(s, s->fb_w - 20, 90, str, 35, textColor, BOLD);
     }
-    qstr = QString::fromStdString(deviceState.getWifiIpAddress().cStr());
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
-    ui_draw_text(s, s->fb_w - 20, s->fb_h - 15, qstr.toStdString().c_str(), 30, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, s->fb_w - 20, s->fb_h - 15, ip_address, 30, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 }
 void DrawApilot::drawDebugText(UIState* s, bool show) {

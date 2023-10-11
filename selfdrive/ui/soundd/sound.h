@@ -9,33 +9,36 @@
 #include "system/hardware/hw.h"
 #include "selfdrive/ui/ui.h"
 
-const std::tuple<AudibleAlert, QString, int> sound_list[] = {
+
+const float MAX_VOLUME = 1.0;
+
+const std::tuple<AudibleAlert, QString, int, float> sound_list[] = {
   // AudibleAlert, file name, loop count
-  {AudibleAlert::ENGAGE, "engage.wav", 0},
-  {AudibleAlert::DISENGAGE, "disengage.wav", 0},
-  {AudibleAlert::REFUSE, "refuse.wav", 0},
+  {AudibleAlert::ENGAGE, "engage.wav", 0, MAX_VOLUME},
+  {AudibleAlert::DISENGAGE, "disengage.wav", 0, MAX_VOLUME},
+  {AudibleAlert::REFUSE, "refuse.wav", 0, MAX_VOLUME},
 
-  {AudibleAlert::PROMPT, "prompt.wav", 0},
-  {AudibleAlert::PROMPT_REPEAT, "prompt.wav", QSoundEffect::Infinite},
-  {AudibleAlert::PROMPT_DISTRACTED, "prompt_distracted.wav", QSoundEffect::Infinite},
+  {AudibleAlert::PROMPT, "prompt.wav", 0, MAX_VOLUME},
+  {AudibleAlert::PROMPT_REPEAT, "prompt.wav", QSoundEffect::Infinite, MAX_VOLUME},
+  {AudibleAlert::PROMPT_DISTRACTED, "prompt_distracted.wav", QSoundEffect::Infinite, MAX_VOLUME},
 
-  {AudibleAlert::WARNING_SOFT, "warning_soft.wav", QSoundEffect::Infinite},
-  //{AudibleAlert::WARNING_IMMEDIATE, "warning_immediate.wav", QSoundEffect::Infinite},
-  {AudibleAlert::WARNING_IMMEDIATE, "warning_immediate.wav", 2},
-  {AudibleAlert::LONG_ENGAGED, "tici_engaged.wav", 0},
-  {AudibleAlert::LONG_DISENGAGED, "tici_disengaged.wav", 0},
-  {AudibleAlert::TRAFFIC_SIGN_GREEN, "traffic_sign_green.wav", 0},
-  {AudibleAlert::TRAFFIC_SIGN_CHANGED, "traffic_sign_changed.wav", 0},
-  {AudibleAlert::TRAFFIC_ERROR, "audio_traffic_error.wav", 0},
-  {AudibleAlert::BSD_WARNING, "audio_car_watchout.wav", 0},
-  {AudibleAlert::LANE_CHANGE, "audio_lane_change.wav", 0},
-  {AudibleAlert::STOP_STOP, "audio_stopstop.wav", 0},
-  {AudibleAlert::STOPPING, "audio_stopping.wav", 0},
-  {AudibleAlert::AUTO_HOLD, "audio_auto_hold.wav", 0},
-  {AudibleAlert::ENGAGE2, "audio_engage.wav", 0},
-  {AudibleAlert::DISENGAGE2, "audio_disengage.wav", 0},
-  {AudibleAlert::SPEED_DOWN, "audio_speed_down.wav", 0},
-  {AudibleAlert::AUDIO_TURN, "audio_turn.wav", 0},
+  {AudibleAlert::WARNING_SOFT, "warning_soft.wav", QSoundEffect::Infinite, MAX_VOLUME},
+  //{AudibleAlert::WARNING_IMMEDIATE, "warning_immediate.wav", QSoundEffect::Infinite, MAX_VOLUME},
+  {AudibleAlert::WARNING_IMMEDIATE, "warning_immediate.wav", 2, MAX_VOLUME},
+  {AudibleAlert::LONG_ENGAGED, "tici_engaged.wav", 0, MAX_VOLUME},
+  {AudibleAlert::LONG_DISENGAGED, "tici_disengaged.wav", 0, MAX_VOLUME},
+  {AudibleAlert::TRAFFIC_SIGN_GREEN, "traffic_sign_green.wav", 0, MAX_VOLUME},
+  {AudibleAlert::TRAFFIC_SIGN_CHANGED, "traffic_sign_changed.wav", 0, MAX_VOLUME},
+  {AudibleAlert::TRAFFIC_ERROR, "audio_traffic_error.wav", 0, MAX_VOLUME},
+  {AudibleAlert::BSD_WARNING, "audio_car_watchout.wav", 0, MAX_VOLUME},
+  {AudibleAlert::LANE_CHANGE, "audio_lane_change.wav", 0, MAX_VOLUME},
+  {AudibleAlert::STOP_STOP, "audio_stopstop.wav", 0, MAX_VOLUME},
+  {AudibleAlert::STOPPING, "audio_stopping.wav", 0, MAX_VOLUME},
+  {AudibleAlert::AUTO_HOLD, "audio_auto_hold.wav", 0, MAX_VOLUME},
+  {AudibleAlert::ENGAGE2, "audio_engage.wav", 0, MAX_VOLUME},
+  {AudibleAlert::DISENGAGE2, "audio_disengage.wav", 0, MAX_VOLUME},
+  {AudibleAlert::SPEED_DOWN, "audio_speed_down.wav", 0, MAX_VOLUME},
+  {AudibleAlert::AUDIO_TURN, "audio_turn.wav", 0, MAX_VOLUME},
 };
 
 class Sound : public QObject {

@@ -76,7 +76,6 @@ def manager_init() -> None:
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    
     ("AutoCancelFromGasMode", "1"),    
-    ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrlUse", "1"),
     ("AutoCurveSpeedFactor", "100"),
     ("AutoCurveSpeedFactorIn", "10"),
@@ -312,15 +311,6 @@ def manager_thread() -> None:
 
 
 def main() -> None:
-  preBuiltOn = Params().get_bool("OpkrPrebuiltOn")
-  preBuiltFile = '/data/openpilot/prebuilt'
-  if not os.path.isdir("/data/openpilot"):
-      pass
-  elif not os.path.isfile(preBuiltFile) and preBuiltOn:
-    os.system("cd /data/openpilot; touch prebuilt")
-  elif os.path.isfile(preBuiltFile) and not preBuiltOn:
-    os.system("cd /data/openpilot; rm -f prebuilt")
-
   prepare_only = os.getenv("PREPAREONLY") is not None
 
   manager_init()

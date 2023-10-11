@@ -168,26 +168,6 @@ private:
 
     void refresh();
 };
-class CPrebuiltToggle : public ToggleControl {
-    Q_OBJECT
-
-public:
-    CPrebuiltToggle() : ToggleControl("Prebuilt", "Prebuilt.", "../assets/offroad/icon_shell.png", Params().getBool("OpkrPrebuiltOn")) {
-        QObject::connect(this, &CPrebuiltToggle::toggleFlipped, [=](int state) {
-            Params().putBool("OpkrPrebuiltOn", (bool)state);
-
-            if (state)
-            {
-                std::system("cd /data/openpilot; touch prebuilt");
-            }
-            else
-            {
-                std::system("cd /data/openpilot; rm -f prebuilt");
-            }
-
-        });
-    }
-};
 class GitHash : public AbstractControl {
     Q_OBJECT
 

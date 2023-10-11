@@ -3,9 +3,6 @@ import math
 import os
 import subprocess
 import time
-
-import socket
-
 from enum import IntEnum
 from functools import cached_property, lru_cache
 from pathlib import Path
@@ -182,12 +179,8 @@ class Tici(HardwareBase):
     return self.bus.get_object(NM, wwan_path)
 
   def get_sim_info(self):
-    try:
-      modem = self.get_modem()
-      sim_path = modem.Get(MM_MODEM, 'Sim', dbus_interface=DBUS_PROPS, timeout=TIMEOUT)
-    except Exception:
-      print("get_sim_info: Exception")
-      sim_path = "/"
+    modem = self.get_modem()
+    sim_path = modem.Get(MM_MODEM, 'Sim', dbus_interface=DBUS_PROPS, timeout=TIMEOUT)
 
     if sim_path == "/":
       return {
@@ -217,13 +210,12 @@ class Tici(HardwareBase):
     return str(self.get_modem().Get(MM_MODEM, 'EquipmentIdentifier', dbus_interface=DBUS_PROPS, timeout=TIMEOUT))
 
   def get_network_info(self):
+    modem = self.get_modem()
     try:
-      modem = self.get_modem()
       info = modem.Command("AT+QNWINFO", math.ceil(TIMEOUT), dbus_interface=MM_MODEM, timeout=TIMEOUT)
       extra = modem.Command('AT+QENG="servingcell"', math.ceil(TIMEOUT), dbus_interface=MM_MODEM, timeout=TIMEOUT)
       state = modem.Get(MM_MODEM, 'State', dbus_interface=DBUS_PROPS, timeout=TIMEOUT)
     except Exception:
-      print("get_network_info: Exception")
       return None
 
     if info and info.startswith('+QNWINFO: '):
@@ -607,27 +599,7 @@ class Tici(HardwareBase):
     gpio_set(GPIO.STM_RST_N, 0)
     time.sleep(0.5)
     gpio_set(GPIO.STM_BOOT0, 0)
-	
-  def get_ip_address22(self):
-    ipaddress = ""
-    try:
-      out = subprocess.check_output("hostname -I", shell=True)
-      ipaddress = str(out.strip().decode()).replace(' ', '\n')
-    except Exception:
-      return "--"
-      pass
-    return ipaddress
-    
-  def get_ip_address(self):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
-    finally:
-        s.close()
-        
-    print(ip_address)
-    return ip_address
+
 
 if __name__ == "__main__":
   t = Tici()

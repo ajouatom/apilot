@@ -581,13 +581,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
           desc += QString("Update exist.");
       }
       if (ConfirmationDialog::alert(desc, this)) {
-          //Params().putBool("OpkrPrebuiltOn", 0);
           std::system("cd /data/openpilot; rm -f prebuilt");
           std::system(gitpull);
       }
   });
   toggleLayout->addWidget(updateBtn);
-  toggleLayout->addWidget(new CPrebuiltToggle());
 
   // 기타 (Community)
   //toggleLayout->addWidget(horizontal_line());
