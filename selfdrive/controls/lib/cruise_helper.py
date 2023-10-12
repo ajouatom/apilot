@@ -105,6 +105,7 @@ class CruiseHelper:
     self.curvatureFilter = StreamingMovingAverage(20)
 
     self.longCruiseGap = int(Params().get("PrevCruiseGap"))
+    self.longCruiseGap_backup = self.longCruiseGap
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
 
     self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
@@ -294,9 +295,13 @@ class CruiseHelper:
             if self.longActiveUser > 0:
               controls.events.add(EventName.cruisePaused)
               self.longActiveUser = 0
+              self.longCruiseGap_backup = self.longCruiseGap
               self.longCruiseGap = 5
             else:
-              controls.events.add(EventName.buttonCancel)
+              controls.events.add(EventName.cruiseResume)
+              self.longActiveUser = 1
+              self.longCruiseGap = self.longCruiseGap_backup
+              #controls.events.add(EventName.buttonCancel)
           elif not LongPressed and b.type == ButtonType.accelCruise:
             v_cruise_kph += button_speed_up_diff if metric else button_speed_up_diff * CV.MPH_TO_KPH
             button_type = ButtonType.accelCruise
@@ -316,6 +321,7 @@ class CruiseHelper:
             elif self.gapButtonMode == 3:
               self.longCruiseGap = 5
 
+            self.longCruiseGap_backup = self.longCruiseGap
             button_type = ButtonType.gapAdjustCruise
             #Params().put("PrevCruiseGap", str(self.longCruiseGap))
 
@@ -325,7 +331,9 @@ class CruiseHelper:
         LongPressed = True
         V_CRUISE_DELTA = 10
         if ButtonPrev == ButtonType.cancel:
+           self.longActiveUser = 0
            controls.events.add(EventName.buttonCancel)
+           ButtonCnt = 0
         elif ButtonPrev == ButtonType.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.accelCruise
