@@ -473,26 +473,6 @@
       "unit": 1
     },
     {
-      "group": "버튼설정",
-      "name": "GapButtonMode",
-      "title": "크루즈갭버튼 작동모드(0)",
-      "descr": "0:1~4, 1:1~5, 2:4~5, 3:4~5(크루즈OFF모드)",
-      "min": 0,
-      "max": 3,
-      "default": 0,
-      "unit": 1
-    },
-    {
-      "group": "버튼설정",
-      "name": "PrevCruiseGap",
-      "title": "크루즈갭: 초기값(4)",
-      "descr": "크루즈갭 버튼의 초기값을 지정",
-      "min": 1,
-      "max": 4,
-      "default": 0,
-      "unit": 1
-    },
-    {
       "group": "크루즈",
       "name": "CruiseSpeedMin",
       "title": "크루즈 최저속도(10)",
@@ -1000,16 +980,6 @@
       "min": 90,
       "max": 300,
       "default": 160,
-      "unit": 5
-    },
-    {
-      "group": "차량간격",
-      "name": "TFollowGap4",
-      "title": "차량간격시간 4단계 x0.01초(120)",
-      "descr": "단계별 차간 시간거리 설정",
-      "min": 90,
-      "max": 300,
-      "default": 120,
       "unit": 5
     },
     {

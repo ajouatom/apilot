@@ -580,7 +580,6 @@ class LongitudinalMpc:
       self.tFollowGap1 = float(int(Params().get("TFollowGap1", encoding="utf8"))) / 100.
       self.tFollowGap2 = float(int(Params().get("TFollowGap2", encoding="utf8"))) / 100.
       self.tFollowGap3 = float(int(Params().get("TFollowGap3", encoding="utf8"))) / 100.
-      self.tFollowGap4 = float(int(Params().get("TFollowGap4", encoding="utf8"))) / 100.
     elif self.lo_timer == 120:
       pass
     elif self.lo_timer == 140:
@@ -591,22 +590,13 @@ class LongitudinalMpc:
 
   def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
     v_ego_kph = v_ego * CV.MS_TO_KPH
-    #if controls.longCruiseGap >= 4:
-    #  if v_ego_kph > self.v_ego_kph_prev:  ##감속할때 gap을 줄이면.. 앞차로 너무 다가가는 경향이... 가속할때만... 자동gap
-    #    self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
-    #  cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
-    #  self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
-    #else:
-    #  self.applyCruiseGap = float(controls.longCruiseGap)
-    #  cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
 
     if v_ego_kph >= self.v_ego_kph_prev: # 감속일때는 t_follow(gap) 계산안함.
-      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 4)
+      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 3)
       cruiseGap_dict = {
         1: self.tFollowGap1,
         2: self.tFollowGap2,
         3: self.tFollowGap3,
-        4: self.tFollowGap4,
         }
       tf = cruiseGap_dict[self.applyCruiseGap]
       cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 

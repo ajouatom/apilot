@@ -116,7 +116,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode, speed_diff, car_fingerprint):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode, a_diff, car_fingerprint):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
@@ -148,11 +148,13 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
     
     #kona_ev 데이터 보고 만들어낸 식~
     if car_fingerprint in (CAR.KONA_EV):
-      comfortBandUpper = clip(0.9 + accel * 0.2, 0, 1.2)
-      comfortBandLower = clip(0.8 + accel * 0.2, 0, 1.2)
+      comfortBandUpper = clip(-a_diff, 0, 1.2) #clip(speed_diff, 0, 1.2)
+      comfortBandLower = clip(a_diff, 0, 1.2) #clip(-speed_diff, 0, 1.2)
+      #comfortBandUpper = 0 if stopping else 1.2 #0 if long_override else clip(0.9 + accel * 0.2, 0, 1.2)
+      #comfortBandLower = 0 if stopping else 1.2 #0 if long_override else clip(0.8 + accel * 0.2, 0, 1.2)
     else:
-      comfortBandUpper = clip(-speed_diff, 0, 1.2)
-      comfortBandLower = clip(speed_diff, 0, 1.2)
+      comfortBandUpper = clip(-a_diff, 0, 1.2) #clip(speed_diff, 0, 1.2)
+      comfortBandLower = clip(a_diff, 0, 1.2) #clip(-speed_diff, 0, 1.2)
   else:
     scc12_accMode = 0
     scc14_accMode = 0

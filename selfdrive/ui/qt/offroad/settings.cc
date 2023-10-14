@@ -828,8 +828,6 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("MySafeModeFactor", "DRIVEMODE: SAFE ratio(80%)", "Accel/StopDistance/DecelRatio/Gap control ratio", "../assets/offroad/icon_road.png", 10, 90, 10));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "Button: Cruise Speed Mode", "0:Normal,1:User1, 2:User2, 3:User3, 4:User4", "../assets/offroad/icon_road.png", 0, 4, 1));
     toggleLayout->addWidget(new CValueControl("CruiseSpeedUnit", "Button: Cruise Speed Unit", "", "../assets/offroad/icon_road.png", 1, 20, 1));
-    toggleLayout->addWidget(new CValueControl("GapButtonMode", "Button: Cruise Gap Mode", "0:1,2,3,4(Auto),1:1,2,3,4(Auto),5(Cruise OFF),2:4(Auto),5(Cruise OFF),3:Cruise ON/OFF(Auto)", "../assets/offroad/icon_road.png", 0, 3, 1));
-    toggleLayout->addWidget(new CValueControl("PrevCruiseGap", "CruiseGap: On boot(4)", "1,2,3,4(Auto)", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(new CValueControl("CruiseSpeedMin", "Cruise Speed: Lower limit(10)", "Cruise control MIN speed", "../assets/offroad/icon_road.png", 5, 50, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGas", "GAS CRUISE ON: Use", "Auto Cruise on when GAS pedal released, 60% Gas Cruise On automatically", "../assets/offroad/icon_road.png", 0, 2, 1));
