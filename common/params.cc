@@ -311,6 +311,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "TFollowGap1", PERSISTENT },
     { "TFollowGap2", PERSISTENT },
     { "TFollowGap3", PERSISTENT },
+    { "TFollowGap4", PERSISTENT },
     { "JerkStartLimit", PERSISTENT },
     { "KeepEngage", PERSISTENT },
     { "UseLaneLineSpeed", PERSISTENT },

@@ -235,8 +235,8 @@ class LongitudinalMpc:
     self.tFollowSpeedRatio = 1.2
     self.tFollowGap1 = 1.1
     self.tFollowGap2 = 1.2
-    self.tFollowGap3 = 1.6
-    self.tFollowGap4 = 1.2
+    self.tFollowGap3 = 1.4
+    self.tFollowGap4 = 1.6
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
     self.lo_timer = 0 
@@ -582,6 +582,7 @@ class LongitudinalMpc:
       self.tFollowGap1 = float(int(Params().get("TFollowGap1", encoding="utf8"))) / 100.
       self.tFollowGap2 = float(int(Params().get("TFollowGap2", encoding="utf8"))) / 100.
       self.tFollowGap3 = float(int(Params().get("TFollowGap3", encoding="utf8"))) / 100.
+      self.tFollowGap4 = float(int(Params().get("TFollowGap4", encoding="utf8"))) / 100.
     elif self.lo_timer == 120:
       pass
     elif self.lo_timer == 140:
@@ -594,11 +595,12 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
     if v_ego_kph >= self.v_ego_kph_prev: # 감속일때는 t_follow(gap) 계산안함.
-      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 3)
+      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 4)
       cruiseGap_dict = {
         1: self.tFollowGap1,
         2: self.tFollowGap2,
         3: self.tFollowGap3,
+        4: self.tFollowGap4,
         }
       tf = cruiseGap_dict[self.applyCruiseGap]
       cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 
@@ -612,7 +614,7 @@ class LongitudinalMpc:
         if v_ego_kph < 0.1:
           self.applyCruiseGap = 1
         else:
-          self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [3, self.applyCruiseGap]))
+          self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [4, self.applyCruiseGap]))
 
   def update_stop_dist(self, stop_x):
     stop_x = self.xStopFilter.process(stop_x, median = True)
