@@ -116,7 +116,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode, a_diff, car_fingerprint):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode, cb_upper, cb_lower):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
@@ -130,7 +130,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
   accel = accel if longEnabled and not long_override else 0.0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
-  objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < -0.1 else 1
+  objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < -0.2 else 1
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   jerkUpperLimit = upper_jerk
@@ -146,15 +146,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_je
       scc14_accMode = 1
       stopReq = 1
     
-    #kona_ev 데이터 보고 만들어낸 식~
-    if car_fingerprint in (CAR.KONA_EV):
-      comfortBandUpper = clip(-a_diff, 0, 1.2) #clip(speed_diff, 0, 1.2)
-      comfortBandLower = clip(a_diff, 0, 1.2) #clip(-speed_diff, 0, 1.2)
-      #comfortBandUpper = 0 if stopping else 1.2 #0 if long_override else clip(0.9 + accel * 0.2, 0, 1.2)
-      #comfortBandLower = 0 if stopping else 1.2 #0 if long_override else clip(0.8 + accel * 0.2, 0, 1.2)
-    else:
-      comfortBandUpper = clip(-a_diff, 0, 1.2) #clip(speed_diff, 0, 1.2)
-      comfortBandLower = clip(a_diff, 0, 1.2) #clip(-speed_diff, 0, 1.2)
+    comfortBandUpper = cb_upper
+    comfortBandLower = cb_lower
   else:
     scc12_accMode = 0
     scc14_accMode = 0
