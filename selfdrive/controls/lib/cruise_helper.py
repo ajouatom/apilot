@@ -104,7 +104,7 @@ class CruiseHelper:
     self.update_params_count = 0
     self.curvatureFilter = StreamingMovingAverage(20)
 
-    self.longCruiseGap = clip(int(Params().get("PrevCruiseGap")), 1, 3)
+    self.longCruiseGap = clip(int(Params().get("PrevCruiseGap")), 1, 4)
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
 
     self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
@@ -256,7 +256,7 @@ class CruiseHelper:
         self.auto_cruise_control = True
 
       elif active_mode <= 0:
-        if self.longActiveUser != active_mode and self.longControlActiveSound >= 2:
+        if self.longActiveUser > 0 and self.longControlActiveSound >= 2:
           controls.events.add(EventName.cruisePaused)
           pass
         self.longActiveUser = active_mode
@@ -296,7 +296,7 @@ class CruiseHelper:
             v_cruise_kph -= button_speed_dn_diff if metric else button_speed_dn_diff * CV.MPH_TO_KPH
             button_type = ButtonType.decelCruise
           elif not LongPressed and b.type == ButtonType.gapAdjustCruise:
-            self.longCruiseGap = self.longCruiseGap + 1 if self.longCruiseGap < 3 else 1
+            self.longCruiseGap = self.longCruiseGap + 1 if self.longCruiseGap < 4 else 1
             put_nonblocking("PrevCruiseGap", str(self.longCruiseGap))
             button_type = ButtonType.gapAdjustCruise
 
