@@ -9,7 +9,6 @@ from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerPar
 import random
 from random import randint
 from common.params import Params
-from common.filter_simple import StreamingMovingAverage
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -71,7 +70,6 @@ class CarController:
     self.steerDeltaDown = 7
     self.button_wait = 12
     self.jerk_count = 0
-    self.jerkFilter = StreamingMovingAverage(3)
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -112,7 +110,7 @@ class CarController:
     elif self.frame % self.blinking_frame == self.blinking_frame / 2:
       self.blinking_signal = False
 
-    jerk = self.jerkFilter.process(actuators.jerk)
+    jerk = actuators.jerk
     #jerk = accel - self.accel_last
     can_sends = []
 
@@ -246,8 +244,8 @@ class CarController:
         jerkLimit = 5.0
         self.jerk_count += DT_CTRL
         jerk_max = interp(self.jerk_count, [0, 1.5, 2.5], [startingJerk, startingJerk, jerkLimit])
-        a_diff = accel - CS.out.aEgo
-        speed_diff = actuators.speed - CS.out.vEgo
+        a_error = accel - CS.out.aEgo
+        v_error = actuators.speed - CS.out.vEgo
         cb_upper = cb_lower = 0
         if actuators.longControlState == LongCtrlState.off:
           jerk_u = jerkLimit
@@ -260,9 +258,8 @@ class CarController:
         else:
           jerk_u = min(max(0.5, jerk * 2.0), jerk_max)
           jerk_l = min(max(1.0, -jerk * 2.0), jerk_max)
-          cb_upper = clip((accel + abs(jerk)) * 0.1, 0, 1.0)
-          cb_lower = clip((abs(accel) + abs(jerk)) * 0.1, 0, 1.0)
-          cb_lower = cb_lower if accel < 0.0 else 0.0
+          cb_upper = clip(0.9 + accel * 0.2, 0, 1.2)
+          cb_lower = clip(0.8 + accel * 0.2, 0, 1.2)
 
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk_u, jerk_l, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode, cb_upper, cb_lower))
