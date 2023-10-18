@@ -465,7 +465,7 @@ def main():
           if xSpdDist < 0:
             xSpdLimit = -1
 
-        if xTurnInfo >= 0:
+        if True: #xTurnInfo >= 0:
           xDistToTurn -= delta_dist
           if xDistToTurn < 0:
             xTurnInfo = -1
@@ -504,17 +504,17 @@ def main():
           xTurnInfo = 1  # turn left
         elif nTBTTurnType in [13, 19]:
           xTurnInfo = 2  # turn right
-        #elif nTBTTurnType in [7, 44, 17, 75, 102, 105, 112, 115, 76, 118]: # left lanechange
-        elif nTBTTurnType in [7, 17, 102, 105, 112, 115, 76, 118]: # left lanechange
+        elif nTBTTurnType in [7, 44, 17, 75, 102, 105, 112, 115, 76, 118]: # left lanechange
+        #elif nTBTTurnType in [7, 17, 102, 105, 112, 115, 76, 118]: # left lanechange
           xTurnInfo = 3  # slight left
-        #elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114, 123, 124, 117]: # right lanechange
-        elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114]: # right lanechange
+        elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114, 123, 124, 117]: # right lanechange
+        #elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114]: # right lanechange
           xTurnInfo = 4  # slight right
         elif nTBTTurnType in [14, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142]:
           xTurnInfo = 5 # speed down
         elif nTBTTurnType >= 0:
           xTurnInfo = -1
-        if nTBTDist > 0:
+        if nTBTDist > 0 and xTurnInfo >= 0:
           xDistToTurn = nTBTDist
         sdi_valid = True if nRoadLimitSpeed >= 0 or nTBTTurnType > 0 or nSdiType >= 0 else False
         if nRoadLimitSpeed > 0:
@@ -592,7 +592,7 @@ def main():
         dat.roadLimitSpeed.xRoadLimitSpeed = int(xRoadLimitSpeed)
         if xRoadLimitSpeed > 0:
           dat.roadLimitSpeed.roadLimitSpeed = int(xRoadLimitSpeed)
-        dat.roadLimitSpeed.xRoadName = xRoadName # + sdiDebugText
+        dat.roadLimitSpeed.xRoadName = xRoadName + sdiDebugText
 
         dat.roadLimitSpeed.xCmd = "" if xCmd is None else xCmd
         dat.roadLimitSpeed.xArg = "" if xArg is None else xArg
