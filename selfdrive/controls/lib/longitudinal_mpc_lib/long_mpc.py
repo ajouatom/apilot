@@ -421,7 +421,7 @@ class LongitudinalMpc:
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
-    self.update_gap_tf(controls, radarstate, v_ego, a_ego)
+    self.update_gap_tf(controls, v_ego, a_ego)
 
     self.comfort_brake = COMFORT_BRAKE
     #self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -591,30 +591,33 @@ class LongitudinalMpc:
       self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
       self.trafficStopAdjustRatio = float(int(Params().get("TrafficStopAdjustRatio", encoding="utf8"))) / 100.
 
-  def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
+  def update_gap_tf(self, controls, v_ego, a_ego):
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
-    if v_ego_kph >= self.v_ego_kph_prev: # 감속일때는 t_follow(gap) 계산안함.
-      self.applyCruiseGap = clip(controls.longCruiseGap, 1, 4)
-      cruiseGap_dict = {
-        1: self.tFollowGap1,
-        2: self.tFollowGap2,
-        3: self.tFollowGap3,
-        4: self.tFollowGap4,
-        }
-      tf = cruiseGap_dict[self.applyCruiseGap]
-      cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 
-      self.t_follow = max(0.9, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
-
-    self.v_ego_kph_prev = v_ego_kph
-
-    # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
-    if radarstate.leadOne.status:
-      if not self.openpilotLongitudinalControl:
+    self.applyCruiseGap = clip(controls.longCruiseGap, 1, 4)
+    if self.openpilotLongitudinalControl:
+      if v_ego_kph >= self.v_ego_kph_prev: # 감속일때는 t_follow(gap) 계산안함.
+        cruiseGap_dict = {
+          1: self.tFollowGap1,
+          2: self.tFollowGap2,
+          3: self.tFollowGap3,
+          4: self.tFollowGap4,
+          }
+        tf = cruiseGap_dict[self.applyCruiseGap]
+        cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 
+        self.t_follow = max(0.9, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
+    else:
+      if self.status:
         if v_ego_kph < 0.1:
           self.applyCruiseGap = 1
         else:
           self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [4, self.applyCruiseGap]))
+      #else: # for Test
+      #  self.applyCruiseGap = int(interp(v_ego * 3.6, [0, 60], [1, 4]))
+
+
+    self.v_ego_kph_prev = v_ego_kph
+
 
   def update_stop_dist(self, stop_x):
     stop_x = self.xStopFilter.process(stop_x, median = True)
