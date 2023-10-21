@@ -1126,7 +1126,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         NVGcolor borderColor = COLOR_BLACK;
 
         if (radar_detected) {
-            sprintf(str, "%.1f km/h", cur_speed + radar_rel_speed * 3.6);
+            sprintf(str, "%.1f %s", (cur_speed + radar_rel_speed * 3.6) * (s->scene.is_metric?1.0:KM_TO_MILE), s->scene.is_metric?"km/h" : "mile");
             if (radar_rel_speed < -0.1) {
                 textColor = COLOR_RED; 
                 borderColor = COLOR_BLACK;
@@ -1497,19 +1497,19 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #endif
         static char _speed_str[128] = "";
         if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) {
-            sprintf(str, "%d", (int)(cruiseMaxSpeed + 0.5));
+            sprintf(str, "%d", (int)(cruiseMaxSpeed * (s->scene.is_metric?1.0:KM_TO_MILE) + 0.5));
             if (strcmp(_speed_str, str)) ui_draw_text_a(s, bx + 170, by + 15, str, 60, COLOR_GREEN, BOLD);
             strcpy(_speed_str, str);
         }
         else strcpy(str,"--");
         ui_draw_text(s, bx + 170, by + 15, str, 60, COLOR_GREEN, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
-        sprintf(str, "%d", (int)(applyMaxSpeed + 0.5));
+        sprintf(str, "%d", (int)(applyMaxSpeed * (s->scene.is_metric ? 1.0 : KM_TO_MILE) + 0.5));
         if (enabled && longActiveUser > 0 && applyMaxSpeed > 0 && applyMaxSpeed != cruiseMaxSpeed) {
             ui_draw_text(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
         }
         if (true) {
             if (enabled && curveSpeed > 0 && curveSpeed < 150) {
-                sprintf(str, "%d", (int)(curveSpeed + 0.5));
+                sprintf(str, "%d", (int)(curveSpeed* (s->scene.is_metric ? 1.0 : KM_TO_MILE) + 0.5));
                 ui_draw_text(s, bx + 140, by + 110, str, 50, (speedCtrlActive)?COLOR_RED:COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
             }
         }
@@ -1756,6 +1756,12 @@ void DrawApilot::drawDebugText(UIState* s, bool show) {
 
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
+
+    auto car_control = sm["carControl"].getCarControl();
+    qstr = QString::fromStdString(car_control.getDebugTextCC().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
 }
 DrawApilot::DrawApilot() {
 
