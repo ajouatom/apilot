@@ -91,6 +91,29 @@
     </message>
 </context>
 <context>
+    <name>CommunityPanel</name>
+    <message>
+        <source>Select your car</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RUN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SpeedCameraControl(2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SpeedCameraDecelStart(22s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SpeedCameraDecelEnd(6s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ConfirmationDialog</name>
     <message>
         <source>Ok</source>
@@ -273,32 +296,63 @@
         <source>Disengage to Power Off</source>
         <translation>Désengager pour éteindre</translation>
     </message>
+    <message>
+        <source>Rebuild</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Are you sure you want to rebuild?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DrawApilot</name>
+    <message>
+        <source>SIGN DETECTED</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>E2ECRUISE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CRUISE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>CRUISE READY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>MANUAL</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DriveStats</name>
     <message>
         <source>Drives</source>
-        <translation>Trajets</translation>
+        <translation type="vanished">Trajets</translation>
     </message>
     <message>
         <source>Hours</source>
-        <translation>Heures</translation>
+        <translation type="vanished">Heures</translation>
     </message>
     <message>
         <source>ALL TIME</source>
-        <translation>DEPUIS TOUJOURS</translation>
+        <translation type="vanished">DEPUIS TOUJOURS</translation>
     </message>
     <message>
         <source>PAST WEEK</source>
-        <translation>CETTE SEMAINE</translation>
+        <translation type="vanished">CETTE SEMAINE</translation>
     </message>
     <message>
         <source>KM</source>
-        <translation>KM</translation>
+        <translation type="vanished">KM</translation>
     </message>
     <message>
         <source>Miles</source>
-        <translation>Miles</translation>
+        <translation type="vanished">Miles</translation>
     </message>
 </context>
 <context>
@@ -559,7 +613,7 @@
     <name>QObject</name>
     <message>
         <source>Reboot</source>
-        <translation>Redémarrer</translation>
+        <translation type="vanished">Redémarrer</translation>
     </message>
     <message>
         <source>Exit</source>
@@ -610,6 +664,10 @@
         <source>ft</source>
         <translation>ft</translation>
     </message>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Reset</name>
@@ -653,6 +711,17 @@ Cela peut prendre jusqu&apos;à une minute.</translation>
     </message>
 </context>
 <context>
+    <name>SelectCar</name>
+    <message>
+        <source>Back</source>
+        <translation type="unfinished">Retour</translation>
+    </message>
+    <message>
+        <source>[ Not selected ]</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SettingsWindow</name>
     <message>
         <source>×</source>
@@ -673,6 +742,18 @@ Cela peut prendre jusqu&apos;à une minute.</translation>
     <message>
         <source>Software</source>
         <translation>Logiciel</translation>
+    </message>
+    <message>
+        <source>Cruise</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tuning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ETC</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

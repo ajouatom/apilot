@@ -91,6 +91,45 @@
     </message>
 </context>
 <context>
+    <name>CommunityPanel</name>
+    <message>
+        <source>SpeedCameraControl(1)</source>
+        <translation type="vanished">과속카메라작동방법(1)</translation>
+    </message>
+    <message>
+        <source>0:Not used, 1:NDA</source>
+        <translation type="vanished">0:사용안함, 1:NDA</translation>
+    </message>
+    <message>
+        <source>SpeedCameraDecelStart(22s)</source>
+        <translation>과속카메라감속 시작 시간(22초)</translation>
+    </message>
+    <message>
+        <source>SpeedCameraDecelEnd(6s)</source>
+        <translation>과속카메라감속 완료 시간(6초)</translation>
+    </message>
+    <message>
+        <source>CRUISE READY</source>
+        <translation type="vanished">크루즈준비</translation>
+    </message>
+    <message>
+        <source>SIGN DETECTED</source>
+        <translation type="vanished">신호감지</translation>
+    </message>
+    <message>
+        <source>Select your car</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>RUN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>SpeedCameraControl(2)</source>
+        <translation type="unfinished">과속카메라작동방법(1) {2)?}</translation>
+    </message>
+</context>
+<context>
     <name>ConfirmationDialog</name>
     <message>
         <source>Ok</source>
@@ -273,32 +312,63 @@
         <source>Review</source>
         <translation>다시보기</translation>
     </message>
+    <message>
+        <source>Rebuild</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Are you sure you want to rebuild?</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>DrawApilot</name>
+    <message>
+        <source>MANUAL</source>
+        <translation>수동운전</translation>
+    </message>
+    <message>
+        <source>CRUISE</source>
+        <translation>정속주행</translation>
+    </message>
+    <message>
+        <source>E2ECRUISE</source>
+        <translation>E2E주행</translation>
+    </message>
+    <message>
+        <source>CRUISE READY</source>
+        <translation>크루즈준비</translation>
+    </message>
+    <message>
+        <source>SIGN DETECTED</source>
+        <translation>신호감지</translation>
+    </message>
 </context>
 <context>
     <name>DriveStats</name>
     <message>
         <source>Drives</source>
-        <translation>주행</translation>
+        <translation type="vanished">주행</translation>
     </message>
     <message>
         <source>Hours</source>
-        <translation>시간</translation>
+        <translation type="vanished">시간</translation>
     </message>
     <message>
         <source>ALL TIME</source>
-        <translation>전체</translation>
+        <translation type="vanished">전체</translation>
     </message>
     <message>
         <source>PAST WEEK</source>
-        <translation>지난주</translation>
+        <translation type="vanished">지난주</translation>
     </message>
     <message>
         <source>KM</source>
-        <translation>Km</translation>
+        <translation type="vanished">Km</translation>
     </message>
     <message>
         <source>Miles</source>
-        <translation>Miles</translation>
+        <translation type="vanished">Miles</translation>
     </message>
 </context>
 <context>
@@ -558,7 +628,7 @@
     <name>QObject</name>
     <message>
         <source>Reboot</source>
-        <translation>재부팅</translation>
+        <translation type="vanished">재부팅</translation>
     </message>
     <message>
         <source>Exit</source>
@@ -606,6 +676,10 @@
         <source>ft</source>
         <translation>ft</translation>
     </message>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>Reset</name>
@@ -649,6 +723,17 @@ This may take up to a minute.</source>
     </message>
 </context>
 <context>
+    <name>SelectCar</name>
+    <message>
+        <source>Back</source>
+        <translation type="unfinished">뒤로</translation>
+    </message>
+    <message>
+        <source>[ Not selected ]</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SettingsWindow</name>
     <message>
         <source>×</source>
@@ -669,6 +754,18 @@ This may take up to a minute.</source>
     <message>
         <source>Software</source>
         <translation>소프트웨어</translation>
+    </message>
+    <message>
+        <source>Cruise</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tuning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>ETC</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1212,54 +1309,4 @@ This may take up to a minute.</source>
         <translation>저장안함</translation>
     </message>
 </context>
-  <context>
-    <name>DrawApilot</name>
-    <message>
-      <source>MANUAL</source>
-      <translation>수동운전</translation>
-    </message>
-    <message>
-      <source>CRUISE</source>
-      <translation>정속주행</translation>
-    </message>
-    <message>
-      <source>E2ECRUISE</source>
-      <translation>E2E주행</translation>
-    </message>
-    <message>
-      <source>CRUISE READY</source>
-      <translation>크루즈준비</translation>
-    </message>
-    <message>
-      <source>SIGN DETECTED</source>
-      <translation>신호감지</translation>
-    </message>
-  </context>
-  <context>
-    <name>CommunityPanel</name>
-    <message>
-      <source>SpeedCameraControl(1)</source>
-      <translation>과속카메라작동방법(1)</translation>
-    </message>
-    <message>
-      <source>0:Not used, 1:NDA</source>
-      <translation>0:사용안함, 1:NDA</translation>
-    </message>
-    <message>
-      <source>SpeedCameraDecelStart(22s)</source>
-      <translation>과속카메라감속 시작 시간(22초)</translation>
-    </message>
-    <message>
-      <source>SpeedCameraDecelEnd(6s)</source>
-      <translation>과속카메라감속 완료 시간(6초)</translation>
-    </message>
-    <message>
-      <source>CRUISE READY</source>
-      <translation>크루즈준비</translation>
-    </message>
-    <message>
-      <source>SIGN DETECTED</source>
-      <translation>신호감지</translation>
-    </message>
-  </context>
 </TS>
