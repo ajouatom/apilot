@@ -701,7 +701,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.sensorDataInvalid: {
     ET.PERMANENT: Alert(
       "Sensor Data Invalid",
-      "Ensure device is mounted securely",
+      "Possible Hardware Issue",
       AlertStatus.normal, AlertSize.mid,
       Priority.LOWER, VisualAlert.none, AudibleAlert.none, .2, creation_delay=1.),
     ET.NO_ENTRY: NoEntryAlert("Sensor Data Invalid"),
@@ -749,7 +749,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.SOFT_DISABLE: soft_disable_alert("Calibration Incomplete"),
     ET.NO_ENTRY: NoEntryAlert("Calibration in Progress"),
   },
-  
+
   EventName.calibrationRecalibrating: {
     ET.PERMANENT: calibration_incomplete_alert,
     ET.SOFT_DISABLE: soft_disable_alert("Device Remount Detected: Recalibrating"),
@@ -1054,10 +1054,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 if __name__ == '__main__':
   # print all alerts by type and priority
   from cereal.services import SERVICE_LIST
-  from collections import defaultdict, OrderedDict
+  from collections import defaultdict
 
   event_names = {v: k for k, v in EventName.schema.enumerants.items()}
-  alerts_by_type: Dict[str, Dict[int, List[str]]] = defaultdict(lambda: defaultdict(list))
+  alerts_by_type: Dict[str, Dict[Priority, List[str]]] = defaultdict(lambda: defaultdict(list))
 
   CP = car.CarParams.new_message()
   CS = car.CarState.new_message()
@@ -1067,18 +1067,14 @@ if __name__ == '__main__':
     for et, alert in alerts.items():
       if callable(alert):
         alert = alert(CP, CS, sm, False, 1)
-      priority = alert.priority
-      alerts_by_type[et][priority].append(event_names[i])
+      alerts_by_type[et][alert.priority].append(event_names[i])
 
-  all_alerts = {}
+  all_alerts: Dict[str, List[tuple[Priority, List[str]]]] = {}
   for et, priority_alerts in alerts_by_type.items():
-    all_alerts[et] = OrderedDict([
-      (str(priority), l)
-      for priority, l in sorted(priority_alerts.items(), key=lambda x: -int(x[0]))
-    ])
+    all_alerts[et] = sorted(priority_alerts.items(), key=lambda x: x[0], reverse=True)
 
   for status, evs in sorted(all_alerts.items(), key=lambda x: x[0]):
     print(f"**** {status} ****")
-    for p, alert_list in evs.items():
-      print(f"  {p}:")
+    for p, alert_list in evs:
+      print(f"  {repr(p)}:")
       print("   ", ', '.join(alert_list), "\n")

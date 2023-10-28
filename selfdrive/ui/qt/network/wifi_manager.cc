@@ -59,7 +59,6 @@ WifiManager::WifiManager(QObject *parent) : QObject(parent) {
   }
 
   timer.callOnTimeout(this, &WifiManager::requestScan);
-
 }
 
 void WifiManager::setup() {

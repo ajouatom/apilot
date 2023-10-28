@@ -892,7 +892,8 @@ class CruiseHelper:
 
       ###### leadCar 관련 속도처리
       roadSpeed1 = self.roadSpeed * self.autoSpeedUptoRoadSpeedLimit
-      if v_cruise_kph < roadSpeed1 and 50 > self.dRel > 0 and self.vRel > 0 and self.autoSpeedUptoRoadSpeedLimit > 0:
+      #if v_cruise_kph < roadSpeed1 and 50 > self.dRel > 0 and self.vRel > 0 and self.autoSpeedUptoRoadSpeedLimit > 0:
+      if v_cruise_kph < roadSpeed1 and self.autoSpeedUptoRoadSpeedLimit > 0:
         if self.leadCarSpeed > v_cruise_kph:
           v_cruise_kph = max(v_cruise_kph, min(self.leadCarSpeed, roadSpeed1))
           self.v_cruise_kph_apply = v_cruise_kph

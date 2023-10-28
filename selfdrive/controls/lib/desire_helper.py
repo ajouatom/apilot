@@ -278,13 +278,12 @@ class DesireHelper:
       self.desireReady = 0
       nav_direction = LaneChangeDirection.none
 
+    self.apNaviDistance = 0
+    self.apNaviSpeed = 0
     if self.autoTurnControl >= 3 and self.desireReady >= 0:
       if nav_turn or nav_speedDown or direction != LaneChangeDirection.none:
         self.apNaviDistance = nav_distance
         self.apNaviSpeed = self.autoTurnControlSpeedTurn if nav_turn or nav_speedDown else self.autoTurnControlSpeedLaneChange
-    else:
-      self.apNaviDistance = 0
-      self.apNaviSpeed = 0
 
     return nav_direction, nav_turn, need_torque, nav_event, nav_distance
 
