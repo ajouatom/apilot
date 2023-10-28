@@ -227,8 +227,8 @@ class CarState(CarStateBase):
     #self.scc12 = copy.copy(cp_cruise.vl["SCC12"])
     #self.scc13 = copy.copy(cp_cruise.vl["SCC13"]) if "SCC13" in cp_cruise.vl else None
     #self.scc14 = copy.copy(cp_cruise.vl["SCC14"])
-    self.scc11 = cp_cruise.vl["SCC11"]
-    self.scc12 = cp_cruise.vl["SCC12"]
+    self.scc11 = cp_cruise.vl["SCC11"] if "SCC11" in cp_cruise.vl else None
+    self.scc12 = cp_cruise.vl["SCC12"] if "SCC12" in cp_cruise.vl else None
     self.scc13 = cp_cruise.vl["SCC13"] if "SCC13" in cp_cruise.vl else None
     self.scc14 = cp_cruise.vl["SCC14"] if "SCC14" in cp_cruise.vl else None
     cluSpeed = cp.vl["CLU11"]["CF_Clu_Vanz"]
@@ -247,7 +247,7 @@ class CarState(CarStateBase):
       speedLimit = cp.vl["Navi_HU"]["SpeedLim_Nav_Clu"]
       speedLimitCam = cp.vl["Navi_HU"]["SpeedLim_Nav_Cam"]
       ret.speedLimit = speedLimit if speedLimit < 255 and speedLimitCam == 1 else 0
-      if ret.speedLimit>0:
+      if ret.speedLimit>0 and not ret.gasPressed:
         if self.speedLimitDistance <= self.totalDistance:
           self.speedLimitDistance = self.totalDistance + ret.speedLimit * 6  #일반적으로 속도*6M 시점에 안내하는것으로 보임.
         self.speedLimitDistance = max(self.totalDistance+1, self.speedLimitDistance) #구간또는 거리가 벗어난경우에는 1M를 유지함.

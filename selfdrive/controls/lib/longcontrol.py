@@ -138,6 +138,7 @@ class LongControl:
       v_target_1sec = 0.0
       a_target = 0.0
       j_target = 0.0
+      a_target_lower = a_target_upper = 0.0
 
     self.pid.neg_limit = accel_limits[0]
     self.pid.pos_limit = accel_limits[1]
