@@ -1147,6 +1147,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         //int dist_y = y + 120;
         int dist_y = y + 195;// 175;
         disp_size = 60;
+        stopping |= (brake_hold || soft_hold);
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
                 if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
