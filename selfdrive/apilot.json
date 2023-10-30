@@ -938,6 +938,19 @@
       "unit": 1
     },
     {
+      "group": "화면",
+      "name": "ShowBrightnessApply",
+      "title": "화면밝기조절(100%)",
+      "descr": "",
+      "egroup": "DISP",
+      "etitle": "Brightness adjust",
+      "edescr": "",
+      "min": 50,
+      "max": 200,
+      "default": 0,
+      "unit": 10
+    },
+    {
       "group": "화면패스",
       "name": "ShowZOffset",
       "title": "패스높이(170)",

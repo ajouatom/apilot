@@ -618,6 +618,7 @@ void ui_update_params(UIState *s) {
   case 80:
       s->show_path_mode_cruise_off = std::atoi(params.get("ShowPathModeCruiseOff").c_str());;
       s->show_path_color_cruise_off = std::atoi(params.get("ShowPathColorCruiseOff").c_str());;
+      s->show_brightness_apply = std::atof(params.get("ShowBrightnessApply").c_str()) / 100.;
       break;
   }
  }
@@ -738,7 +739,7 @@ void Device::updateBrightness(const UIState &s) {
     } else {
       clipped_brightness = std::pow((clipped_brightness + 16.0) / 116.0, 3.0);
     }
-
+    clipped_brightness *= s.show_brightness_apply;
     // Scale back to 10% to 100%
     clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 100.0f);
   }
