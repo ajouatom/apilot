@@ -91,29 +91,6 @@
     </message>
 </context>
 <context>
-    <name>CommunityPanel</name>
-    <message>
-        <source>Select your car</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>RUN</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>SpeedCameraControl(2)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>SpeedCameraDecelStart(22s)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>SpeedCameraDecelEnd(6s)</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ConfirmationDialog</name>
     <message>
         <source>Ok</source>
@@ -296,63 +273,32 @@
         <source>Review</source>
         <translation>Überprüfen</translation>
     </message>
-    <message>
-        <source>Rebuild</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Are you sure you want to rebuild?</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>DrawApilot</name>
-    <message>
-        <source>SIGN DETECTED</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>E2ECRUISE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>CRUISE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>CRUISE READY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>MANUAL</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>DriveStats</name>
     <message>
         <source>Drives</source>
-        <translation type="vanished">Fahrten</translation>
+        <translation>Fahrten</translation>
     </message>
     <message>
         <source>Hours</source>
-        <translation type="vanished">Stunden</translation>
+        <translation>Stunden</translation>
     </message>
     <message>
         <source>ALL TIME</source>
-        <translation type="vanished">Gesamtzeit</translation>
+        <translation>Gesamtzeit</translation>
     </message>
     <message>
         <source>PAST WEEK</source>
-        <translation type="vanished">Letzte Woche</translation>
+        <translation>Letzte Woche</translation>
     </message>
     <message>
         <source>KM</source>
-        <translation type="vanished">KM</translation>
+        <translation>KM</translation>
     </message>
     <message>
         <source>Miles</source>
-        <translation type="vanished">Meilen</translation>
+        <translation>Meilen</translation>
     </message>
 </context>
 <context>
@@ -612,7 +558,7 @@
     <name>QObject</name>
     <message>
         <source>Reboot</source>
-        <translation type="vanished">Neustart</translation>
+        <translation>Neustart</translation>
     </message>
     <message>
         <source>Exit</source>
@@ -663,10 +609,6 @@
         <source>ft</source>
         <translation>fuß</translation>
     </message>
-    <message>
-        <source>Update</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>Reset</name>
@@ -709,17 +651,6 @@ This may take up to a minute.</source>
     </message>
 </context>
 <context>
-    <name>SelectCar</name>
-    <message>
-        <source>Back</source>
-        <translation type="unfinished">Zurück</translation>
-    </message>
-    <message>
-        <source>[ Not selected ]</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>SettingsWindow</name>
     <message>
         <source>×</source>
@@ -740,18 +671,6 @@ This may take up to a minute.</source>
     <message>
         <source>Software</source>
         <translation>Software</translation>
-    </message>
-    <message>
-        <source>Cruise</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Tuning</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>ETC</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
