@@ -434,12 +434,12 @@
       "group": "감속제어",
       "name": "TrafficStopMode",
       "title": "신호정지 방법 (2)",
-      "descr": "0:사용안함,1:사용함,2:Apilot모드",
+      "descr": "0:사용안함,1:사용함,2:Apilot모드,3:실험MIX",
       "egroup": "DECEL",
       "etitle": "TrafficStopMode(2)",
-      "edescr": "0:No Stop, 1: Use, 2:Apilot method",
+      "edescr": "0:No Stop, 1: Use, 2:Apilot method,3:experimental mix",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 1,
       "unit": 1
     },
@@ -938,19 +938,6 @@
       "unit": 1
     },
     {
-      "group": "화면",
-      "name": "ShowBrightnessApply",
-      "title": "화면밝기조절(100%)",
-      "descr": "",
-      "egroup": "DISP",
-      "etitle": "Brightness adjust",
-      "edescr": "",
-      "min": 50,
-      "max": 200,
-      "default": 0,
-      "unit": 10
-    },
-    {
       "group": "화면패스",
       "name": "ShowZOffset",
       "title": "패스높이(170)",
@@ -1077,19 +1064,6 @@
       "edescr": "0:Not used,1:Use, 2:Use&CruiseON",
       "min": 0,
       "max": 2,
-      "default": 0,
-      "unit": 1
-    },
-    {
-      "group": "시작",
-      "name": "UseExternalNaviRoutes",
-      "title": "외부네비경로사용(0)",
-      "descr": "0:사용안함,1:사용",
-      "egroup": "START",
-      "etitle": "UseExternalNaviRoutes(0)",
-      "edescr": "",
-      "min": 0,
-      "max": 1,
       "default": 0,
       "unit": 1
     },

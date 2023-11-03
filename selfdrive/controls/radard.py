@@ -126,7 +126,7 @@ class Track:
     aLeadK = float(lead_msg.a[0]) if useVisionMix else float(self.aLeadK)
     return {
       "dRel": float(self.dRel),
-      "yRel": float(self.yRel),
+      "yRel": float(self.yRel) if mixRadarInfo == 0 or self.yRel != 0 else float(-lead_msg.y[0]),
       "vRel": float(self.vRel),
       "vLead": float(self.vLead),
       "vLeadK": float(self.vLeadK),
@@ -180,7 +180,7 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
   else:
     return None
 
-def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
+def get_path_adjacent_leads(v_ego, md, lane_width, clusters, mixRadarInfo):
   if len(clusters) == 0:
     return [[],[],[]]
   
@@ -228,7 +228,9 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
     source = 'vision' if c.dRel > 145. else 'radar'
     
     #ld = c.get_RadarState(source=source, checkSource=checkSource)
-    ld = c.get_RadarState()
+    #ld = c.get_RadarState()
+    lead_msg = md.leadsV3[0]
+    ld = c.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
     ld["dPath"] = dPath
     ld["vLat"] = math.sqrt((10*dPath)**2 + c.dRel**2)
     if abs(dPath) < half_lane_width and ld["vLeadK"] > -1.: # want to still get stopped leads, so put in wiggle-room for radar noise
@@ -281,7 +283,7 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
 
       # Only choose new track if it is actually closer than the previous one
       if (not lead_dict['status']) or (closest_track.dRel < lead_dict['dRel']):
-        lead_dict = closest_track.get_RadarState()
+        lead_dict = closest_track.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
 
   return lead_dict
 
@@ -359,7 +361,7 @@ class RadarD:
       self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
-        ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, self.tracks)
+        ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, self.tracks, self.mixRadarInfo)
         #try:
         #  if abs(sm['carState'].steeringAngleDeg) < 15 and radarState.leadOne.status and radarState.leadOne.modelProb > 0.5:
         #    check_dist = interp(radarState.leadOne.dRel, LEAD_PLUS_ONE_MIN_REL_DIST_BP, LEAD_PLUS_ONE_MIN_REL_DIST_V)

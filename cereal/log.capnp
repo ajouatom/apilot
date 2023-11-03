@@ -1040,6 +1040,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   xObstacle @44 : Float32;
   mpcEvent @45 : Int32;
   debugLongText1 @46 : Text;
+  mpcMode @47 : Int32;
 
   enum XState {
     lead @0;

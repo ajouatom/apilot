@@ -256,11 +256,21 @@ void ExperimentalButton::changeMode() {
 void ExperimentalButton::updateState(const UIState &s) {
   const auto cs = (*s.sm)["controlsState"].getControlsState();
   bool eng = cs.getEngageable() || cs.getEnabled();
+#if 0
   if ((cs.getExperimentalMode() != experimental_mode) || (eng != engageable)) {
     engageable = eng;
     experimental_mode = cs.getExperimentalMode();
     update();
   }
+#else
+    const auto lp = (*s.sm)["longitudinalPlan"].getLongitudinalPlan();
+    bool mpc_blended = lp.getMpcMode() == 1;
+    if ((mpc_blended != experimental_mode) || (eng != engageable)) {
+        engageable = eng;
+        experimental_mode = mpc_blended;
+        update();
+    }
+#endif
 }
 
 void ExperimentalButton::paintEvent(QPaintEvent *event) {

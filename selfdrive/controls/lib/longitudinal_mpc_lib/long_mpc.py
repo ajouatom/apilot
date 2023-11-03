@@ -822,7 +822,10 @@ class LongitudinalMpc:
         stop_x = 1000.0
 
     if self.trafficStopMode > 0:
-      if self.trafficStopMode == 2:
+      if self.trafficStopMode == 3:
+        vision_detected = radarstate.leadOne.dRel < 90 and radarstate.leadOne.status and not radarstate.leadOne.radar
+        mode = 'blended' if self.xState in [XState.e2eCruisePrepare] or vision_detected else 'acc'
+      elif self.trafficStopMode == 2:
         mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
       else:
         if self.xState == XState.e2eCruisePrepare or (self.xState == XState.e2eStop and self.stopDist > 40):

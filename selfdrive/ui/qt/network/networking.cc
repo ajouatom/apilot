@@ -114,6 +114,7 @@ void Networking::showEvent(QShowEvent *event) {
 }
 
 void Networking::hideEvent(QHideEvent *event) {
+  main_layout->setCurrentWidget(wifiScreen);
   wifi->stop();
 }
 
@@ -204,7 +205,6 @@ AdvancedNetworking::AdvancedNetworking(QWidget* parent, WifiManager* wifi): QWid
 
   main_layout->addWidget(new ScrollView(list, this));
   main_layout->addStretch(1);
-
 }
 
 void AdvancedNetworking::refresh() {
