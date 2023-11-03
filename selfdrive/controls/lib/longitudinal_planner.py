@@ -242,6 +242,8 @@ class LongitudinalPlanner:
     longitudinalPlan.cruiseGap = float(self.mpc.applyCruiseGap)
     longitudinalPlan.xObstacle = float(self.mpc.x_obstacle_min[0])
     longitudinalPlan.mpcEvent = self.mpc.mpcEvent
+    longitudinalPlan.mpcMode = 1 if self.mpc.mode == 'blended' else 0
+
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:

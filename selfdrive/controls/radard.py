@@ -157,7 +157,7 @@ def get_lead(v_ego, ready, clusters, lead_msg, model_v_ego, low_speed_override=T
 
       # Only choose new cluster if it is actually closer than the previous one
       if (not lead_dict['status']) or (closest_cluster.dRel < lead_dict['dRel']):
-        lead_dict = closest_cluster.get_RadarState()
+        lead_dict = closest_cluster.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
 
   return lead_dict
 

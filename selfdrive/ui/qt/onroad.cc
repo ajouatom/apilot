@@ -240,14 +240,10 @@ void ExperimentalButton::updateState(const UIState &s) {
   setVisible(cs.getEngageable() || cs.getEnabled());
 
   // button is "checked" if experimental mode is enabled
-  setChecked(sm["controlsState"].getControlsState().getExperimentalMode());
-  //auto source = sm["longitudinalPlan"].getLongitudinalPlan().getLongitudinalPlanSource();
-  //setChecked(source == cereal::LongitudinalPlan::LongitudinalPlanSource::E2E);
-
-  // disable button when experimental mode is not available, or has not been confirmed for the first time
-  //const auto cp = sm["carParams"].getCarParams();
-  //const bool experimental_mode_available = cp.getExperimentalLongitudinalAvailable() ? params.getBool("ExperimentalLongitudinalEnabled") : cp.getOpenpilotLongitudinalControl();
-  //setEnabled(params.getBool("ExperimentalModeConfirmed") && experimental_mode_available);
+    const auto lp = (*s.sm)["longitudinalPlan"].getLongitudinalPlan();
+    bool mpc_blended = lp.getMpcMode() == 1;
+    setChecked(mpc_blended);  
+  //setChecked(sm["controlsState"].getControlsState().getExperimentalMode());
   setEnabled(true);
 }
 

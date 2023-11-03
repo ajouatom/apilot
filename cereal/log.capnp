@@ -960,6 +960,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   cruiseGap @43 : Float32;
   xObstacle @44 : Float32;
   mpcEvent @45 : Int32;
+  mpcMode @46 : Int32;
 
   enum XState {
     lead @0;
