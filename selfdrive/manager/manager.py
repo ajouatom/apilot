@@ -88,7 +88,7 @@ def manager_init() -> None:
     ("AutoNaviSpeedCtrlMode", "0"),
     ("AutoNaviSpeedCtrlStart", "22"),
     ("AutoNaviSpeedCtrlEnd", "6"),
-    ("AutoNaviSpeedBumpDist", "10"),
+    ("AutoNaviSpeedBumpTime", "1"),
     ("AutoNaviSpeedBumpSpeed", "35"),
     ("AutoNaviSpeedSafetyFactor", "105"),
     ("AutoNaviSpeedDecelRate", "80"),

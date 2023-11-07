@@ -621,7 +621,7 @@ class RoadSpeedLimiter:
     self.roadLimitSpeed = None
     self.autoNaviSpeedCtrlStart = 22
     self.autoNaviSpeedCtrlEnd = 6
-    self.autoNaviSpeedBumpDist = 10
+    self.autoNaviSpeedBumpTime = 1
     self.autoNaviSpeedBumpSpeed = 30
     self.autoNaviSpeedSafetyFactor = 1.05
 
@@ -720,7 +720,7 @@ class RoadSpeedLimiter:
           safe_dist = 80
         elif cam_type == 22:
           starting_dist = v_ego * 10 #6
-          safe_dist = self.autoNaviSpeedBumpDist #v_ego * 0.5 # speed bump
+          safe_dist = self.autoNaviSpeedBumpTime * v_ego # speed bump
         else:
           safe_dist = v_ego * self.autoNaviSpeedCtrlEnd
 

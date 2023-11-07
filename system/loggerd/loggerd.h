@@ -58,6 +58,7 @@ public:
 const EncoderInfo main_road_encoder_info = {
   .publish_name = "roadEncodeData",
   .filename = "fcamera.hevc",
+  .record = false,
   INIT_ENCODE_FUNCTIONS(RoadEncode),
 };
 

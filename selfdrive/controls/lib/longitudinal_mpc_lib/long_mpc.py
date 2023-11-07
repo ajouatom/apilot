@@ -289,6 +289,7 @@ class LongitudinalMpc:
     self.xState = XState.cruise
     self.startSignCount = 0
     self.stopSignCount = 0
+    self.vision_detected_count = 0
 
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
@@ -823,8 +824,8 @@ class LongitudinalMpc:
 
     if self.trafficStopMode > 0:
       if self.trafficStopMode == 3:
-        vision_detected = radarstate.leadOne.dRel < 90 and radarstate.leadOne.status and not radarstate.leadOne.radar
-        mode = 'blended' if self.xState in [XState.e2eCruisePrepare] or vision_detected else 'acc'
+        self.vision_detected_count = self.vision_detected_count + 1 if radarstate.leadOne.dRel < 90 and radarstate.leadOne.status and not radarstate.leadOne.radar else 0
+        mode = 'blended' if self.xState in [XState.e2eCruisePrepare] or self.vision_detected_count >= 0.5 * DT_MDL else 'acc'
       elif self.trafficStopMode == 2:
         mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
       else:
@@ -843,7 +844,7 @@ class LongitudinalMpc:
     elif stop_x == 1000.0:
       self.stopDist = 0.0
     elif self.stopDist > 0:
-      stop_dist = v_ego ** 2 / (2.0 * 2)
+      stop_dist = v_ego ** 2 / (2.5 * 2)
       self.stopDist = self.stopDist if self.stopDist > stop_dist else stop_dist
       stop_x = 0.0
 #    else:

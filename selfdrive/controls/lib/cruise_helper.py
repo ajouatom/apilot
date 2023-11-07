@@ -117,7 +117,7 @@ class CruiseHelper:
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
     self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
     self.autoNaviSpeedFactor = 1.05
-    self.autoNaviSpeedBumpDist = float(Params().get("AutoNaviSpeedBumpDist"))
+    self.autoNaviSpeedBumpTime = float(Params().get("AutoNaviSpeedBumpTime"))
     self.autoNaviSpeedBumpSpeed = float(Params().get("AutoNaviSpeedBumpSpeed"))
     self.autoNaviSpeedDecelRate = float(Params().get("AutoNaviSpeedDecelRate"))*0.01
     self.autoNaviSpeedSafetyFactor = float(Params().get("AutoNaviSpeedSafetyFactor"))*0.01
@@ -203,14 +203,14 @@ class CruiseHelper:
       elif self.update_params_count == 15:
         self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
-        self.autoNaviSpeedBumpDist = float(Params().get("AutoNaviSpeedBumpDist"))
+        self.autoNaviSpeedBumpTime = float(Params().get("AutoNaviSpeedBumpTime"))
         self.autoNaviSpeedBumpSpeed = float(Params().get("AutoNaviSpeedBumpSpeed"))
         self.autoNaviSpeedDecelRate = float(Params().get("AutoNaviSpeedDecelRate"))*0.01
         self.autoNaviSpeedSafetyFactor = float(Params().get("AutoNaviSpeedSafetyFactor"))*0.01
         road_speed_limiter = get_road_speed_limiter()
         road_speed_limiter.autoNaviSpeedCtrlStart = self.autoNaviSpeedCtrlStart
         road_speed_limiter.autoNaviSpeedCtrlEnd = self.autoNaviSpeedCtrlEnd
-        road_speed_limiter.autoNaviSpeedBumpDist = self.autoNaviSpeedBumpDist
+        road_speed_limiter.autoNaviSpeedBumpTime = self.autoNaviSpeedBumpTime
         road_speed_limiter.autoNaviSpeedBumpSpeed = self.autoNaviSpeedBumpSpeed
         road_speed_limiter.autoNaviSpeedSafetyFactor = self.autoNaviSpeedSafetyFactor
       elif self.update_params_count == 16:
@@ -377,7 +377,7 @@ class CruiseHelper:
 
     if isSpeedBump:
       speedLimitType = 1 
-      safeDist = self.autoNaviSpeedBumpDist
+      safeDist = self.autoNaviSpeedBumpTime * v_ego
     elif safeSpeed>0 and leftDist>0:
       safeDist = self.autoNaviSpeedCtrlEnd * v_ego
 
@@ -663,7 +663,7 @@ class CruiseHelper:
             stop_dist = CS.vEgo ** 2 / (2.5 * 2)
             if stop_dist < self.xStop:
               longActiveUser = 3
-              v_cruise_kph = self.v_ego_kph_set
+              #v_cruise_kph = self.v_ego_kph_set
           else:        #속도가 빠르면... pass
             pass
         else:   #그냥 감속한경우, 현재속도세트
@@ -870,10 +870,10 @@ class CruiseHelper:
         longActiveUser,v_cruise_kph = self.check_brake_cruise_on(CS, v_cruise_kph)
       elif self.userCruisePaused:
         if self.v_ego_kph > 3.0 and self.dRel > 0 and self.vRel < 0:          
-          v_cruise_kph = self.v_ego_kph_set
+          #v_cruise_kph = self.v_ego_kph_set
           longActiveUser = 3
         elif self.v_ego_kph > 20.0 and self.xState == XState.e2eStop: # and abs(self.position_y) < 3.0:
-          v_cruise_kph = self.v_ego_kph_set
+          #v_cruise_kph = self.v_ego_kph_set
           longActiveUser = 3
         pass
 

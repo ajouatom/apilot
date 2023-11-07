@@ -252,7 +252,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "AutoNaviSpeedCtrlMode", PERSISTENT },
     { "AutoNaviSpeedCtrlStart", PERSISTENT },
     { "AutoNaviSpeedCtrlEnd", PERSISTENT },
-    { "AutoNaviSpeedBumpDist", PERSISTENT },
+    { "AutoNaviSpeedBumpTime", PERSISTENT },
     { "AutoNaviSpeedBumpSpeed", PERSISTENT },
     { "AutoNaviSpeedDecelRate", PERSISTENT },
     { "AutoNaviSpeedSafetyFactor", PERSISTENT },
