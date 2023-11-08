@@ -2,6 +2,10 @@ APILOT
 ------
 * PREVIEW
 
+  ![20231022-195814 mp4_20231108_104613 158](https://github.com/ajouatom/apilot/assets/43668841/156d82be-cf00-4d87-827e-06ebf94d98b1)
+
+  ![20231029-195945 mp4_20231108_104530 358](https://github.com/ajouatom/apilot/assets/43668841/b818f1fe-7c6b-473c-8eae-a4cb2dcb29af)
+
   ![image](https://user-images.githubusercontent.com/43668841/234758895-29ce21fa-521a-444f-8318-e00ce991a03c.png)
 
   ![image](https://user-images.githubusercontent.com/43668841/234758774-851624ee-5f15-4492-bbaf-9239bf5ddb94.png)
@@ -162,10 +166,6 @@ APILOT
   * 롱컨: JERK값(8): 값을 크게하면 가속/감속에 대한 차량의 반응이 강해지나, 브레이크작동이 잘 안되면 값을 조금씩 올림.
   * 롱컨: FF게인(106%): 속도플래너의 가속도에 대한 피드포워드, 이값은 조정하시 말것!
   * 롱컨: P게인(100): 차량 속도제어에 대한 P게인, 50~100정도로 조정.
-  * X_EGO_COST(6): 높으면 신호정지위치에 정밀하게 서려고함.
-  * J_EGO_COST(5): 고정
-  * A_CHANGE_COST(150): 끼워들기 차량에 대해 반응이 너무 강하면 올릴것. (50~200)
-  * DANGER_ZONE_COST(100): 고정
   * 차량간격유지 동적제어(OFF): 전방차량이 멀어지는 것에 대한 반응을 빠르게 COST를 동적으로 적용함.
   * 차량간격 동적제어:상대속도(110%): 선행차와의 상대속도에 따라 차량간격을 동적으로 조정함.
   * 차량간격 동적제어:감속(110%): 차량의 감속도에 따라 차량간격을 동적으로 조정함. 급감속을 하면 더 멀리.
@@ -222,11 +222,6 @@ APILOT
     * SteerActuatorDelay:30
     * SteerDeltaDown: 7
     * SteerDeltaUp: 4
-    * SteeringRateCost: 10
-    * _LateralAccelCost: 100
-    * _LateralJerkCost: 5
-    * _LateralMotionCost: 9
-    * _PathCostApply: 100
   * 주행설정
     * 안전비율: 80
     * 연비가속비율: 80
