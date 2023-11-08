@@ -194,7 +194,7 @@ class DesireHelper:
       road_edge_stat += 2 # right road edge
     return road_edge_stat
 
-  def detect_road_edge_sunny(self, md):
+  def detect_road_edge_sunny(self, carstate, model_data):
     # Set the minimum lane threshold to 3.0 meters
     min_lane_threshold = 3.0
     # Set the blinker index based on which signal is on

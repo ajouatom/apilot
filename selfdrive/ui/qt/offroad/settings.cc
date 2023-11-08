@@ -605,8 +605,6 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Notify sound 0:OFF,1:Half, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "Keep Enagage mode", "", "../assets/offroad/icon_shell.png", this));
-  toggleLayout->addWidget(new CValueControl("UseLaneLineSpeed", "Auto LaneMode change speed(0)", "0: Always laneless, 으로 하면 안함", "../assets/offroad/icon_road.png", 0, 200, 10));
-  toggleLayout->addWidget(new CValueControl("PathOffset", "PathOffset", "(-)Left, (+)Right", "../assets/offroad/icon_road.png", -200, 200, 1));
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "Haptic handle function", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("MaxAngleFrames", "MaxAngleFrames(89)", "89:기본, 스티어계기판에러시 85~87", "../assets/offroad/icon_road.png", 80, 100, 1));
   toggleLayout->addWidget(new CValueControl("SoftHoldMode", "SoftHold(1)", "0:Not used,1:Use,2: with SCC(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
@@ -664,11 +662,6 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "TrafficStop Adjust(200cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
     toggleLayout->addWidget(horizontal_line());    
     toggleLayout->addWidget(new CValueControl("LiveSteerRatioApply", "LAT: LiveSteerRatioApply(100)", "오버스티어가 발생하면 줄입니다.", "../assets/offroad/icon_road.png", 50, 110, 1));
-    toggleLayout->addWidget(new CValueControl("SteeringRateCost", "LAT: SteeringRateCost(700)", "", "../assets/offroad/icon_road.png", 0, 2000, 10));
-    toggleLayout->addWidget(new CValueControl("PathCostApply", "LAT: PathCostApply(100)", "", "../assets/offroad/icon_road.png", 0, 200, 5));
-    toggleLayout->addWidget(new CValueControl("LateralAccelCost", "LAT: LateralAccelCost(0)", "", "../assets/offroad/icon_road.png", 0, 300, 1));
-    toggleLayout->addWidget(new CValueControl("LateralMotionCost", "LAT: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
-    toggleLayout->addWidget(new CValueControl("LateralJerkCost", "LAT: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("LateralTorqueCustom", "LAT: TorqueCustom(0)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueAccelFactor", "LAT: TorqueAccelFactor(2500)", "", "../assets/offroad/icon_road.png", 1000, 4000, 10));

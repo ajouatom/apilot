@@ -15,12 +15,6 @@ class LateralPlanner:
     self.readParams = 0
     self.lanelines_active = False
     self.lanelines_active_tmp = False
-    self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
-    self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
-    self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
-    self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
-    self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
-    self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
@@ -45,14 +39,8 @@ class LateralPlanner:
     self.readParams -= 1
     if self.readParams <= 0:
       self.readParams = 100
-      self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
-      self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
-      self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
-      self.steeringRateCost = float(int(Params().get("SteeringRateCost", encoding="utf8")))
     elif self.readParams == 50:
-      self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
-      self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
-      self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
+      pass
 
     v_ego_car = sm['carState'].vEgo
 

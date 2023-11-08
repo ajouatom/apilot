@@ -438,10 +438,9 @@ class Controls:
 
     # TODO: fix simulator
     if False: #not SIMULATION or REPLAY:
-      if not NOSENSOR:
-        if not self.sm['liveLocationKalman'].gpsOK and self.sm['liveLocationKalman'].inputsOK and (self.distance_traveled > 1000):
-          # Not show in first 1 km to allow for driving out of garage. This event shows after 5 minutes
-          self.events.add(EventName.noGps)
+      if not self.sm['liveLocationKalman'].gpsOK and self.sm['liveLocationKalman'].inputsOK and (self.distance_traveled > 1000):
+        # Not show in first 1 km to allow for driving out of garage. This event shows after 5 minutes
+        self.events.add(EventName.noGps)
 
       if self.sm['modelV2'].frameDropPerc > 20:
         self.events.add(EventName.modeldLagging)

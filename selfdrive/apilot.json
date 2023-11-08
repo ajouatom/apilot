@@ -2,19 +2,6 @@
   "apilot": 20220111,
   "params": [
     {
-      "group": "조향일반",
-      "name": "PathOffset",
-      "title": "x차선치우침 좌우보정(0)",
-      "descr": "(-)좌측,(+)우측",
-      "egroup": "LAT",
-      "etitle": "xPathOffset (0)",
-      "edescr": "(-)Left,(+)Right",
-      "min": -200,
-      "max": 200,
-      "default": 0,
-      "unit": 1
-    },
-    {
       "group": "정지",
       "name": "StopDistance",
       "title": "정지거리(600cm)",
@@ -51,71 +38,6 @@
       "min": 1,
       "max": 200,
       "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "SteeringRateCost",
-      "title": "xSteeringRateCost(700)",
-      "descr": "조향률 제한 가중치",
-      "egroup": "LAT",
-      "etitle": "xSteeringRateCost(700)",
-      "edescr": "",
-      "min": 0,
-      "max": 1000,
-      "default": 800,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "LateralAccelCost",
-      "title": "x_LateralAccelCost(0)",
-      "descr": "측면 가속도 제한 가중치",
-      "egroup": "LAT",
-      "etitle": "x_LateralAccelCost(0)",
-      "edescr": "",
-      "min": 0,
-      "max": 1000,
-      "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "LateralMotionCost",
-      "title": "x_LateralMotionCost(11)",
-      "descr": "헤딩 추종 가중치",
-      "egroup": "LAT",
-      "etitle": "x_LateralMotionCost(11)",
-      "edescr": "",
-      "min": 0,
-      "max": 1000,
-      "default": 11,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "PathCostApply",
-      "title": "x_PathCostApply(100)",
-      "descr": "경로추종가충치",
-      "egroup": "LAT",
-      "etitle": "x_PathCostApply(100)",
-      "edescr": "",
-      "min": 0,
-      "max": 500,
-      "default": 100,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
-      "name": "LateralJerkCost",
-      "title": "x_LateralJerkCost(4)",
-      "descr": "측면 제동감도 제한 가중치",
-      "egroup": "LAT",
-      "etitle": "x_LateralJerkCost(4)",
-      "edescr": "",
-      "min": 0,
-      "max": 100,
-      "default": 5,
       "unit": 1
     },
     {
@@ -1079,19 +1001,6 @@
       "max": 1,
       "default": 0,
       "unit": 1
-    },
-    {
-      "group": "조향일반",
-      "name": "UseLaneLineSpeed",
-      "title": "x레인모드작동속도(0)",
-      "descr": "레인모드 작동속도: 0: 안함...",
-      "egroup": "LATSET",
-      "etitle": "xLaneModeSpeed(0)",
-      "edescr": "0:Not used",
-      "min": 0,
-      "max": 200,
-      "default": 0,
-      "unit": 10
     },
     {
       "group": "시작",
