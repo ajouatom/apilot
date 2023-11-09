@@ -222,9 +222,7 @@ class TorqueEstimator(ParameterEstimator):
 
 
 def main():
-  config_realtime_process([0, 1, 2, 3], 5)
-
-  liveTorqueCache = int(Params().get("LiveTorqueCache"))
+  config_realtime_process([0, 1, 2, 3], 5)  
 
   pm = messaging.PubMaster(['liveTorqueParameters'])
   sm = messaging.SubMaster(['carControl', 'carState', 'liveLocationKalman'], poll=['liveLocationKalman'])
@@ -248,9 +246,11 @@ def main():
     if sm.frame % 5 == 0:
       pm.send('liveTorqueParameters', estimator.get_msg(valid=sm.all_checks()))
       
-    elif sm.frame % 720 == 0 and liveTorqueCache==1:
-      print("caching live torque params....")
-      cache_points_runtime("LiveTorqueParameters", estimator)
+    elif sm.frame % 720 == 0:
+      liveTorqueCache = int(Params().get("LiveTorqueCache"))
+      if liveTorqueCache == 1:
+        print("caching live torque params....")
+        cache_points_runtime("LiveTorqueParameters", estimator)
 
 
 if __name__ == "__main__":
