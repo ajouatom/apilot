@@ -4,8 +4,8 @@ from openpilot.common.numpy_fast import interp
 from openpilot.common.conversions import Conversions as CV
 from openpilot.selfdrive.car.hyundai.hyundaicanfd import CanBus
 from openpilot.selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CANFD_CAR, CAMERA_SCC_CAR, CANFD_RADAR_SCC_CAR, \
-                                         EV_CAR, HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, UNSUPPORTED_LONGITUDINAL_CAR, \
-                                         Buttons
+                                         CANFD_UNSUPPORTED_LONGITUDINAL_CAR, EV_CAR, HYBRID_CAR, LEGACY_SAFETY_MODE_CAR, \
+                                         UNSUPPORTED_LONGITUDINAL_CAR, Buttons
 from openpilot.selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR
 from openpilot.selfdrive.car import create_button_events, get_safety_config
 from openpilot.selfdrive.car.interfaces import CarInterfaceBase
@@ -100,7 +100,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.90
       ret.steerRatio = 15.6 * 1.15
       ret.tireStiffnessFactor = 0.63
-    elif candidate == CAR.ELANTRA:
+    elif candidate in (CAR.ELANTRA, CAR.ELANTRA_GT_I30):
       ret.mass = 1275.
       ret.wheelbase = 2.7
       ret.steerRatio = 15.4            # 14 is Stock | Settled Params Learner values are steerRatio: 15.401566348670535
@@ -149,12 +149,6 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.67
       ret.steerRatio = 14.00 * 1.15
       ret.tireStiffnessFactor = 0.385
-    elif candidate == CAR.TUCSON_TL_SCC:
-      ret.mass = 1594. #1730
-      ret.wheelbase = 2.67
-      ret.tireStiffnessFactor = 0.7
-      ret.centerToFront = ret.wheelbase * 0.4
-      ret.steerRatio = 14.00
     elif candidate in (CAR.TUCSON_4TH_GEN, CAR.TUCSON_HYBRID_4TH_GEN):
       ret.mass = 1630.  # average
       ret.wheelbase = 2.756
@@ -225,10 +219,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1767.  # SX Prestige trim support only
       ret.wheelbase = 2.756
       ret.steerRatio = 13.6
-    elif candidate == CAR.KIA_SOUL_EV_SK3:
-      ret.steerRatio = 13.7  # average of the platforms
-      ret.mass = 1375.
-      ret.wheelbase = 2.6      
     elif candidate in (CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN, CAR.KIA_SORENTO_PHEV_4TH_GEN):
       ret.wheelbase = 2.81
       ret.steerRatio = 13.5  # average of the platforms
@@ -279,6 +269,16 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.95
       ret.steerRatio = 14.14
 
+    elif candidate == CAR.TUCSON_TL_SCC:
+      ret.mass = 1594. #1730
+      ret.wheelbase = 2.67
+      ret.tireStiffnessFactor = 0.7
+      ret.centerToFront = ret.wheelbase * 0.4
+      ret.steerRatio = 14.00
+    elif candidate == CAR.KIA_SOUL_EV_SK3:
+      ret.steerRatio = 13.7  # average of the platforms
+      ret.mass = 1375.
+      ret.wheelbase = 2.6      
     elif candidate in [CAR.GRANDEUR_IG, CAR.GRANDEUR_IG_HEV]:
       ret.mass = 1570.
       ret.wheelbase = 2.845
@@ -318,10 +318,12 @@ class CarInterface(CarInterfaceBase):
     if candidate in CANFD_CAR:
       ret.longitudinalTuning.kpV = [0.1]
       ret.longitudinalTuning.kiV = [0.0]
-      ret.experimentalLongitudinalAvailable = candidate in (HYBRID_CAR | EV_CAR) and candidate not in CANFD_RADAR_SCC_CAR
+      ret.experimentalLongitudinalAvailable = (candidate in (HYBRID_CAR | EV_CAR) and candidate not in
+                                               (CANFD_UNSUPPORTED_LONGITUDINAL_CAR | CANFD_RADAR_SCC_CAR))
     else:
       ret.longitudinalTuning.kpV = [0.5]
       ret.longitudinalTuning.kiV = [0.0]
+      ret.experimentalLongitudinalAvailable = candidate not in (UNSUPPORTED_LONGITUDINAL_CAR | CAMERA_SCC_CAR)
      
 
       print("fingerprint:", fingerprint)
@@ -352,7 +354,6 @@ class CarInterface(CarInterfaceBase):
       else:
         experimental_long = False
 
-      ret.experimentalLongitudinalAvailable = candidate not in (LEGACY_SAFETY_MODE_CAR | CAMERA_SCC_CAR)
       ret.experimentalLongitudinalAvailable = True
     ret.openpilotLongitudinalControl = experimental_long and ret.experimentalLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
