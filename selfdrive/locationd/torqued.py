@@ -57,6 +57,7 @@ class TorqueEstimator(ParameterEstimator):
     self.hist_len = int(HISTORY / DT_MDL)
     #self.lag = CP.steerActuatorDelay + .2   # from controlsd
     self.lag = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
+    
     if decimated:
       self.min_bucket_points = MIN_BUCKET_POINTS / 10
       self.min_points_total = MIN_POINTS_TOTAL_QLOG
@@ -223,6 +224,8 @@ class TorqueEstimator(ParameterEstimator):
 def main():
   config_realtime_process([0, 1, 2, 3], 5)
 
+  liveTorqueCache = int(Params().get("LiveTorqueCache"))
+
   pm = messaging.PubMaster(['liveTorqueParameters'])
   sm = messaging.SubMaster(['carControl', 'carState', 'liveLocationKalman'], poll=['liveLocationKalman'])
 
@@ -245,7 +248,8 @@ def main():
     if sm.frame % 5 == 0:
       pm.send('liveTorqueParameters', estimator.get_msg(valid=sm.all_checks()))
       
-    elif sm.frame % 720 == 0:
+    elif sm.frame % 720 == 0 and liveTorqueCache==1:
+      print("caching live torque params....")
       cache_points_runtime("LiveTorqueParameters", estimator)
 
 

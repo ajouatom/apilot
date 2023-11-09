@@ -42,6 +42,19 @@
     },
     {
       "group": "¡∂«‚∆©¥◊",
+      "name": "LiveTorqueCache",
+      "title": "LiveTorqueCache(0)",
+      "descr": "¡÷±‚¿˚¿∏∑Œ LiveTorque∏¶ ¿˙¿Â",
+      "egroup": "LAT",
+      "etitle": "LiveTorqueCache(0)",
+      "edescr": "Caching Live Torque parameters periodically",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "¡∂«‚∆©¥◊",
       "name": "LateralTorqueCustom",
       "title": "_LateralTorqueCustom(0)",
       "descr": "0:LiveTorque, 1:CustomTorque, 2:CustomTorque&LiveTorque",
