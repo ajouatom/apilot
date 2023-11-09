@@ -435,7 +435,7 @@ class CarState(CarStateBase):
       ]
       if CP.flags & HyundaiFlags.HAS_SCC13.value:
         messages += [
-          ("SCC13", 50),
+          ("SCC13", 0),
         ]
       if CP.flags & HyundaiFlags.HAS_SCC14.value:
         messages += [

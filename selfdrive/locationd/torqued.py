@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 import os
-import sys
 import signal
 import numpy as np
 from collections import deque, defaultdict
+from functools import partial
 
 import cereal.messaging as messaging
 from cereal import car, log
-from openpilot.common.params import Params, put_nonblocking
-from openpilot.common.realtime import config_realtime_process, DT_MDL, Priority
+from openpilot.common.params import Params
+from openpilot.common.realtime import config_realtime_process, DT_MDL
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.system.swaglog import cloudlog
 from openpilot.selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
-from openpilot.selfdrive.locationd.helpers import PointBuckets
+from openpilot.selfdrive.locationd.helpers import PointBuckets, ParameterEstimator, cache_points_onexit, cache_points_runtime
 
 HISTORY = 5  # secs
 POINTS_PER_BUCKET = 1500
@@ -52,11 +52,12 @@ class TorqueBuckets(PointBuckets):
         break
 
 
-class TorqueEstimator:
+class TorqueEstimator(ParameterEstimator):
   def __init__(self, CP, decimated=False):
     self.hist_len = int(HISTORY / DT_MDL)
     #self.lag = CP.steerActuatorDelay + .2   # from controlsd
     self.lag = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
+    
     if decimated:
       self.min_bucket_points = MIN_BUCKET_POINTS / 10
       self.min_points_total = MIN_POINTS_TOTAL_QLOG
@@ -96,7 +97,7 @@ class TorqueEstimator:
 
     # try to restore cached params
     params = Params()
-    params_cache = params.get("LiveTorqueCarParams")
+    params_cache = params.get("CarParamsPrevRoute")
     torque_cache = params.get("LiveTorqueParameters")
     if params_cache is not None and torque_cache is not None:
       try:
@@ -117,7 +118,6 @@ class TorqueEstimator:
           cloudlog.info("restored torque params from cache")
       except Exception:
         cloudlog.exception("failed to restore cached torque params")
-        params.remove("LiveTorqueCarParams")
         params.remove("LiveTorqueParameters")
 
     self.filtered_params = {}
@@ -222,7 +222,7 @@ class TorqueEstimator:
 
 
 def main():
-  config_realtime_process([0, 1, 2, 3], 5)
+  config_realtime_process([0, 1, 2, 3], 5)  
 
   pm = messaging.PubMaster(['liveTorqueParameters'])
   sm = messaging.SubMaster(['carControl', 'carState', 'liveLocationKalman'], poll=['liveLocationKalman'])
@@ -231,19 +231,8 @@ def main():
   with car.CarParams.from_bytes(params.get("CarParams", block=True)) as CP:
     estimator = TorqueEstimator(CP)
 
-  def cache_params(sig, frame):
-    signal.signal(sig, signal.SIG_DFL)
-    cloudlog.warning("caching torque params")
-
-    params = Params()
-    params.put("LiveTorqueCarParams", CP.as_builder().to_bytes())
-
-    msg = estimator.get_msg(with_points=True)
-    params.put("LiveTorqueParameters", msg.to_bytes())
-
-    sys.exit(0)
   if "REPLAY" not in os.environ:
-    signal.signal(signal.SIGINT, cache_params)
+    signal.signal(signal.SIGINT, partial(cache_points_onexit, "LiveTorqueParameters", estimator))
 
   while True:
     sm.update()
@@ -257,11 +246,12 @@ def main():
     if sm.frame % 5 == 0:
       pm.send('liveTorqueParameters', estimator.get_msg(valid=sm.all_checks()))
       
-    # dp - auto save every 3 mins: 4 hz * 60 * 3 = 720 (3 mins)
-    if sm.frame % 720 == 0:
-      put_nonblocking("LiveTorqueCarParams", CP.as_builder().to_bytes())
-      msg = estimator.get_msg(with_points=True)
-      put_nonblocking("LiveTorqueParameters", msg.to_bytes())
+    elif sm.frame % 720 == 0:
+      liveTorqueCache = int(Params().get("LiveTorqueCache"))
+      if liveTorqueCache == 1:
+        print("caching live torque params....")
+        cache_points_runtime("LiveTorqueParameters", estimator)
+
 
 if __name__ == "__main__":
   main()
