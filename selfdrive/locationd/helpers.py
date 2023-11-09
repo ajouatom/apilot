@@ -78,4 +78,4 @@ def cache_points_onexit(param_name, estimator, sig, frame):
 
 def cache_points_runtime(param_name, estimator):
   msg = estimator.get_msg(valid=True, with_points=True)
-  putparams.put_nonblocking(param_name, msg.to_bytes())
+  put_nonblocking(param_name, msg.to_bytes())
