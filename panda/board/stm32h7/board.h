@@ -31,16 +31,13 @@ void detect_board_type(void) {
   const uint8_t board_id = get_board_id();
 
   if (board_id == 0U) {
-      print("red\n");
     hw_type = HW_TYPE_RED_PANDA;
     current_board = &board_red;
   } else if (board_id == 1U) {
-      print("red_v2\n");
-      hw_type = HW_TYPE_RED_PANDA_V2;
+    hw_type = HW_TYPE_RED_PANDA_V2;
     current_board = &board_red_v2;
   } else if (board_id == 2U) {
-      print("tres\n");
-      hw_type = HW_TYPE_TRES;
+    hw_type = HW_TYPE_TRES;
     current_board = &board_tres;
   } else {
     hw_type = HW_TYPE_UNKNOWN;
