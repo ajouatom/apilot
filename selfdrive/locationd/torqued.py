@@ -248,7 +248,7 @@ def main():
     if sm.frame % 5 == 0:
       pm.send('liveTorqueParameters', estimator.get_msg(valid=sm.all_checks()))
       
-    elif sm.frame % 720 == 0 and liveTorqueCache==1:
+    elif sm.frame % 12 == 0 and liveTorqueCache==1:
       print("caching live torque params....")
       cache_points_runtime("LiveTorqueParameters", estimator)
 
