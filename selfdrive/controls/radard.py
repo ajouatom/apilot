@@ -357,7 +357,7 @@ class RadarD:
       model_v_ego = self.v_ego
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, low_speed_override=True, mixRadarInfo=self.mixRadarInfo)
+      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
       self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
