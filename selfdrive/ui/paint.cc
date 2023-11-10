@@ -759,15 +759,14 @@ float filter_y = 0.0;
 
 void DrawApilot::drawLeadApilot(const UIState* s) {
     SubMaster& sm = *(s->sm);
-    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
+    //const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const UIScene& scene = s->scene;
-    auto leads = model.getLeadsV3();
+    //auto leads = model.getLeadsV3();
 #ifndef __TEST
     //const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
 #endif
     //const QPointF& vd = s->scene.lead_vertices[0];
     //bool is_radar = s->scene.lead_radar[0];
-    bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
 
 #ifndef __TEST
@@ -775,6 +774,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
     auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
 #endif
+    bool no_radar = lead_radar.getStatus() == 0;
 #ifdef __TEST
     float radar_dist = 0;
     bool radar_detected = false;
@@ -1148,22 +1148,20 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         int dist_y = y + 195;// 175;
         disp_size = 60;
         stopping |= (brake_hold || soft_hold);
-        if (no_radar) {
-            if (stop_dist > 0.5 && stopping) {
-                if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
-                else sprintf(str, "%.0f", stop_dist);
+        if (stop_dist > 0.5 && stopping) {
+            if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
+            else sprintf(str, "%.0f", stop_dist);
+            ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+        }
+        else if (longActiveUser > 0 && v_ego < 1.0 && (stopping || lp.getTrafficState() >= 1000)) {
+            if (brake_hold || soft_hold) {
+                //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
                 ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
             }
-            else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
-                if (brake_hold || soft_hold) {
-                    //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
-                    sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
-                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
-                }
-                else {
-                    sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
-                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
-                }
+            else {
+                sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
+                ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
             }
         }
         else if (disp_dist > 0.0) {

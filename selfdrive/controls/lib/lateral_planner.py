@@ -5,6 +5,8 @@ import cereal.messaging as messaging
 from cereal import log
 
 from openpilot.common.params import Params
+from openpilot.selfdrive.controls.lib.lane_planner import LanePlanner
+
 
 TRAJECTORY_SIZE = 33
 CAMERA_OFFSET = 0.04
@@ -12,6 +14,7 @@ CAMERA_OFFSET = 0.04
 class LateralPlanner:
   def __init__(self, CP, debug=False):
     self.DH = DesireHelper()
+    self.LP = LanePlanner()
     self.readParams = 0
     self.lanelines_active = False
     self.lanelines_active_tmp = False
@@ -24,13 +27,10 @@ class LateralPlanner:
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.velocity_xyz = np.zeros((TRAJECTORY_SIZE, 3))
+    self.t_idxs = np.arange(TRAJECTORY_SIZE)
     self.v_plan = np.zeros((TRAJECTORY_SIZE,))
     self.x_sol = np.zeros((TRAJECTORY_SIZE, 4), dtype=np.float32)
     self.v_ego = MIN_SPEED
-    self.l_lane_change_prob = 0.0
-    self.r_lane_change_prob = 0.0
-    self.l_turn_prob = 0.0
-    self.r_turn_prob = 0.0
 
     self.debug_mode = debug
     self.steeringRateCost = 700.
@@ -48,24 +48,21 @@ class LateralPlanner:
     md = sm['modelV2']
     if len(md.position.x) == TRAJECTORY_SIZE and len(md.velocity.x) == TRAJECTORY_SIZE and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
+      self.t_idxs = np.array(md.position.t)
       self.velocity_xyz = np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z])
       car_speed = np.linalg.norm(self.velocity_xyz, axis=1) - get_speed_error(md, v_ego_car)
       self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
       self.v_ego = self.v_plan[0]
       self.x_sol = np.column_stack([md.lateralPlannerSolution.x, md.lateralPlannerSolution.y, md.lateralPlannerSolution.yaw, md.lateralPlannerSolution.yawRate])
 
+    # Parse model predictions
+    self.LP.parse_model(md)
+    lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
+    turn_prob = self.LP.l_turn_prob + self.LP.r_turn_prob
     # Lane change logic
-    desire_state = md.meta.desireState
-    if len(desire_state):
-      self.l_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeLeft]
-      self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
-      self.l_turn_prob = desire_state[log.LateralPlan.Desire.turnLeft]
-      self.r_turn_prob = desire_state[log.LateralPlan.Desire.turnRight]
-    lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
-    turn_prob = self.l_turn_prob + self.r_turn_prob
-    #self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob)
-    self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, turn_prob, sm['navInstruction'], sm['roadLimitSpeed'], 3.5)
+    self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, turn_prob, sm['navInstruction'], sm['roadLimitSpeed'], self.LP.lane_width)
 
+    path_xyz_tmp = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz, self.lanelines_active)
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('lateralPlan')
@@ -90,7 +87,7 @@ class LateralPlanner:
     lateralPlan.laneChangeState = self.DH.lane_change_state
     lateralPlan.laneChangeDirection = self.DH.lane_change_direction
     lateralPlan.desireEvent = self.DH.desireEvent
-    lateralPlan.laneWidth = 3.5 #float(self.LP.lane_width)
+    lateralPlan.laneWidth = float(self.LP.lane_width)
     lateralPlan.desireReady = self.DH.desireReady
     lateralPlan.apNaviDistance = int(self.DH.apNaviDistance)
     lateralPlan.apNaviSpeed = int(self.DH.apNaviSpeed)
