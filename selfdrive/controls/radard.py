@@ -234,7 +234,7 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters, mixRadarInfo):
     ld["dPath"] = dPath
     ld["vLat"] = math.sqrt((10*dPath)**2 + c.dRel**2)
     if abs(dPath) < half_lane_width:
-      if ld["vLeadK"] > -1.:
+      if True: #ld["vLeadK"] > -1.:
         leads_center[abs(dPath)] = ld
     elif dPath < 0.:
       leads_left[abs(dPath)] = ld
