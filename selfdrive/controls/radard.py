@@ -233,8 +233,9 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters, mixRadarInfo):
     ld = c.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
     ld["dPath"] = dPath
     ld["vLat"] = math.sqrt((10*dPath)**2 + c.dRel**2)
-    if abs(dPath) < half_lane_width and ld["vLeadK"] > -1.: # want to still get stopped leads, so put in wiggle-room for radar noise
-      leads_center[abs(dPath)] = ld
+    if abs(dPath) < half_lane_width:
+      if ld["vLeadK"] > -1.:
+        leads_center[abs(dPath)] = ld
     elif dPath < 0.:
       leads_left[abs(dPath)] = ld
     else:
