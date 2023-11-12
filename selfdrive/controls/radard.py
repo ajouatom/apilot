@@ -168,7 +168,7 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
 
     # This is isn't exactly right, but good heuristic
     #return prob_d * prob_y * prob_v
-    return 0.3 * prob_d + 0.2 * prob_y + 0.5 * prob_v
+    return 0.2 * prob_d + 0.4 * prob_y + 0.4 * prob_v
 
   track = max(tracks.values(), key=prob)
 
