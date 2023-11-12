@@ -767,7 +767,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #endif
     //const QPointF& vd = s->scene.lead_vertices[0];
     //bool is_radar = s->scene.lead_radar[0];
-    bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
 
 #ifndef __TEST
@@ -775,6 +774,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
     auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
 #endif
+    bool no_radar = lead_radar.getStatus() == 0;
 #ifdef __TEST
     float radar_dist = 0;
     bool radar_detected = false;
@@ -1166,7 +1166,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 }
             }
         }
-        else if (disp_dist > 0.0) {
+        else if (disp_dist >= 0.0) {
             if (disp_dist < 10.0) sprintf(str, "%.1f", disp_dist);
             else sprintf(str, "%.0f", disp_dist);
             ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
