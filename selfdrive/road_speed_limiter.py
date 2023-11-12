@@ -14,6 +14,7 @@ from openpilot.common.numpy_fast import clip
 from openpilot.common.conversions import Conversions as CV
 from openpilot.system.hardware import TICI
 from openpilot.common.params import Params
+import subprocess
 
 CAMERA_SPEED_FACTOR = 1.05
 
