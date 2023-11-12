@@ -1166,7 +1166,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
         else if (disp_dist > 0.0) {
             if (radar_dist < 10.0) sprintf(str, "%.1f(%.1f)", radar_dist, vision_dist);
-            else sprintf(str, "%.0f(%.1f)", radar_dist, vision_dist);
+            else sprintf(str, "%.0f(%.0f)", radar_dist, vision_dist);
             ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
         }
     }
