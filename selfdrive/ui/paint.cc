@@ -780,7 +780,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #ifndef __TEST
     if (!sm.alive("controlsState") || !sm.alive("radarState") || !sm.alive("carControl")) return;
     auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
-    auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+    //auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
 #endif
     bool no_radar = lead_radar.getStatus() == 0;
 #ifdef __TEST
