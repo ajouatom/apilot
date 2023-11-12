@@ -1153,7 +1153,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else sprintf(str, "%.0f", stop_dist);
             ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
         }
-        else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
+        else if (longActiveUser > 0 && v_ego < 1.0 && (stopping || lp.getTrafficState() >= 1000)) {
             if (brake_hold || soft_hold) {
                 //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
                 sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
