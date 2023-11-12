@@ -759,7 +759,7 @@ float filter_y = 0.0;
 
 void DrawApilot::drawLeadApilot(const UIState* s) {
     SubMaster& sm = *(s->sm);
-    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
+    //const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const UIScene& scene = s->scene;
     //auto leads = model.getLeadsV3();
 #ifndef __TEST
