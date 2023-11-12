@@ -754,6 +754,14 @@ void ui_draw_radar_info(const UIState* s) {
         }
     }
 }
+void ui_get_lead_dist(const UIState* s, float& radar_dist, float& vision_dist) {
+    SubMaster& sm = *(s->sm);
+    auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
+    auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+    bool radar_detected = lead_radar.getStatus() && lead_radar.getRadar();
+    radar_dist = radar_detected ? lead_radar.getDRel() : 0;
+    vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.52) : 0;      // RADAR_TO_CAMERA: 1.52
+}
 float filter_x = 0.0;
 float filter_y = 0.0;
 
@@ -780,9 +788,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     bool radar_detected = false;
     float vision_dist = 0.0;
 #else
-    bool radar_detected = lead_radar.getStatus() && lead_radar.getRadar();
-    float radar_dist = radar_detected ? lead_radar.getDRel() : 0;
-    float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 0) : 0;
+    float radar_dist = 0;
+    float vision_dist = 0;
+    ui_get_lead_dist(s, radar_dist, vision_dist);
+    bool radar_detected = (radar_dist > 0);
 #endif
     auto controls_state = sm["controlsState"].getControlsState();
     auto car_control = sm["carControl"].getCarControl();
@@ -929,7 +938,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #endif
     float disp_dist = (radar_detected) ? radar_dist : vision_dist;
     int brake_hold = car_state.getBrakeHoldActive();
-    int soft_hold = (hud_control.getSoftHold()) ? 1 : 0;
+    int soft_hold = (hud_control.getSoftHold() && longActiveUser>0) ? 1 : 0;
 
     float v_ego = sm["carState"].getCarState().getVEgoCluster();
     float v_ego_kph = v_ego * MS_TO_KPH;
@@ -963,6 +972,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     blinkerTimer = (blinkerTimer + 1) % 16;
     bool blinkerOn = (blinkerTimer <= 16 / 2);
     int trafficState = lp.getTrafficState();
+    auto xState = lp.getXState();
     char    str[128];
 
 #ifdef __TEST
@@ -1147,27 +1157,32 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         //int disp_y = y + 120;
         int disp_y = y + 195;// 175;
         disp_size = 60;
-        stopping |= (brake_hold || soft_hold);
-        if (stop_dist > 0.5 && stopping) {
-            if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
-            else sprintf(str, "%.0f", stop_dist);
+        if (brake_hold || soft_hold) {
+            sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
             ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
         }
-        else if (longActiveUser > 0 && v_ego < 1.0 && (stopping || lp.getTrafficState() >= 1000)) {
-            if (brake_hold || soft_hold) {
-                //drawTextWithColor(painter, x, disp_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
-                sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
+        else if (longActiveUser > 0) {
+            if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) {
+                if (v_ego < 1.0) {
+                    sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
+                    ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+                }
+                if (stop_dist > 0.5) {
+                        if (stop_dist < 10.0) sprintf(str, "%.1fM", stop_dist);
+                        else sprintf(str, "%.0fM", stop_dist);
+                        ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+                }
+            }
+            else if (xState == cereal::LongitudinalPlan::XState::LEAD) {
+                if (radar_dist < 10.0) sprintf(str, "%.1f(%.1f)", radar_dist, vision_dist);
+                else sprintf(str, "%.0f(%.0f)", radar_dist, vision_dist);
                 ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
             }
-            else {
-                sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
-                ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
-            }
-        }
-        else if (disp_dist > 0.0) {
-            if (radar_dist < 10.0) sprintf(str, "%.1f(%.1f)", radar_dist, vision_dist);
-            else sprintf(str, "%.0f(%.0f)", radar_dist, vision_dist);
-            ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+            //else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";
+            //else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) qstr = (v_ego_kph < 80) ? tr("E2ECRUISE") : tr("CRUISE");
+            //else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE_PREPARE) qstr = "E2EPREPARE";
+            //else if (xState == cereal::LongitudinalPlan::XState::CRUISE) qstr = tr("CRUISE");
+
         }
     }
     if (s->show_path_end) {
@@ -1274,7 +1289,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     _gap1 = gap1;
     // 타겟하단: 롱컨상태표시
     if (true) {
-        auto xState = lp.getXState();
+        //auto xState = lp.getXState();
         QString qstr;
         if (brake_hold) qstr = "AUTOHOLD";
         else if (active < 0) {
