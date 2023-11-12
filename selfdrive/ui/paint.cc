@@ -1144,30 +1144,33 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
         float disp_size = (s->show_path_end==1)?60.0:45.0;
-        //int dist_y = y + 120;
-        int dist_y = y + 195;// 175;
+        //int disp_y = y + 120;
+        int disp_y = y + 195;// 175;
         disp_size = 60;
         stopping |= (brake_hold || soft_hold);
         if (stop_dist > 0.5 && stopping) {
             if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
             else sprintf(str, "%.0f", stop_dist);
-            ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+            ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
         }
         else if (longActiveUser > 0 && v_ego < 1.0 && (stopping || lp.getTrafficState() >= 1000)) {
             if (brake_hold || soft_hold) {
-                //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                //drawTextWithColor(painter, x, disp_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
                 sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
-                ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+                ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
             }
             else {
                 sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
-                ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+                ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
             }
         }
         else if (disp_dist > 0.0) {
-            if (disp_dist < 10.0) sprintf(str, "%.1f", disp_dist);
-            else sprintf(str, "%.0f", disp_dist);
-            ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+            if (radar_dist < 10.0) sprintf(str, "%.1f", radar_dist);
+            else sprintf(str, "%.0f", radar_dist);
+            ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+            if (vision_dist < 10.0) sprintf(str, "%.1f", vision_dist);
+            else sprintf(str, "%.0f", vision_dist);
+            ui_draw_text(s, x, disp_y - 60, str, 50, COLOR_BLUE, BOLD);
         }
     }
     if (s->show_path_end) {
