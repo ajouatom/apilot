@@ -1148,25 +1148,23 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         int dist_y = y + 195;// 175;
         disp_size = 60;
         stopping |= (brake_hold || soft_hold);
-        if (no_radar) {
-            if (stop_dist > 0.5 && stopping) {
-                if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
-                else sprintf(str, "%.0f", stop_dist);
+        if (stop_dist > 0.5 && stopping) {
+            if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
+            else sprintf(str, "%.0f", stop_dist);
+            ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
+        }
+        else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
+            if (brake_hold || soft_hold) {
+                //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
                 ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
             }
-            else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
-                if (brake_hold || soft_hold) {
-                    //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
-                    sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
-                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
-                }
-                else {
-                    sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
-                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
-                }
+            else {
+                sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
+                ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
             }
         }
-        else if (disp_dist >= 0.0) {
+        else if (disp_dist > 0.0) {
             if (disp_dist < 10.0) sprintf(str, "%.1f", disp_dist);
             else sprintf(str, "%.0f", disp_dist);
             ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
