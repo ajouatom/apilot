@@ -1823,14 +1823,14 @@ void DrawApilot::drawDebugText(UIState* s, bool show) {
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
-    const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-    int xTurnInfo = road_limit_speed.getXTurnInfo();
-    int xDistToTurn = road_limit_speed.getXDistToTurn();
-    int xSpdDist = road_limit_speed.getXSpdDist();
-    int xSpdLimit = road_limit_speed.getXSpdLimit();
-    int xSignType = road_limit_speed.getXSignType();
-    int xRoadSignType = road_limit_speed.getXRoadSignType();
-    int xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
+    //const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
+    //int xTurnInfo = road_limit_speed.getXTurnInfo();
+    //int xDistToTurn = road_limit_speed.getXDistToTurn();
+    //int xSpdDist = road_limit_speed.getXSpdDist();
+    //int xSpdLimit = road_limit_speed.getXSpdLimit();
+    //int xSignType = road_limit_speed.getXSignType();
+    //int xRoadSignType = road_limit_speed.getXRoadSignType();
+    //int xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
 
     auto lateralPlan = sm["lateralPlan"].getLateralPlan();
     float laneWidth = lateralPlan.getLaneWidth();
