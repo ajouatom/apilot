@@ -658,8 +658,8 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     vlayout->addWidget(scroller, 1);
 
     // 튜닝
-    toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
-    toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "TrafficStop Adjust(200cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
+    toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(550cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
+    toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "TrafficStop Adjust(180cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
     toggleLayout->addWidget(horizontal_line());    
     toggleLayout->addWidget(new CValueControl("LiveSteerRatioApply", "LAT: LiveSteerRatioApply(100)", "오버스티어가 발생하면 줄입니다.", "../assets/offroad/icon_road.png", 50, 110, 1));
     toggleLayout->addWidget(new CValueControl("LiveTorqueCache", "LAT: LiveTorqueCache(0)", "주기적으로 LiveTorqueParameter를 저장.", "../assets/offroad/icon_road.png", 0, 1, 1));
@@ -668,7 +668,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralTorqueAccelFactor", "LAT: TorqueAccelFactor(2500)", "", "../assets/offroad/icon_road.png", 1000, 4000, 10));
     toggleLayout->addWidget(new CValueControl("LateralTorqueFriction", "LAT: TorqueFriction(100)", "", "../assets/offroad/icon_road.png", 0, 1000, 10));
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "LAT:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "LAT:SteerActuatorDelay(40)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaUp", "LAT: SteerDeltaUp(3)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaDown", "LAT: SteerDeltaDown(7)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("SteerRatioApply", "LAT: SteerRatio적용(0x0.1)", "0:사용안함", "../assets/offroad/icon_road.png", 0, 300, 2));
@@ -678,7 +678,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKiV", "LONG: I Gain(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 2000, 5));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "LONG: FF Gain(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 200, 1));
     toggleLayout->addWidget(new CValueControl("StartAccelApply", "LONG: StartingAccel 2.0x(0%)", "정지->출발시 가속도의 가속율을 지정합니다 0: 사용안함.", "../assets/offroad/icon_road.png", 0, 100, 10));
-    toggleLayout->addWidget(new CValueControl("StopAccelApply", "LONG: StoppingAccel -2.0x(30%)", "정지유지시 브레이크압을 조정합니다. 0: 사용안함. ", "../assets/offroad/icon_road.png", 0, 100, 10));
+    toggleLayout->addWidget(new CValueControl("StopAccelApply", "LONG: StoppingAccel -2.0x(50%)", "정지유지시 브레이크압을 조정합니다. 0: 사용안함. ", "../assets/offroad/icon_road.png", 0, 100, 10));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "GAP: Dynamic Control(0)", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("TFollowSpeedRatio", "GAP: Dynamic Gap adjust (110%)", "Dynamic Gap adjust based on speed", "../assets/offroad/icon_road.png", 100, 300, 5));
