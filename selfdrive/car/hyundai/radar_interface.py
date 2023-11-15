@@ -5,6 +5,7 @@ from opendbc.can.parser import CANParser
 from openpilot.selfdrive.car.interfaces import RadarInterfaceBase
 from openpilot.selfdrive.car.hyundai.values import DBC
 from openpilot.common.params import Params
+from openpilot.common.filter_simple import StreamingMovingAverage
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
@@ -43,6 +44,10 @@ class RadarInterface(RadarInterfaceBase):
     self.scc_radar = Params().get_bool("SccConnectedBus2") and not self.enable_radar_tracks
     self.trigger_msg = 0x420 if self.scc_radar else self.trigger_msg
 
+    self.dRelFilter = StreamingMovingAverage(2)
+    self.vRelFilter = StreamingMovingAverage(2)
+    self.valid_prev = False
+
   def update(self, can_strings):
     if not self.enable_radar_tracks and (self.radar_off_can or (self.rcp is None)):
       return super().update(None)
@@ -76,14 +81,22 @@ class RadarInterface(RadarInterfaceBase):
 
       for ii in range(1):
         if valid:
+          dRel = cpt["SCC11"]['ACC_ObjDist']
+          vRel = cpt["SCC11"]['ACC_ObjRelSpd']
+
           if ii not in self.pts:
             self.pts[ii] = car.RadarData.RadarPoint.new_message()
             self.pts[ii].trackId = self.track_id
             self.track_id += 1
-
-          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+            dRel = self.dRelFilter.set(dRel)
+            vRel = self.vRelFilter.set(dRel)
+          else:
+            dRel = self.dRelFilter.process(dRel)
+            vRel = self.vRelFilter.process(dRel)
+ 
+          self.pts[ii].dRel = dRel #cpt["SCC11"]['ACC_ObjDist']  # from front of car
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
-          self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
+          self.pts[ii].vRel = vRel #cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True
