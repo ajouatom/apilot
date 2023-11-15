@@ -18,7 +18,7 @@ def get_radar_can_parser(CP):
   if scc_radar:
     print("RadarInterface: SCCRadar...")
     messages = [("SCC11", 50)]    
-    return CANParser(DBC[CP.carFingerprint]['pt'], messages, CP.sccBus)
+    return CANParser(DBC[CP.carFingerprint]['pt'], messages, 2)
  
   if DBC[CP.carFingerprint]['radar'] is None and not enable_radar_tracks:
     return None
