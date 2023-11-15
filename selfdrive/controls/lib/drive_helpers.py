@@ -5,6 +5,7 @@ from openpilot.common.conversions import Conversions as CV
 from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.realtime import DT_MDL
 from openpilot.selfdrive.modeld.constants import ModelConstants
+from openpilot.common.params import Params
 
 # WARNING: this value was determined based on the model's training distribution,
 #          model predictions above this speed can be unpredictable
@@ -176,7 +177,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, dis
   delay = steerActuatorDelay
 
 
-  average_desired_curvature = True
+  average_desired_curvature = Params().get_bool("AverageCurvature")
   # MPC can plan to turn the wheel and turn back before t_delay. This means
   # in high delay cases some corrections never even get commanded. So just use
   # psi to calculate a simple linearization of desired curvature

@@ -33,13 +33,20 @@ int main(int argc, char *argv[]) {
 
   QPushButton *btn = new QPushButton();
 #ifdef __aarch64__
-  const char* gitpull = "/data/openpilot/selfdrive/assets/addon/sh/gitpull.sh";
-  btn->setText(QObject::tr("Update"));
+  btn->setText(QObject::tr("Reboot"));
   QObject::connect(btn, &QPushButton::clicked, [=]() {
-      std::system("cd /data/openpilot; rm -f prebuilt");
-      std::system(gitpull);
-      Hardware::reboot();
+    std::remove("/data/params/d_tmp/Model");
+    std::system("python3 /data/openpilot/selfdrive/modeld/model_switcher.py");
+    Hardware::reboot();
   });
+  QPushButton *recompileBtn = new QPushButton();
+  recompileBtn->setText(QObject::tr("Recompile Model"));
+  QObject::connect(recompileBtn, &QPushButton::clicked, [=]() {
+    std::system("python3 /data/openpilot/selfdrive/modeld/model_switcher.py");
+    Hardware::reboot();
+  });
+  main_layout->addWidget(recompileBtn, 0, 0, Qt::AlignLeft | Qt::AlignBottom);
+  main_layout->addWidget(btn, 0, 1, Qt::AlignRight | Qt::AlignBottom);
 #else
   btn->setText(QObject::tr("Exit"));
   QObject::connect(btn, &QPushButton::clicked, &a, &QApplication::quit);

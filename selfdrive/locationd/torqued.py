@@ -222,7 +222,7 @@ class TorqueEstimator(ParameterEstimator):
 
 
 def main():
-  config_realtime_process([0, 1, 2, 3], 5)  
+  config_realtime_process([0, 1, 2, 3], 5)
 
   pm = messaging.PubMaster(['liveTorqueParameters'])
   sm = messaging.SubMaster(['carControl', 'carState', 'liveLocationKalman'], poll=['liveLocationKalman'])

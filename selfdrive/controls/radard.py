@@ -273,6 +273,18 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
   else:
     track = None
 
+  ## vision match후 SCC radar값이 버져졌으면, 다시 살려서 처리함.
+  ##  SCC레이더 값 우선처리하도록함.
+  ##     가끔씩 SCC레이더값이 작은데도 비전과의 차이가 35%(5M)이상 차이나면, 버리는 경우가 있음.
+  if len(tracks) > 0 and track is None:
+    track = tracks.get(0)  ## SCC radar always 0
+    if track is not None and lead_msg.prob > .5:
+      offset_vision_dist = lead_msg.x[0] - RADAR_TO_CAMERA
+      if offset_vision_dist < track.dRel - 5.0: #끼어드는 차량이 있는 경우 처리..
+        track = None
+
+    mixRadarInfo = 0 # 비젼검출이 안된것이므로, mix는 사용안하게함.
+
   lead_dict = {'status': False}
   if track is not None:
     lead_dict = track.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
@@ -319,7 +331,6 @@ class RadarD:
     if rr is not None:
       radar_points = rr.points
       radar_errors = rr.errors
-
     if sm.updated['carState']:
       self.v_ego = sm['carState'].vEgo
       self.v_ego_hist.append(self.v_ego)

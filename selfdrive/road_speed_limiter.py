@@ -523,6 +523,8 @@ def main():
           xTurnInfo = 4  # slight right
         elif nTBTTurnType in [14, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142]:
           xTurnInfo = 5 # speed down
+        elif nTBTTurnType in [153, 154, 249]: # TG
+          xTurnInfo = 5 # speed down
         elif nTBTTurnType >= 0:
           xTurnInfo = -1
         if nTBTDist > 0 and xTurnInfo >= 0:

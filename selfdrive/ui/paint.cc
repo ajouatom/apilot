@@ -1378,12 +1378,14 @@ void DrawApilot::drawSteer(const UIState* s, int x, int y) {
     steer_ang += 1.0;
     steer_angle = steer_ang;
 #endif
+#if 0
     if (s->show_steer_mode == 2) {
         switch (getTrafficMode()) {
         case 1: ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f); break;
         case 2: ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f); break;
         }
     }
+#endif
 
     if (s->show_steer_mode == 1) {
         if (uiDrawSteeringRotate) {      // 시간이 많이(3msec)걸려 3번에 한번씩만 그리자..
@@ -1518,6 +1520,7 @@ void DrawApilot::drawPathEnd(const UIState* s, int x, int y, int path_x, int pat
     float disp_size = (s->show_path_end == 1) ? 60.0 : 45.0;
     //int disp_y = y + 120;
     int disp_y = y + 195;// 175;
+    bool draw_dist = false;
     disp_size = 60;
     if (isBrakeHold() || isSoftHold()) {
         sprintf(str, "%s", (isBrakeHold()) ? "AUTOHOLD" : "SOFTHOLD");
@@ -1529,18 +1532,25 @@ void DrawApilot::drawPathEnd(const UIState* s, int x, int y, int path_x, int pat
                 sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
                 ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
             }
-            if (getStopDist() > 0.5) {
+            else if (getStopDist() > 0.5) {
                 if (getStopDist() < 10.0) sprintf(str, "%.1fM", getStopDist());
                 else sprintf(str, "%.0fM", getStopDist());
                 ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
             }
         }
         else if (xState == cereal::LongitudinalPlan::XState::LEAD) {
-            if (getRadarDist() < 10.0) sprintf(str, "%.1f(%.1f)", getRadarDist(), getVisionDist());
-            else sprintf(str, "%.0f(%.0f)", getRadarDist(), getVisionDist());
-            ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+            draw_dist = true;
         }
     }
+    else draw_dist = true;
+
+    if (draw_dist) {
+        if (getRadarDist() < 10.0) sprintf(str, "%.1f(%.1f)", getRadarDist(), getVisionDist());
+        else sprintf(str, "%.0f(%.0f)", getRadarDist(), getVisionDist());
+        ui_draw_text(s, x, disp_y, str, disp_size, COLOR_WHITE, BOLD);
+    }
+
+
     // 타겟하단: 롱컨상태표시
     if (true) {
         QString qstr;

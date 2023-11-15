@@ -171,6 +171,32 @@
       "unit": 1
     },
     {
+      "group": "조향튜닝",
+      "name": "AverageCurvature",
+      "title": "AverageCurvature(0)",
+      "descr": "Pfeiferj's distance based curvature adjustment",
+      "egroup": "LAT",
+      "etitle": "AverageCurvature(0)",
+      "edescr": "Pfeiferj's distance based curvature adjustment",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "시작",
+      "name": "Model",
+      "title": "ModelSelect(0)",
+      "descr": "(Reboot)0:FarmVille, 1:NewLemonPie",
+      "egroup": "START",
+      "etitle": "ModelSelect(0)",
+      "edescr": "(Reboot)0:FarmVille, 1:NewLemonPie",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "가속설정",
       "name": "MyEcoModeFactor",
       "title": "연비가속비율(80%)",

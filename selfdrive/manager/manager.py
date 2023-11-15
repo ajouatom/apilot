@@ -155,7 +155,9 @@ def manager_init() -> None:
     ("CruiseOnDist", "0"),
     ("SteerRatioApply", "0"),
     ("SteerDeltaUp", "3"),       
-    ("SteerDeltaDown", "7"),       
+    ("SteerDeltaDown", "7"),     
+    ("AverageCurvature", "0"),
+    ("Model", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -309,6 +311,7 @@ def main() -> None:
   manager_init()
   os.system("python /data/openpilot/selfdrive/car/hyundai/values.py > /data/params/d/SupportedCars")
   os.system("python /data/openpilot/selfdrive/car/gm/values.py > /data/params/d/SupportedCars_gm")
+  subprocess.run(["python3", "/data/openpilot/selfdrive/modeld/model_switcher.py"])
 
   # Start UI early so prepare can happen in the background
   if not prepare_only:
