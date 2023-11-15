@@ -46,7 +46,6 @@ class RadarInterface(RadarInterfaceBase):
 
     self.dRelFilter = StreamingMovingAverage(2)
     self.vRelFilter = StreamingMovingAverage(2)
-    self.valid_prev = False
 
   def update(self, can_strings):
     if not self.enable_radar_tracks and (self.radar_off_can or (self.rcp is None)):
