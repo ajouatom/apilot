@@ -14,6 +14,7 @@ from openpilot.common.numpy_fast import clip
 from openpilot.common.conversions import Conversions as CV
 from openpilot.system.hardware import TICI
 from openpilot.common.params import Params
+import subprocess
 
 CAMERA_SPEED_FACTOR = 1.05
 
@@ -178,6 +179,15 @@ class RoadLimitSpeedServer:
         if 'cmd' in json_obj:
           try:
             os.system(json_obj['cmd'])
+            ret = False
+          except:
+            pass
+
+        if 'cmd_eco' in json_obj:
+          try:
+            process = subprocess.Popen([json_obj['cmd_eco']], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout, stderr = process.communicate()
+            sock.sendto(stdout.encode(), self.remote_addr[0])
             ret = False
           except:
             pass
@@ -505,13 +515,15 @@ def main():
           xTurnInfo = 1  # turn left
         elif nTBTTurnType in [13, 19]:
           xTurnInfo = 2  # turn right
-        elif nTBTTurnType in [7, 44, 17, 75, 102, 105, 112, 115, 76, 118]: # left lanechange
-        #elif nTBTTurnType in [7, 17, 102, 105, 112, 115, 76, 118]: # left lanechange
+        #elif nTBTTurnType in [7, 44, 17, 75, 102, 105, 112, 115, 76, 118]: # left lanechange
+        elif nTBTTurnType in [7, 44, 17, 75, 102, 105, 112, 115, 76]: # left lanechange
           xTurnInfo = 3  # slight left
-        elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114, 123, 124, 117]: # right lanechange
-        #elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114]: # right lanechange
+        #elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114, 123, 124, 117]: # right lanechange
+        elif nTBTTurnType in [6, 43, 73, 74, 101, 104, 111, 114, 123, 124]: # right lanechange
           xTurnInfo = 4  # slight right
         elif nTBTTurnType in [14, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142]:
+          xTurnInfo = 5 # speed down
+        elif nTBTTurnType in [153, 154, 249]: # TG
           xTurnInfo = 5 # speed down
         elif nTBTTurnType >= 0:
           xTurnInfo = -1

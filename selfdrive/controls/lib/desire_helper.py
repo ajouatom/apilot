@@ -143,6 +143,20 @@ class DesireHelper:
       self.autoLaneChangeSpeed = int(Params().get("AutoLaneChangeSpeed", encoding="'utf8"))
       self.paramsCount = 0
 
+  def calculate_lane_width(self, lane, current_lane, road_edge):
+    # Interpolate lane values at current_lane.x positions
+    sorted_lane_indices = np.argsort(lane.x)
+    lane_y = np.interp(current_lane.x, np.array(lane.x)[sorted_lane_indices], np.array(lane.y)[sorted_lane_indices])
+    # Interpolate road_edge values at current_lane.x positions
+    sorted_edge_indices = np.argsort(road_edge.x)
+    road_edge_y = np.interp(current_lane.x, np.array(road_edge.x)[sorted_edge_indices], np.array(road_edge.y)[sorted_edge_indices])
+    # Calculate the absolute mean distances between both
+    distance_to_lane = np.mean(np.abs(current_lane.y - lane_y))
+    distance_to_road_edge = np.mean(np.abs(current_lane.y - road_edge_y))
+    # Return the smallest between the two
+    return min(distance_to_lane, distance_to_road_edge)
+
+
   def detect_road_edge(self, md):
     left_edge_prob = np.clip(1.0 - md.roadEdgeStds[0], 0.0, 1.0)
     left_nearside_prob = md.laneLineProbs[0]
@@ -291,6 +305,29 @@ class DesireHelper:
     self.update_params()
     v_ego = carstate.vEgo
     v_ego_kph = v_ego * CV.MS_TO_KPH
+
+    self.lane_width_left = 0
+    self.lane_width_right = 0
+    turning = abs(carstate.steeringAngleDeg) >= 60
+    if True: #self.blindspot_path and not below_lane_change_speed and not turning:
+      # Calculate left and right lane widths
+      self.lane_width_left = self.calculate_lane_width(md.laneLines[0], md.laneLines[1], md.roadEdges[0])
+      self.lane_width_right = self.calculate_lane_width(md.laneLines[3], md.laneLines[2], md.roadEdges[1])
+ 
+    # Calculate the desired lane width for nudgeless lane change with lane detection
+    #if not (self.lane_detection and one_blinker) or below_lane_change_speed or turning:
+    #  lane_available = True
+    #else:
+    #  # Set the minimum lane threshold to 2.8 meters
+    #  min_lane_threshold = 2.8
+    #  # Set the blinker index based on which signal is on
+    #  blinker_index = 0 if carstate.leftBlinker else 1
+    #  current_lane = md.laneLines[blinker_index + 1]
+    #  desired_lane = md.laneLines[blinker_index if carstate.leftBlinker else blinker_index + 2]
+    #  road_edge = md.roadEdges[blinker_index]
+    #  # Check if the lane width exceeds the threshold
+    #  lane_available = self.calculate_lane_width(desired_lane, current_lane, road_edge) >= min_lane_threshold
+      
 
     road_edge_stat = self.detect_road_edge_apilot(md, lane_width)
     #road_edge_stat = self.detect_road_edge_dragonpilot(md)

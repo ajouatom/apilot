@@ -100,8 +100,8 @@ def manager_init() -> None:
     ("AutoResumeFromBrakeReleaseTrafficSign", "1"),
     ("LongControlActiveSound", "1"),
     ("StartAccelApply", "0"),
-    ("StopAccelApply", "30"),
-    ("TrafficStopDistanceAdjust", "400"),
+    ("StopAccelApply", "50"),
+    ("TrafficStopDistanceAdjust", "180"),
     ("AutoSpeedUptoRoadSpeedLimit", "100"),
     ("ApplyLongDynamicCost", "0"), 
     ("AutoSpeedAdjustWithLeadCar", "0"),   
@@ -124,7 +124,7 @@ def manager_init() -> None:
     ("PrevCruiseGap", "4"),      
     ("CruiseSpeedMin", "10"),
     ("AutoSyncCruiseSpeedMax", "120"),       
-    ("StopDistance", "600"), 
+    ("StopDistance", "550"), 
     ("CustomMapbox", "0"),    
     ("LongitudinalTuningKpV", "100"),     
     ("LongitudinalTuningKiV", "200"),     
@@ -150,12 +150,14 @@ def manager_init() -> None:
     ("LateralTorqueCustom", "0"),       
     ("LateralTorqueAccelFactor", "2500"),       
     ("LateralTorqueFriction", "100"),       
-    ("SteerActuatorDelay", "30"),       
+    ("SteerActuatorDelay", "40"),       
     ("CruiseControlMode", "4"),
     ("CruiseOnDist", "0"),
     ("SteerRatioApply", "0"),
     ("SteerDeltaUp", "3"),       
-    ("SteerDeltaDown", "7"),       
+    ("SteerDeltaDown", "7"),     
+    ("AverageCurvature", "0"),
+    ("Model", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -309,6 +311,7 @@ def main() -> None:
   manager_init()
   os.system("python /data/openpilot/selfdrive/car/hyundai/values.py > /data/params/d/SupportedCars")
   os.system("python /data/openpilot/selfdrive/car/gm/values.py > /data/params/d/SupportedCars_gm")
+  subprocess.run(["python3", "/data/openpilot/selfdrive/modeld/model_switcher.py"])
 
   # Start UI early so prepare can happen in the background
   if not prepare_only:

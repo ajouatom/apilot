@@ -273,6 +273,7 @@ class LongitudinalMpc:
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.solver.reset()
     # self.solver.options_set('print_level', 2)
+    self.x_solution = np.zeros(N+1)
     self.v_solution = np.zeros(N+1)
     self.a_solution = np.zeros(N+1)
     self.prev_a = np.array(self.a_solution)
@@ -324,13 +325,13 @@ class LongitudinalMpc:
   def get_cost_multipliers(self, v_lead0, v_lead1):
     v_ego = self.x0[1]
     v_ego_bps = [0, 10]
-    TFs = [0.9, 1.2, 1.45] #[1.2, 1.45, 1.8]
+    TFs = [0.8, 1.2, 1.45] #[1.2, 1.45, 1.8]
     # KRKeegan adjustments to costs for different TFs
     # these were calculated using the test_longitudial.py deceleration tests
   #TF에 의한 a,j,d cost변경
-    a_change_tf = interp(self.t_follow, TFs, [.7, 1., 1.1]) # 가까울수록 작게 #interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게
-    j_ego_tf = interp(self.t_follow, TFs, [.7, 1., 1.1]) #가까울수록 작게 interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게
-    d_zone_tf = interp(self.t_follow, TFs, [1.4, 1., 1.]) # 가까울수록 크게interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게
+    a_change_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게 #interp(self.t_follow, TFs, [.8, 1., 1.1]) # 가까울수록 작게
+    j_ego_tf = interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게 interp(self.t_follow, TFs, [.8, 1., 1.1]) #가까울수록 작게
+    d_zone_tf = interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게interp(self.t_follow, TFs, [1.3, 1., 1.]) # 가까울수록 크게
 
     # KRKeegan adjustments to improve sluggish acceleration
     # do not apply to deceleration
@@ -546,6 +547,7 @@ class LongitudinalMpc:
     for i in range(N):
       self.u_sol[i] = self.solver.get(i, 'u')
 
+    self.x_solution = self.x_sol[:,0]
     self.v_solution = self.x_sol[:,1]
     self.a_solution = self.x_sol[:,2]
     self.j_solution = self.u_sol[:,0]

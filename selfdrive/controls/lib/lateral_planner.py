@@ -31,6 +31,7 @@ class LateralPlanner:
     self.v_plan = np.zeros((TRAJECTORY_SIZE,))
     self.x_sol = np.zeros((TRAJECTORY_SIZE, 4), dtype=np.float32)
     self.v_ego = MIN_SPEED
+    self.average_desired_curvature = Params().get_bool("AverageCurvature")
 
     self.debug_mode = debug
     self.steeringRateCost = 700.
@@ -39,6 +40,7 @@ class LateralPlanner:
     self.readParams -= 1
     if self.readParams <= 0:
       self.readParams = 100
+      self.average_desired_curvature = Params().get_bool("AverageCurvature")
     elif self.readParams == 50:
       pass
 
@@ -50,7 +52,10 @@ class LateralPlanner:
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
       self.t_idxs = np.array(md.position.t)
       self.velocity_xyz = np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z])
-      car_speed = np.linalg.norm(self.velocity_xyz, axis=1) - get_speed_error(md, v_ego_car)
+      if self.average_desired_curvature:
+        car_speed = np.array(md.velocity.x) - get_speed_error(md, v_ego_car)
+      else:
+        car_speed = np.linalg.norm(self.velocity_xyz, axis=1) - get_speed_error(md, v_ego_car)
       self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
       self.v_ego = self.v_plan[0]
       self.x_sol = np.column_stack([md.lateralPlannerSolution.x, md.lateralPlannerSolution.y, md.lateralPlannerSolution.yaw, md.lateralPlannerSolution.yawRate])

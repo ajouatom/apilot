@@ -55,6 +55,11 @@ class CarControllerParams:
 
 class SubaruFlags(IntFlag):
   SEND_INFOTAINMENT = 1
+  DISABLE_EYESIGHT = 2
+
+
+GLOBAL_ES_ADDR = 0x787
+GEN2_ES_BUTTONS_DID = b'\x11\x30'
 
 
 class CanBus:
@@ -202,6 +207,7 @@ FW_VERSIONS = {
       b'\xa1\\  x04\x01',
       b'\xa1  \x03\x03',
       b'\xa1  \x02\x01',
+      b'\xa1  \x02\x02',
     ],
     (Ecu.eps, 0x746, None): [
       b'\x9b\xc0\x11\x00',
@@ -215,11 +221,13 @@ FW_VERSIONS = {
       b'\xde\"a0\x07',
       b'\xe2"aq\x07',
       b'\xde,\xa0@\x07',
+      b'\xe2,\xa0@\x07',
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xa5\xf6\x05@\x00',
       b'\xa7\xf6\x04@\x00',
       b'\xa5\xfe\xc7@\x00',
+      b'\xa7\xfe\xc4@\x00',
     ],
   },
   CAR.IMPREZA: {
@@ -725,5 +733,5 @@ PREGLOBAL_CARS = {CAR.FORESTER_PREGLOBAL, CAR.LEGACY_PREGLOBAL, CAR.OUTBACK_PREG
 HYBRID_CARS = {CAR.CROSSTREK_HYBRID, CAR.FORESTER_HYBRID}
 
 # Cars that temporarily fault when steering angle rate is greater than some threshold.
-# Appears to be all cars that started production after 2020
-STEER_RATE_LIMITED = GLOBAL_GEN2 | {CAR.IMPREZA_2020}
+# Appears to be all torque-based cars produced around 2019 - present
+STEER_RATE_LIMITED = GLOBAL_GEN2 | {CAR.IMPREZA_2020, CAR.FORESTER}

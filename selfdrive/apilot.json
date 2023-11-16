@@ -4,27 +4,27 @@
     {
       "group": "정지",
       "name": "StopDistance",
-      "title": "정지거리(600cm)",
+      "title": "정지거리(550cm)",
       "descr": "선행차와 정지하는 거리를 입력합니다.",
       "egroup": "STOP",
-      "etitle": "StopDistance(600cm)",
+      "etitle": "StopDistance(550cm)",
       "edescr": "Adjust stop distance",
       "min": 200,
       "max": 1000,
-      "default": 600,
+      "default": 550,
       "unit": 50
     },
     {
       "group": "정지",
       "name": "TrafficStopDistanceAdjust",
-      "title": "신호정지 위치조정(200cm)",
+      "title": "신호정지 위치조정(180cm)",
       "descr": "+값으로 하면 정지선에 다가갑니다.",
       "egroup": "STOP",
-      "etitle": "TrafficStopDistance(200cm)",
+      "etitle": "TrafficStopDistance(180cm)",
       "edescr": "+Value : forward",
       "min": -1000,
       "max": 1000,
-      "default": 200,
+      "default": 180,
       "unit": 10
     },
     {
@@ -95,14 +95,14 @@
     {
       "group": "조향튜닝",
       "name": "SteerActuatorDelay",
-      "title": "SteerActuatorDelay(30)",
+      "title": "SteerActuatorDelay(40)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
       "egroup": "LAT",
-      "etitle": "SteerActuatorDelay(30)",
+      "etitle": "SteerActuatorDelay(40)",
       "edescr": "",
       "min": 0,
       "max": 100,
-      "default": 30,
+      "default": 40,
       "unit": 1
     },
     {
@@ -167,6 +167,32 @@
       "edescr": "0: Use LiveSteerRatio, 1:Custom value",
       "min": 0,
       "max": 300,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "AverageCurvature",
+      "title": "AverageCurvature(0)",
+      "descr": "Pfeiferj's distance based curvature adjustment",
+      "egroup": "LAT",
+      "etitle": "AverageCurvature(0)",
+      "edescr": "Pfeiferj's distance based curvature adjustment",
+      "min": 0,
+      "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "시작",
+      "name": "Model",
+      "title": "ModelSelect(0)",
+      "descr": "(Reboot)0:FarmVille, 1:NewLemonPie",
+      "egroup": "START",
+      "etitle": "ModelSelect(0)",
+      "edescr": "(Reboot)0:FarmVille, 1:NewLemonPie",
+      "min": 0,
+      "max": 1,
       "default": 0,
       "unit": 1
     },
@@ -1213,14 +1239,14 @@
     {
       "group": "정지",
       "name": "StopAccelApply",
-      "title": "정지유지브레이크-2.0x(30%)",
+      "title": "정지유지브레이크-2.0x(50%)",
       "descr": "정지시 브레이크유지 조정",
       "egroup": "STOP",
-      "etitle": "DecelRate 2.0m/s^2 x (30%)",
+      "etitle": "DecelRate 2.0m/s^2 x (50%)",
       "edescr": "",
       "min": 0,
       "max": 100,
-      "default": 30,
+      "default": 50,
       "unit": 10
     },
     {
