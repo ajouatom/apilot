@@ -1,5 +1,10 @@
 APILOT
 ------
+* README
+  Apilot has been listed in the Bad/Unsafe Forks list by COMMA, likely due to modifications in DM (Driver Monitoring) code and various convenience options. If you install Apilot and upload, your device will be banned.
+  If you install Apilot and get banned or involved in an accident, it is your responsibility.
+  If you have any doubts, do not install Apilot at all. It is recommended to install the official version from COMMA or the Custom Forks recommended by COMMA.
+
 * APILOT 블로그
   https://apilot.tistory.com/3
   
