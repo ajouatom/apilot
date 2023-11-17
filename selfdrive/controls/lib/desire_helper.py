@@ -394,7 +394,7 @@ class DesireHelper:
 
     self.desire = log.LateralPlan.Desire.none
     self.desireEvent = 0
-    self.latDebugText = "DH:{},EDGE:{},Nav:{},{}".format(self.lane_change_state, road_edge_stat, nav_direction, nav_turn)
+    self.latDebugText = "LCState:{},EDGE:{},L{:.1f},R{:.1f},Nav:{},{}".format(self.lane_change_state, road_edge_stat, self.lane_width_left, self.lane_width_right, nav_direction, nav_turn)
     if not lateral_active or self.lane_change_timer > LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
