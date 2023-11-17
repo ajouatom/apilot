@@ -308,7 +308,7 @@ class DesireHelper:
 
     self.lane_width_left = 0
     self.lane_width_right = 0
-    turning = abs(carstate.steeringAngleDeg) >= 60
+    turning = abs(carstate.steeringAngleDeg) >= 20
     if True: #self.blindspot_path and not below_lane_change_speed and not turning:
       # Calculate left and right lane widths
       self.lane_width_left = self.calculate_lane_width(md.laneLines[0], md.laneLines[1], md.roadEdges[0])
@@ -467,6 +467,8 @@ class DesireHelper:
 
         #if not nav_turn and self.turnState==0 and torque_applied:
         #  self.turnState = 1
+        if turning and self.turnState == 0:
+          self.turnState = 1
 
         if nav_turn or self.turnState>0:
           lane_change_prob = turn_prob
