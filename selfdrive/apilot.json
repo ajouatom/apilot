@@ -160,10 +160,10 @@
     {
       "group": "조향튜닝",
       "name": "SteerRatioApply",
-      "title": "SteerRatio적용x0.1(0)",
+      "title": "SteerRatioCustomx0.1(0)",
       "descr": "0: LiveSteerRatio사용, 단위:0.1",
       "egroup": "LAT",
-      "etitle": "SteerRatioApplyx0.1(0)",
+      "etitle": "SteerRatioCustomx0.1(0)",
       "edescr": "0: Use LiveSteerRatio, 1:Custom value",
       "min": 0,
       "max": 300,
