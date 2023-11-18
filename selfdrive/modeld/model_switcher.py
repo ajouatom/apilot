@@ -10,7 +10,7 @@ MODELS_SOURCE = os.path.join(DESTINATION_PATH, "models")
 THNEED_FILE = os.path.join(DESTINATION_PATH, "supercombo.thneed")
 
 MODEL_NAME = {
-  0: "farmville",
+  0: "bddriving",
   1: "new-lemon-pie",
 }
 
