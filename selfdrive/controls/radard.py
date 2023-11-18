@@ -68,8 +68,14 @@ class Track:
     self.K_C = kalman_params.C
     self.K_K = kalman_params.K
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
+    self.vLead = v_lead
 
   def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float):
+
+    #apilot: changed radar target
+    if abs(self.vLead - v_lead) > 0.5:
+      self.cnt = 0
+      self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
     # relative values, copy
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
