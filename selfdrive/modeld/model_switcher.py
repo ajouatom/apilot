@@ -36,6 +36,10 @@ def onnx_already_set(path1, path2):
     return hashlib.sha256(f1.read()).hexdigest() == hashlib.sha256(f2.read()).hexdigest()
 
 def copy_model_variant(params):
+  model_num = params.get_int("Model")
+  if model_num < 0 or model_num > 2:
+    model_num = 0
+    params.put_int("Model", model_num)
   # Get the corresponding supercombo variant name
   variant = MODEL_NAME.get(params.get_int("Model"), MODEL_NAME[0])
 
