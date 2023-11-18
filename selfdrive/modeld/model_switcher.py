@@ -56,5 +56,5 @@ def copy_model_variant(params):
 if __name__ == "__main__":
   params = Params()
 
-  set_model_list_parameter(params)
+  #set_model_list_parameter(params)
   copy_model_variant(params)
