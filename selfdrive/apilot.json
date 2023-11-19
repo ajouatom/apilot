@@ -1160,16 +1160,16 @@
     },
     {
       "group": "차량간격",
-      "name": "TFollowSpeedRatio",
-      "title": "차량간격시간 속도별 증감율 (110%)",
-      "descr": "속도에따라 차간거리 증가, 정지(100%) - 100km/h(설정값)",
+      "name": "TFollowSpeedAdd",
+      "title": "차량간격시간 속도별 추가되는 시간값F (0)",
+      "descr": "속도에 따라 추가되는 추종시간 값 (dTF), 0:100km/h=TFn:TFn+dTF",
       "egroup": "FDIST",
-      "etitle": "TimeFollowSpeedRatio(110%)",
-      "edescr": "TimeFollow incressed with speed (0 - 100km/h)",
-      "min": 100,
-      "max": 300,
-      "default": 110,
-      "unit": 5
+      "etitle": "TimeFollow Speed Dep. add TF(0)",
+      "edescr": "Speed depenent Additinal TFollow(dTF), 0:100Km/h = TFn:TFn+dTF",
+      "min": -100,
+      "max": 200,
+      "default": 0,
+      "unit": 1
     },
     {
       "group": "차량간격",

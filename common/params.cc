@@ -309,7 +309,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "HotspotOnBoot", PERSISTENT },
     { "EnableAutoEngage", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
-    { "TFollowSpeedRatio", PERSISTENT },
+    { "TFollowSpeedAdd", PERSISTENT },
     { "TFollowGap1", PERSISTENT },
     { "TFollowGap2", PERSISTENT },
     { "TFollowGap3", PERSISTENT },
