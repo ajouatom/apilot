@@ -608,7 +608,7 @@ class LongitudinalMpc:
           }
         tf = cruiseGap_dict[self.applyCruiseGap]
         cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf * self.tFollowSpeedRatio]) 
-        self.t_follow = max(0.9, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
+        self.t_follow = max(0.6, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) 
     else:
       if self.status:
         if v_ego_kph < 0.1:
