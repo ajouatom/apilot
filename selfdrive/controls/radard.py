@@ -178,7 +178,6 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
     #        속도관련 weight를 없애야하나?  TG를 지나고 있는 차를 우선시하도록 만든건데...
     #231120: 
     weight_scc = 0.3 if c_key == 0 else 1.0  ## SCC레이더데이터의 prob는 작게잡아 레이더트랙의 것을 우선순위로 둠. SCC레이더값은 0번에 저장됨.
-    print(weight_scc)
     weight_v = interp(c.vRel + v_ego, [0, 10], [0.3, 1])
     # This is isn't exactly right, but good heuristic
     return prob_d * prob_y * prob_v * weight_v * weight_scc
@@ -289,7 +288,7 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
 def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capnp._DynamicStructReader,
              model_v_ego: float, low_speed_override: bool = True, mixRadarInfo=0) -> Dict[str, Any]:
   # Determine leads, this is where the essential logic happens
-  if len(tracks) > 0:# and ready and lead_msg.prob > .5:
+  if len(tracks) > 0 and ready and lead_msg.prob > .5:
     track = match_vision_to_track(v_ego, lead_msg, tracks)
   else:
     track = None

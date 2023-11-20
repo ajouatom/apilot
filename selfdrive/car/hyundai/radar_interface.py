@@ -114,7 +114,7 @@ class RadarInterface(RadarInterfaceBase):
       cpt = self.rcp_scc.vl
       dRel = cpt["SCC11"]['ACC_ObjDist']
       vRel = cpt["SCC11"]['ACC_ObjRelSpd']
-      valid = True #cpt["SCC11"]['ACC_ObjStatus'] and dRel < 150
+      valid = cpt["SCC11"]['ACC_ObjStatus'] and dRel < 150
       for ii in range(1):
         if valid:
           if ii not in self.pts:
