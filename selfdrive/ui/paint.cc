@@ -751,6 +751,7 @@ void DrawApilot::makeLeadData(const UIState* s) {
     m_fStopDist = lp.getXStop();
 
     m_bLeadStatus = (lead_radar.getStatus() == 1);
+    m_bLeadSCC = lead_radar.getRadarTrackId() == 0;
 }
 void DrawApilot::drawBackground(const UIState* s) {
     if (s->show_mode == 2) {
@@ -1604,7 +1605,8 @@ void DrawApilot::drawPathEnd(const UIState* s, int x, int y, int path_x, int pat
         py[4] = path_y - 0;
         py[5] = path_y - 17;
         py[6] = path_y - 7;
-        NVGcolor  pcolor = !isRadarDetected() ? ((getTrafficMode() == 1) ? COLOR_RED : COLOR_GREEN) : isRadarDetected() ? COLOR_RED : COLOR_BLUE;
+        NVGcolor rcolor = isLeadSCC() ? COLOR_RED : COLOR_ORANGE;
+        NVGcolor  pcolor = !isRadarDetected() ? ((getTrafficMode() == 1) ? rcolor : COLOR_GREEN) : isRadarDetected() ? rcolor : COLOR_BLUE;
         ui_draw_line2(s, px, py, 7, &pcolor, nullptr, 3.0f);
         if (s->show_path_end > 0 && isLeadDetected()) {
             px[0] = path_x - path_width / 2 - 10;
@@ -1616,7 +1618,7 @@ void DrawApilot::drawPathEnd(const UIState* s, int x, int y, int path_x, int pat
             py[2] = py[1] - path_width * 0.8;
             py[3] = py[2];
             NVGcolor color2 = COLOR_BLACK_ALPHA(20);
-            ui_draw_line2(s, px, py, 4, &color2, nullptr, 3.0f, isRadarDetected() ? COLOR_RED : COLOR_BLUE);
+            ui_draw_line2(s, px, py, 4, &color2, nullptr, 3.0f, isRadarDetected() ? rcolor : COLOR_BLUE);
 
         }
 
