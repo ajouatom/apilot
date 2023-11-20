@@ -875,8 +875,8 @@ class CruiseHelper:
         elif self.v_ego_kph > 20.0 and self.xState == XState.e2eStop: # and abs(self.position_y) < 3.0:
           #v_cruise_kph = self.v_ego_kph_set
           longActiveUser = 3
-        elif self.v_ego_kph > v_cruise_kph:
-          longActiveUser = 3
+        #elif self.v_ego_kph > v_cruise_kph:
+        #  longActiveUser = 3
 
       if longActiveUser <= 0 and not brakePressed and not CS.gasPressed:
         cruiseOnDist = abs(self.cruiseOnDist)

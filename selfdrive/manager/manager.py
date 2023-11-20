@@ -135,7 +135,7 @@ def manager_init() -> None:
     ("HotspotOnBoot", "0"),      
     ("EnableAutoEngage", "0"),      
     ("SccConnectedBus2", "0"),   
-    ("TFollowSpeedRatio", "110"),
+    ("TFollowSpeedAdd", "0"),
     ("TFollowGap1", "110"),
     ("TFollowGap2", "120"),
     ("TFollowGap3", "140"),
