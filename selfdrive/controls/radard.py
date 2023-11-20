@@ -166,6 +166,7 @@ def laplacian_pdf(x: float, mu: float, b: float):
 
 def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks: Dict[int, Track]):
   offset_vision_dist = lead.x[0] - RADAR_TO_CAMERA
+  tracks_len = len(tracks)
 
   def prob(c, c_key):
     prob_d = laplacian_pdf(c.dRel, offset_vision_dist, lead.xStd[0])
@@ -177,7 +178,7 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
     #       이 포인트는 약간 먼데, 주행하고 있는것처럼.. 인식됨. 아주 잠깐 인식됨.
     #        속도관련 weight를 없애야하나?  TG를 지나고 있는 차를 우선시하도록 만든건데...
     #231120: 
-    weight_scc = 0.3 if c_key == 0 else 1.0  ## SCC레이더데이터의 prob는 작게잡아 레이더트랙의 것을 우선순위로 둠. SCC레이더값은 0번에 저장됨.
+    weight_scc = 0.1 if tracks_len > 1 and c_key == 0 else 1.0  ## SCC레이더데이터의 prob는 작게잡아 레이더트랙의 것을 우선순위로 둠. SCC레이더값은 0번에 저장됨.
     weight_v = interp(c.vRel + v_ego, [0, 10], [0.3, 1])
     # This is isn't exactly right, but good heuristic
     return prob_d * prob_y * prob_v * weight_v * weight_scc
