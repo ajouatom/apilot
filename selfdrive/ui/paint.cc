@@ -610,7 +610,7 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
     auto    car_state = sm["carState"].getCarState();
     float   a_ego = car_state.getAEgo();
     float   v_ego = car_state.getVEgo();
-    auto    car_control = sm["carControl"].getCarControl();
+    //auto    car_control = sm["carControl"].getCarControl();
     //float   accel = car_control.getActuators().getAccel();
     auto    live_parameters = sm["liveParameters"].getLiveParameters();
     float   roll = live_parameters.getRoll();
