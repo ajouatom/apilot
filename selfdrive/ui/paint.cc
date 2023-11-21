@@ -611,13 +611,14 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
     float   a_ego = car_state.getAEgo();
     float   v_ego = car_state.getVEgo();
     auto    car_control = sm["carControl"].getCarControl();
-    float   accel = car_control.getActuators().getAccel();
+    //float   accel = car_control.getActuators().getAccel();
     auto    live_parameters = sm["liveParameters"].getLiveParameters();
     float   roll = live_parameters.getRoll();
     auto    controls_state = sm["controlsState"].getControlsState();
     float   curvature = controls_state.getCurvature();
     //float   desired_curvature = controls_state.getDesiredCurvature();
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    float   accel = lp.getAccels()[0];
     float   speeds_0 = lp.getSpeeds()[0];
     const auto lat_plan = sm["lateralPlan"].getLateralPlan();
     float   curvatures_0 = lat_plan.getCurvatures()[0];
