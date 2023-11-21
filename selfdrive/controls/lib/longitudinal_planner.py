@@ -229,7 +229,7 @@ class LongitudinalPlanner:
 
     #C2#longitudinalPlan.solverExecutionTime = self.mpc.solve_time
 
-    #C2#longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
+    longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
     #self.mpc.debugLongText2 = "Vout={:3.2f},{:3.2f},{:3.2f},{:3.2f},{:3.2f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[2]*3.6,longitudinalPlan.speeds[3]*3.6,longitudinalPlan.speeds[-1]*3.6)
     #self.mpc.debugLongText2 = "VisionTurn:State={},Speed={:.1f}".format(self.vision_turn_controller.state, self.vision_turn_controller.v_turn*3.6)
     longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
