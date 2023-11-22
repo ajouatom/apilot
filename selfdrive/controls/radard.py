@@ -459,24 +459,22 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
-  now = time.monotonic()
+  #now = time.monotonic()
   while 1:
-    #can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
-    can_strings = messaging.drain_sock_raw(can_sock)
+    can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
 
     if rr is None:
       continue
 
-    sm.update(0)
-    print("{:0.3f}".format(time.monotonic() - now))
-    now = time.monotonic()
+    #sm.update(0)
+    #print("{:0.3f}".format(time.monotonic() - now))
+    #now = time.monotonic()
 
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
 
     rk.monitor_time()
-    rk.keep_time()
 
 
 def main(sm: Optional[messaging.SubMaster] = None, pm: Optional[messaging.PubMaster] = None, can_sock: messaging.SubSocket = None):
