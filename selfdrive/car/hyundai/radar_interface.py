@@ -19,7 +19,7 @@ def get_radar_can_parser(CP):
     return None
 
   print("RadarInterface: RadarTracks...")
-  messages = [(f"RADAR_TRACK_{addr:x}", 50) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
+  messages = [(f"RADAR_TRACK_{addr:x}", 20) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
   return CANParser('hyundai_kia_mando_front_radar_generated', messages, 1)
 
 def get_radar_can_parser_scc(CP):
@@ -30,7 +30,7 @@ def get_radar_can_parser_scc(CP):
     return None
 
   print("RadarInterface: SCC Radar (Bus{})".format( 2 if scc2 else 0))
-  messages = [("SCC11", 50)]    
+  messages = [("SCC11", 20)]    
   return CANParser(DBC[CP.carFingerprint]['pt'], messages, 2 if scc2 else 0)
 
 class RadarInterface(RadarInterfaceBase):
