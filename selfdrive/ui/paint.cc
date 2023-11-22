@@ -610,14 +610,15 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
     auto    car_state = sm["carState"].getCarState();
     float   a_ego = car_state.getAEgo();
     float   v_ego = car_state.getVEgo();
-    auto    car_control = sm["carControl"].getCarControl();
-    float   accel = car_control.getActuators().getAccel();
+    //auto    car_control = sm["carControl"].getCarControl();
+    //float   accel = car_control.getActuators().getAccel();
     auto    live_parameters = sm["liveParameters"].getLiveParameters();
     float   roll = live_parameters.getRoll();
     auto    controls_state = sm["controlsState"].getControlsState();
     float   curvature = controls_state.getCurvature();
     //float   desired_curvature = controls_state.getDesiredCurvature();
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    float   accel = lp.getAccels()[0];
     float   speeds_0 = lp.getSpeeds()[0];
     const auto lat_plan = sm["lateralPlan"].getLateralPlan();
     float   curvatures_0 = lat_plan.getCurvatures()[0];
@@ -625,6 +626,8 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
     const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const auto position = model.getPosition();
     const auto velocity = model.getVelocity();
+
+    auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
 
     switch (s->show_plot_mode) {
     case 0:
@@ -645,6 +648,10 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
     case 4:
         data1 = position.getX()[32];
         data2 = velocity.getX()[32];
+        break;
+    case 5:
+        data1 = lead_radar.getVLeadK();
+        data2 = lead_radar.getALeadK();
         break;
     default:
         data1 = data2 = 0;
