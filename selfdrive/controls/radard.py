@@ -463,13 +463,13 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
-    print("{:0.3f}".format(time.monotonic() - now))
-    now = time.monotonic()
 
     if rr is None:
       continue
 
     sm.update(0)
+    print("{:0.3f}".format(time.monotonic() - now))
+    now = time.monotonic()
 
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
