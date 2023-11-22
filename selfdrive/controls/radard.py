@@ -467,7 +467,7 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
     if rr is None:
       continue
 
-    #sm.update(0)
+    sm.update(0)
     #print("{:0.3f}".format(time.monotonic() - now))
     #now = time.monotonic()
 
