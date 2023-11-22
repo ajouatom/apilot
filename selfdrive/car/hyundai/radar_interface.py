@@ -25,6 +25,10 @@ def get_radar_can_parser(CP):
 def get_radar_can_parser_scc(CP):
   scc2 = Params().get_bool("SccConnectedBus2")
 
+  enable_radar_tracks = Params().get_bool("EnableRadarTracks")
+  if enable_radar_tracks and not scc2: #레이더트랙은 켜져있으나, SCC2가 아닌경우  : SCC기능정지후 사용하는 롱컨..
+    return None
+
   print("RadarInterface: SCC Radar (Bus{})".format( 2 if scc2 else 0))
   messages = [("SCC11", 50)]    
   return CANParser(DBC[CP.carFingerprint]['pt'], messages, 2 if scc2 else 0)
