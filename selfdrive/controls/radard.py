@@ -16,6 +16,7 @@ from openpilot.common.kalman.simple_kalman import KF1D
 from openpilot.common.params import Params
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
+import time
 
 LEAD_PATH_DREL_MIN = 60 # [m] only care about far away leads
 MIN_LANE_PROB = 0.6  # Minimum lanes probability to allow use.
@@ -458,9 +459,12 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
+  now = time.monotonic()
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
+    print("{:0.3f}".format(time.monotonic() - now))
+    now = time.monotonic()
 
     if rr is None:
       continue
