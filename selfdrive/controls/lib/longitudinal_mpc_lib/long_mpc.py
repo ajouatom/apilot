@@ -233,6 +233,7 @@ class LongitudinalMpc:
     self.trafficStopMode = 1
     self.softHoldMode = 1
     self.tFollowSpeedAdd = 0.0
+    self.tFollowSpeedAddM = 0.0
     self.tFollowGap1 = 1.1
     self.tFollowGap2 = 1.2
     self.tFollowGap3 = 1.4
@@ -582,6 +583,7 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     elif self.lo_timer == 100:
       self.tFollowSpeedAdd = float(int(Params().get("TFollowSpeedAdd", encoding="utf8"))) / 100.
+      self.tFollowSpeedAddM = float(int(Params().get("TFollowSpeedAddM", encoding="utf8"))) / 100.
       self.tFollowGap1 = float(int(Params().get("TFollowGap1", encoding="utf8"))) / 100.
       self.tFollowGap2 = float(int(Params().get("TFollowGap2", encoding="utf8"))) / 100.
       self.tFollowGap3 = float(int(Params().get("TFollowGap3", encoding="utf8"))) / 100.
@@ -607,7 +609,7 @@ class LongitudinalMpc:
           4: self.tFollowGap4,
           }
         tf = cruiseGap_dict[self.applyCruiseGap]
-        cruiseGapRatio = interp(v_ego_kph, [0, 100], [tf, tf + self.tFollowSpeedAdd]) 
+        cruiseGapRatio = interp(v_ego_kph, [0, 40, 100], [tf, tf + self.tFollowSpeedAddM, tf + self.tFollowSpeedAdd]) 
         self.t_follow = max(0.6, cruiseGapRatio * (2.0 - self.mySafeModeFactor)) 
     else:
       if self.status:

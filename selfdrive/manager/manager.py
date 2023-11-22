@@ -136,6 +136,7 @@ def manager_init() -> None:
     ("EnableAutoEngage", "0"),      
     ("SccConnectedBus2", "0"),   
     ("TFollowSpeedAdd", "0"),
+    ("TFollowSpeedAddM", "0"),
     ("TFollowGap1", "110"),
     ("TFollowGap2", "120"),
     ("TFollowGap3", "140"),

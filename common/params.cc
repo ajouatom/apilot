@@ -310,6 +310,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "EnableAutoEngage", PERSISTENT },
     { "SccConnectedBus2", PERSISTENT },
     { "TFollowSpeedAdd", PERSISTENT },
+    { "TFollowSpeedAddM", PERSISTENT },
     { "TFollowGap1", PERSISTENT },
     { "TFollowGap2", PERSISTENT },
     { "TFollowGap3", PERSISTENT },
