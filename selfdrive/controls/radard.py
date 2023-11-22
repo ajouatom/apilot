@@ -468,13 +468,14 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
       continue
 
     sm.update(0)
-    #print("{:0.3f}".format(time.monotonic() - now))
-    #now = time.monotonic()
 
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
 
-    rk.monitor_time()
+    #print("{:.3f}{:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    #now = time.monotonic()
+    rk.keep_time()
+    #rk.monitor_time()
 
 
 def main(sm: Optional[messaging.SubMaster] = None, pm: Optional[messaging.PubMaster] = None, can_sock: messaging.SubSocket = None):
