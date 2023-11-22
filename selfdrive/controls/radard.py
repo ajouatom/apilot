@@ -475,6 +475,7 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
     RD.publish(pm, -rk.remaining*1000.0)
 
     rk.monitor_time()
+    rk.keep_time()
 
 
 def main(sm: Optional[messaging.SubMaster] = None, pm: Optional[messaging.PubMaster] = None, can_sock: messaging.SubSocket = None):
