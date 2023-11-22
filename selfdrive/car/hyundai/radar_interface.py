@@ -5,6 +5,7 @@ from opendbc.can.parser import CANParser
 from openpilot.selfdrive.car.interfaces import RadarInterfaceBase
 from openpilot.selfdrive.car.hyundai.values import DBC
 from openpilot.common.params import Params
+from openpilot.common.filter_simple import StreamingMovingAverage
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
@@ -18,7 +19,7 @@ def get_radar_can_parser(CP):
     return None
 
   print("RadarInterface: RadarTracks...")
-  messages = [(f"RADAR_TRACK_{addr:x}", 20) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
+  messages = [(f"RADAR_TRACK_{addr:x}", 50) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
   return CANParser('hyundai_kia_mando_front_radar_generated', messages, 1)
 
 def get_radar_can_parser_scc(CP):
@@ -29,7 +30,7 @@ def get_radar_can_parser_scc(CP):
     return None
 
   print("RadarInterface: SCC Radar (Bus{})".format( 2 if scc2 else 0))
-  messages = [("SCC11", 20)]    
+  messages = [("SCC11", 50)]    
   return CANParser(DBC[CP.carFingerprint]['pt'], messages, 2 if scc2 else 0)
 
 class RadarInterface(RadarInterfaceBase):
@@ -47,6 +48,8 @@ class RadarInterface(RadarInterfaceBase):
     self.rcp_scc = get_radar_can_parser_scc(CP)
     self.updated_messages_scc = set()
     self.trigger_msg_scc = 0x420
+    self.dRelFilter = StreamingMovingAverage(2)
+    self.vRelFilter = StreamingMovingAverage(4)
 
   def update(self, can_strings):
     #if not self.enable_radar_tracks and (self.radar_off_can or (self.rcp is None)):
@@ -122,9 +125,14 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii] = car.RadarData.RadarPoint.new_message()
             self.pts[ii].trackId = 0 #self.track_id
             #self.track_id += 1
-          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
+            dRel = self.dRelFilter.set(dRel)
+            vRel = self.vRelFilter.set(vRel)
+          else:
+            dRel = self.dRelFilter.process(dRel)
+            vRel = self.vRelFilter.process(vRel)
+          self.pts[ii].dRel = dRel #cpt["SCC11"]['ACC_ObjDist']  # from front of car
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
-          self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
+          self.pts[ii].vRel = vRel #cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True

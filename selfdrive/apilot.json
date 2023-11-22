@@ -1102,7 +1102,7 @@
       "etitle": "SCC Radar&Vision MIX",
       "edescr": "",
       "min": 0,
-      "max": 1,
+      "max": 2,
       "default": 0,
       "unit": 1
     },
