@@ -48,8 +48,6 @@ class RadarInterface(RadarInterfaceBase):
     self.rcp_scc = get_radar_can_parser_scc(CP)
     self.updated_messages_scc = set()
     self.trigger_msg_scc = 0x420
-    self.dRelFilter = StreamingMovingAverage(2)
-    self.vRelFilter = StreamingMovingAverage(2)
 
   def update(self, can_strings):
     #if not self.enable_radar_tracks and (self.radar_off_can or (self.rcp is None)):
@@ -125,14 +123,9 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii] = car.RadarData.RadarPoint.new_message()
             self.pts[ii].trackId = 0 #self.track_id
             #self.track_id += 1
-            dRel = self.dRelFilter.set(dRel)
-            vRel = self.vRelFilter.set(vRel)
-          else:
-            dRel = self.dRelFilter.process(dRel)
-            vRel = self.vRelFilter.process(vRel)
-          self.pts[ii].dRel = dRel #cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
-          self.pts[ii].vRel = vRel #cpt["SCC11"]['ACC_ObjRelSpd']
+          self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True
