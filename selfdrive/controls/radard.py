@@ -461,7 +461,8 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
 
   now = time.monotonic()
   while 1:
-    can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
+    #can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
+    can_strings = messaging.drain_sock_raw(can_sock)
     rr = RI.update(can_strings)
 
     if rr is None:
