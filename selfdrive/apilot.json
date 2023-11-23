@@ -315,6 +315,32 @@
     },
     {
       "group": "林青譬醋",
+      "name": "AChangeCost",
+      "title": "AChangeCost(200)",
+      "descr": "",
+      "egroup": "LONG",
+      "etitle": "AChangeCost(200)",
+      "edescr": "",
+      "min": 0,
+      "max": 1000,
+      "default": 10,
+      "unit": 5
+    },
+    {
+      "group": "林青譬醋",
+      "name": "AChangeCostStart",
+      "title": "AChangeCostStart(40)",
+      "descr": "",
+      "egroup": "LONG",
+      "etitle": "AChangeCostStart(40)",
+      "edescr": "",
+      "min": 0,
+      "max": 1000,
+      "default": 10,
+      "unit": 5
+    },
+    {
+      "group": "林青譬醋",
       "name": "LongitudinalTuningKpV",
       "title": "KpV霸牢(100)",
       "descr": "",

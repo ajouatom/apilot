@@ -228,6 +228,8 @@ class LongitudinalMpc:
     self.trafficState = 0
     self.trafficStopDistanceAdjust = 0.
     self.applyLongDynamicCost = False
+    self.aChangeCost = 200
+    self.aChangeCostStart = 40
     self.trafficStopAccel = 1.
     self.trafficStopModelSpeed = True
     self.trafficStopMode = 1
@@ -348,7 +350,7 @@ class LongitudinalMpc:
 
   def set_weights(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
     if self.mode == 'acc':
-      a_change_cost = A_CHANGE_COST if prev_accel_constraint else 40
+      a_change_cost = self.aChangeCost if prev_accel_constraint else self.aChangeCostStart
       if self.applyLongDynamicCost:
         cost_mulitpliers = self.get_cost_multipliers(v_lead0, v_lead1)
         cost_weights = [X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, a_change_cost * cost_mulitpliers[0], J_EGO_COST * cost_mulitpliers[1]]
@@ -589,7 +591,8 @@ class LongitudinalMpc:
       self.tFollowGap3 = float(int(Params().get("TFollowGap3", encoding="utf8"))) / 100.
       self.tFollowGap4 = float(int(Params().get("TFollowGap4", encoding="utf8"))) / 100.
     elif self.lo_timer == 120:
-      pass
+      self.aChangeCost = int(Params().get("AChangeCost", encoding="utf8"))
+      self.aChangeCostStart = int(Params().get("AChangeCostStart", encoding="utf8"))
     elif self.lo_timer == 140:
       self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
     elif self.lo_timer == 160:

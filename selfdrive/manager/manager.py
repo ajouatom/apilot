@@ -104,6 +104,8 @@ def manager_init() -> None:
     ("TrafficStopDistanceAdjust", "180"),
     ("AutoSpeedUptoRoadSpeedLimit", "100"),
     ("ApplyLongDynamicCost", "0"), 
+    ("AChangeCost", "200"), 
+    ("AChangeCostStart", "40"), 
     ("AutoSpeedAdjustWithLeadCar", "0"),   
     ("TrafficStopAccel", "80"),     
     ("TrafficStopModelSpeed", "0"),         
