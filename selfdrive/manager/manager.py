@@ -106,6 +106,7 @@ def manager_init() -> None:
     ("ApplyLongDynamicCost", "0"), 
     ("AChangeCost", "200"), 
     ("AChangeCostStart", "40"), 
+    ("ALeadTau", "150"), 
     ("AutoSpeedAdjustWithLeadCar", "0"),   
     ("TrafficStopAccel", "80"),     
     ("TrafficStopModelSpeed", "0"),         
