@@ -376,17 +376,17 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     tracks_center = {}
     tracks_left = {}
     tracks_right = {}
-    max_vRel = 0.0
+    max_vLead = 0.0
     max_track = None
     for c in tracks.values():
       # d_y :  path_y - traks_y 의 diff값
       # path_x의 값보다 크면? 레이더 감지 없는것으로 하자, 
-      if c.dRel < max_dist:
+      if True: #c.dRel < max_dist:
         d_y = -c.yRel - interp(c.dRel, md_x, md_y)
         if abs(d_y) < lane_width/2:
           tracks_center[c.dRel] = c
-          if c.vRel > max_vRel:
-            max_vRel = c.vRel
+          if c.vRel+v_ego > max_vLead:
+            max_vLead = c.vRel + v_ego
             max_track = c
         elif abs(d_y) < 0:
           tracks_left[c.dRel] = c
