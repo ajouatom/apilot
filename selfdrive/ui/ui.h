@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <optional>
 
 #include <QObject>
 #include <QTimer>
@@ -14,9 +13,10 @@
 #include "nanovg.h"
 
 #include "cereal/messaging/messaging.h"
-#include "common/modeldata.h"
+#include "common/mat.h"
 #include "common/params.h"
 #include "common/timing.h"
+#include "system/hardware/hw.h"
 
 const int UI_BORDER_SIZE = 30;
 const int UI_HEADER_HEIGHT = 420;
@@ -25,7 +25,6 @@ const int UI_FREQ = 20; // Hz
 const int BACKLIGHT_OFFROAD = 50;
 typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
 
-const mat3 DEFAULT_CALIBRATION = {{ 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0 }};
 typedef struct Rect {
   int x, y, w, h;
   int centerX() const { return x + w / 2; }
@@ -37,7 +36,20 @@ typedef struct Rect {
   }
 } Rect;
 
-const vec3 default_face_kpts_3d[] = {
+const float MIN_DRAW_DISTANCE = 10.0;
+const float MAX_DRAW_DISTANCE = 100.0;
+constexpr mat3 DEFAULT_CALIBRATION = {{ 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0 }};
+constexpr mat3 FCAM_INTRINSIC_MATRIX = (mat3){{2648.0, 0.0, 1928.0 / 2,
+                                           0.0, 2648.0, 1208.0 / 2,
+                                           0.0, 0.0, 1.0}};
+// tici ecam focal probably wrong? magnification is not consistent across frame
+// Need to retrain model before this can be changed
+constexpr mat3 ECAM_INTRINSIC_MATRIX = (mat3){{567.0, 0.0, 1928.0 / 2,
+                                           0.0, 567.0, 1208.0 / 2,
+                                           0.0, 0.0, 1.0}};
+
+
+constexpr vec3 default_face_kpts_3d[] = {
   {-5.98, -51.20, 8.00}, {-17.64, -49.14, 8.00}, {-23.81, -46.40, 8.00}, {-29.98, -40.91, 8.00}, {-32.04, -37.49, 8.00},
   {-34.10, -32.00, 8.00}, {-36.16, -21.03, 8.00}, {-36.16, 6.40, 8.00}, {-35.47, 10.51, 8.00}, {-32.73, 19.43, 8.00},
   {-29.30, 26.29, 8.00}, {-24.50, 33.83, 8.00}, {-19.01, 41.37, 8.00}, {-14.21, 46.17, 8.00}, {-12.16, 47.54, 8.00},
@@ -136,7 +148,7 @@ static std::map<cereal::ControlsState::AlertStatus, QColor> alert_colors = {
 };
 
 typedef struct {
-  QPointF v[TRAJECTORY_SIZE * 2];
+  QPointF v[33 * 2];
   int cnt;
 } line_vertices_data;
 
