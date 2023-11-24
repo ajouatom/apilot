@@ -19,10 +19,6 @@ public:
   ScreenRecoder(QWidget *parent = 0);
   virtual ~ScreenRecoder();
 
-public slots:
-    void btnReleased(void);
-    void btnPressed(void);
-
 protected:
   void paintEvent(QPaintEvent*) override;
 
