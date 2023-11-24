@@ -71,7 +71,7 @@ class Track:
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
 
-  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float):
+  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, aLeadTau: float):
 
     #apilot: changed radar target
     if abs(self.dRel - d_rel) > 3.0: # 3M이상 차이날때 초기화
@@ -93,7 +93,7 @@ class Track:
 
     # Learn if constant acceleration
     if abs(self.aLeadK) < 0.5:
-      self.aLeadTau = float(int(Params().get("ALeadTau", encoding="utf8"))) / 100. #_LEAD_ACCEL_TAU
+      self.aLeadTau = aLeadTau#_LEAD_ACCEL_TAU
     else:
       self.aLeadTau *= 0.9
 
@@ -347,7 +347,7 @@ def get_lead_side(v_ego, tracks, md, lane_width):
     ld = c.get_RadarState()
     if abs(d_y) < lane_width/2:
       leads_center[c.dRel] = ld
-    elif abs(d_y) < 0:
+    elif d_y < 0:
       leads_left[c.dRel] = ld
     else:
       leads_right[c.dRel] = ld
@@ -370,6 +370,7 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
       md_y = md.lateralPlannerSolution.y
       md_x = md.lateralPlannerSolution.x
+      md_yProbs = md.yStd
     else:
       return track_scc
 
@@ -377,8 +378,11 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     tracks_left = {}
     tracks_right = {}
     for track_id, c in tracks.items():
-      d_y = -c.yRel - interp(c.dRel, md_x, md_y)
-      if abs(d_y) < lane_width/2:
+      lp_y = interp(c.dRel, md_x, md_y)
+      d_y = -c.yRel - lp_y
+      yStd = interp(c.dRel, md_x, md_yProbs)
+      prob_y = laplacian_pdf(c.yRel, -lp_y, yStd)
+      if abs(d_y) < lane_width and prob_y > 0.5:
         tracks_center[track_id] = c
       elif d_y < 0:
         tracks_left[track_id] = c
@@ -436,10 +440,12 @@ class RadarD:
     self.ready = False
     self.showRadarInfo = False
     self.mixRadarInfo = 0
+    self.aLeadTau = 1.5
 
   def update(self, sm: messaging.SubMaster, rr: Optional[car.RadarData]):
     self.showRadarInfo = int(Params().get("ShowRadarInfo"))
     self.mixRadarInfo = int(Params().get("MixRadarInfo"))
+    self.aLeadTau = float(Params().get_int("ALeadTau")) / 100. 
 
     self.current_time = 1e-9*max(sm.logMonoTime.values())
 
@@ -473,7 +479,7 @@ class RadarD:
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
         self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
-      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3])
+      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], self.aLeadTau)
 
     # *** publish radarState ***
     self.radar_state_valid = sm.all_checks() and len(radar_errors) == 0
