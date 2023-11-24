@@ -497,8 +497,8 @@ class RadarD:
       if self.mixRadarInfo == 2:
         self.radar_state.leadOne = get_lead_apilot(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth)
         self.radar_state.leadTwo = get_lead_apilot(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth)
-        ll,lc,lr = get_lead_side(self.v_ego, self.tracks, sm['modelV2'], sm['lateralPlan'].laneWidth)
         if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
+          ll,lc,lr = get_lead_side(self.v_ego, self.tracks, sm['modelV2'], sm['lateralPlan'].laneWidth)
           self.radar_state.leadsLeft = list(ll)
           self.radar_state.leadsCenter = list(lc)
           self.radar_state.leadsRight = list(lr)
