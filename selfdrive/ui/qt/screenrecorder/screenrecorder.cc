@@ -30,8 +30,13 @@ ScreenRecoder::ScreenRecoder(QWidget *parent) : QPushButton(parent), image_queue
   const int size = 190;
   setFixedSize(size, size);
   setFocusPolicy(Qt::NoFocus);
-  connect(this, SIGNAL(pressed()),this,SLOT(btnPressed()));
-  connect(this, SIGNAL(released()),this,SLOT(btnReleased()));
+
+  QObject::connect(this, &QPushButton::clicked, [=]() { toggle(); });
+  QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
+    if(offroad) {
+      stop(false);
+    }
+  });
 
   std::string path = "/data/media/0/videos";
   src_width = 2160;
@@ -87,13 +92,6 @@ void ScreenRecoder::paintEvent(QPaintEvent *event) {
     QColor bg = recording ? recording_color : QColor::fromRgbF(0, 0, 0, 0.3);
     p.setBrush(QBrush(bg));
     p.drawEllipse(r);
-}
-
-void ScreenRecoder::btnReleased(void) {
-    toggle();
-}
-
-void ScreenRecoder::btnPressed(void) {
 }
 
 void ScreenRecoder::openEncoder(const char* filename) {
