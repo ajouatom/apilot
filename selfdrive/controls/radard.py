@@ -370,7 +370,7 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
       md_y = md.lateralPlannerSolution.y
       md_x = md.lateralPlannerSolution.x
-      md_yProbs = md.yStd
+      md_yProbs = md.lateralPlannerSolution.yStd
     else:
       return track_scc
 
