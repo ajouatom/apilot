@@ -365,6 +365,7 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
   if track_scc is not None:
     del tracks[0]
 
+  ## SCC레이더 개조는 track이 1개밖에 없으니, 항상 SCC레이더는 사용한다.
   if len(tracks) > 0:
     if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
       md_y = md.lateralPlannerSolution.y
@@ -372,52 +373,36 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     else:
       return track_scc
 
-    max_dist = md_x[-1]
     tracks_center = {}
     tracks_left = {}
     tracks_right = {}
-    max_vLead = 0.0
-    max_track = None
-    min_dRel = 300.0
-    min_track = None
-    for c in tracks.values():
-      # d_y :  path_y - traks_y 의 diff값
-      # path_x의 값보다 크면? 레이더 감지 없는것으로 하자, 
-      if True: #c.dRel < max_dist:
-        d_y = -c.yRel - interp(c.dRel, md_x, md_y)
-        if abs(d_y) < lane_width/2:
-          tracks_center[c.dRel] = c
-          if c.vRel+v_ego > max_vLead:
-            max_vLead = c.vRel + v_ego
-            max_track = c
-          if c.dRel < min_dRel:
-            min_dRel = c.dRel
-            min_track = c
-        elif abs(d_y) < 0:
-          tracks_left[c.dRel] = c
-        else:
-          tracks_right[c.dRel] = c
-
-    # path의 차선폭 안에 들어온 레이더가 있다면..
-    #if len(tracks_center) > 0:
-    if max_track is not None:
-      # 속도가 가장 높은것으로 가져옴.
-      #scores = {key: c.vRel + v_ego for key, c in tracks_center.items()}
-      #max_key, max_track = max(tracks_center.items(), key=lambda item: item[1].vRel + v_ego)
-      if max_track.vRel + v_ego > 3: # lead가 3m/s이상으로 움직이면?
-        return max_track
+    for track_id, c in tracks.items():
+      d_y = -c.yRel - interp(c.dRel, md_x, md_y)
+      if abs(d_y) < lane_width/2:
+        tracks_center[track_id] = c
+      elif d_y < 0:
+        tracks_left[track_id] = c
       else:
-        max_track = min_track
-      if lead_msg.prob > .5 and max_track is not None:
-        dist_sane = abs(max_track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])    
-        vel_sane = (abs(max_track.vRel + v_ego - lead_msg.v[0]) < 10)
-        if dist_sane and vel_sane:
-          return max_track
+        tracks_right[track_id] = c
+
+    if lead_msg.prob > .5: # 비젼감지된경우
+      tracks_match = {track_id: track for track_id, track in tracks_center.items() 
+                        if (abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])) 
+                        and (abs(track.vRel + v_ego - lead_msg.v[0]) < 10)}
+      if tracks_match:
+        min_track_id = min(tracks_match, key=lambda id:tracks_match[id].dRel)
+        return tracks_match[min_track_id]
+      if track_scc is not None:
+        if offset_vision_dist > track_scc.dRel - 5.0: #끼어드는 차량이 있는 경우 비젼으로 처리하도록 삭제..
+          track_scc = None
+      return track_scc
+ 
+    tracks_fast = {track_id: track for track_id, track in tracks_center.items() if track.vRel+v_ego > 3.0}
+    if tracks_fast:
+      min_track_id = min(tracks_fast, key=lambda id:tracks_fast[id].dRel)
+      return tracks_fast[min_track_id]
 
   ## 검출된 레이더가 없는데.. 
-  if track_scc is not None and lead_msg.prob > .5:
-    if offset_vision_dist < track_scc.dRel - 5.0: #끼어드는 차량이 있는 경우 비젼으로 처리하도록 삭제..
-      track_scc = None
   return track_scc
 
 def get_lead_apilot(v_ego, ready, tracks, lead_msg, model_v_ego, md, lane_width):
