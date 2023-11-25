@@ -407,7 +407,7 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     tracks_left = {}
     tracks_right = {}
     for track_id, c in tracks.items():
-      lp_y = interp(c.dRel, md_x, md_y)
+      lp_y = interp(c.dRel + c.vLat, md_x, md_y)
       d_y = -c.yRel - lp_y
       lw = interp(c.dRel, [0, 10, 100], [1.5, lane_width, lane_width*0.6] )
       if abs(d_y) < lw / 2:
