@@ -93,7 +93,7 @@ class Track:
 
     # Learn if constant acceleration
     if abs(self.aLeadK) < 0.5:
-      self.aLeadTau = 30 if self.aLeadK < 0 else aLeadTau#_LEAD_ACCEL_TAU
+      self.aLeadTau = 0.3 if self.aLeadK < 0 else aLeadTau#_LEAD_ACCEL_TAU
     else:
       self.aLeadTau *= 0.9
 
