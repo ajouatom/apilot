@@ -306,7 +306,6 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
   else:
     track = None
 
-  print(tracks)
   ## vision match후 발견된 track이 없으면
   ##  track_scc 가 있는 지 확인하고
   ##    비전과의 차이가 35%(5M)이상 차이나면 scc가 발견못한것이기 때문에 비전것으로 처리함.
@@ -506,6 +505,8 @@ class RadarD:
       if ids not in self.tracks:
         self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
       self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau, self.a_ego)
+
+    print(self.tracks)
 
     # *** publish radarState ***
     self.radar_state_valid = sm.all_checks() and len(radar_errors) == 0
