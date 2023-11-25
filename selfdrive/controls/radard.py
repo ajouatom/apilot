@@ -283,7 +283,7 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
     "vRel": float(lead_v_rel_pred),
     "vLead": float(v_ego + lead_v_rel_pred),
     "vLeadK": float(v_ego + lead_v_rel_pred),
-    "aLeadK": 0.0,
+    "aLeadK": float(lead_msg.a[0]), #0.0,
     "aLeadTau": 0.3,
     "fcw": False,
     "modelProb": float(lead_msg.prob),
@@ -295,18 +295,22 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
 
 def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capnp._DynamicStructReader,
              model_v_ego: float, low_speed_override: bool = True, mixRadarInfo=0) -> Dict[str, Any]:
+  ## SCC레이더는 일단 보관하고 리스트에서 삭제...
+  track_scc = tracks.get(0)
+  if track_scc is not None:
+    del tracks[0]
   # Determine leads, this is where the essential logic happens
   if len(tracks) > 0 and ready and lead_msg.prob > .5:
     track = match_vision_to_track(v_ego, lead_msg, tracks)
   else:
     track = None
 
-  ## vision match후 SCC radar값이 버져졌으면, 다시 살려서 처리함.
-  ##  SCC레이더 값 우선처리하도록함.
-  ##     가끔씩 SCC레이더값이 작은데도 비전과의 차이가 35%(5M)이상 차이나면, 버리는 경우가 있음.
-  if len(tracks) > 0 and track is None:
-    track = tracks.get(0)  ## SCC radar always 0
-    if track is not None and lead_msg.prob > .5:
+  ## vision match후 발견된 track이 없으면
+  ##  track_scc 가 있는 지 확인하고
+  ##    비전과의 차이가 35%(5M)이상 차이나면 scc가 발견못한것이기 때문에 비전것으로 처리함.
+  if track_scc is not None and track is None:
+    track = track_scc
+    if lead_msg.prob > .5:
       offset_vision_dist = lead_msg.x[0] - RADAR_TO_CAMERA
       if offset_vision_dist < track.dRel - 5.0: #끼어드는 차량이 있는 경우 처리..
         track = None
