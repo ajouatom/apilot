@@ -133,6 +133,7 @@ class Track:
       "radar": True,
       "radarTrackId": self.identifier,
       "aRel": float(self.aRel),
+      "vLat": float(self.vLat),
     }
   
   def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
@@ -156,6 +157,7 @@ class Track:
       "radar": True,
       "radarTrackId": self.identifier,
       "aRel": float(self.aRel),
+      "vLat": float(self.vLat),
     }
 
 
