@@ -716,7 +716,7 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
         for (auto const& vrd : s->scene.lead_vertices_side) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
 
-            if (rv < -0.5 || rv > 0.5) {
+            if (rv < -1.0 || rv > 1.0) {
                 sprintf(str, "%.0f", rv * 3.6);
                 wStr = 35 * (strlen(str) + 0);
                 ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, (rv>0.)?COLOR_GREEN:COLOR_RED, 15);
