@@ -61,7 +61,7 @@ class KalmanParams:
 
 
 class Track:
-  def __init__(self, identifier: int, v_lead: float, kalman_params: KalmanParams):
+  def __init__(self, identifier: int, v_lead: float, y_rel: float, kalman_params: KalmanParams):
     self.identifier = identifier
     self.cnt = 0
     self.aLeadTau = _LEAD_ACCEL_TAU
@@ -69,6 +69,7 @@ class Track:
     self.K_C = kalman_params.C
     self.K_K = kalman_params.K
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
+    self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
     self.vision_prob = 0.0
 
@@ -78,6 +79,7 @@ class Track:
     if abs(self.dRel - d_rel) > 3.0: # 3M이상 차이날때 초기화
       self.cnt = 0
       self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
+      self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K) 
     # relative values, copy
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
@@ -89,6 +91,9 @@ class Track:
     # computed velocity and accelerations
     if self.cnt > 0:
       self.kf.update(self.vLead)
+      self.kf_y.update(self.yRel)
+
+    self.vLat = float(self.kf_y.x[1][0])
 
     self.vLeadK = float(self.kf.x[SPEED][0])
     if True: #a_rel == 0:
@@ -335,7 +340,15 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
 
   return lead_dict
 
+def get_leads(tracks):
+  leads = []
+  for c in tracks.values():
+    ld = c.get_RaarState(c.vision_prob)
+    leads.append(ld)
+  return leads
+
 def get_lead_side(v_ego, tracks, md, lane_width):
+
   ## SCC레이더는 일단 보관하고 리스트에서 삭제...
   track_scc = tracks.get(0)
   if track_scc is not None:
@@ -354,9 +367,9 @@ def get_lead_side(v_ego, tracks, md, lane_width):
   leads_right = {}
   for c in tracks.values():
     # d_y :  path_y - traks_y 의 diff값
+    # yRel값은 왼쪽이 +값, lead.y[0]값은 왼쪽이 -값
     d_y = -c.yRel - interp(c.dRel, md_x, md_y)
-    print(c, c.vision_prob)
-    ld = c.get_RadarState()
+    ld = c.get_RadarState(c.vision_prob)
     if abs(d_y) < lane_width/2:
       leads_center[c.dRel] = ld
     elif d_y < 0:
@@ -364,8 +377,11 @@ def get_lead_side(v_ego, tracks, md, lane_width):
     else:
       leads_right[c.dRel] = ld
 
-  ll,lr = [[l[k] for k in sorted(list(l.keys()))] for l in [leads_left,leads_right]]
-  lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
+  #ll,lr = [[l[k] for k in sorted(list(l.keys()))] for l in [leads_left,leads_right]]
+  #lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
+  ll = list(leads_left.values())
+  lr = list(leads_right.values())
+  lc = list(leads_center.values())
   return [ll,lc,lr]
   #return [leads_left, leads_center, leads_right]
 
@@ -504,7 +520,7 @@ class RadarD:
 
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
-        self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
+        self.tracks[ids] = Track(ids, v_lead, rpt[1], self.kalman_params)
       self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau, self.a_ego)
 
     # *** publish radarState ***
@@ -551,6 +567,7 @@ class RadarD:
         "yRel": float(self.tracks[tid].yRel),
         "vRel": float(self.tracks[tid].vRel),
         "aRel": float(self.tracks[tid].aRel),
+        "vLat": float(self.tracks[tid].vLat),
       }
     pm.send('liveTracks', tracks_msg)
 
