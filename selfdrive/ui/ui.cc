@@ -70,9 +70,7 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
     calib_frame_to_full_frame(s, max_distance, y + 1.2, z + 1.22, &s->scene.path_end_right_vertices[i]);
   }
 
-  s->scene.lead_vertices_oncoming.clear();
-  s->scene.lead_vertices_ongoing.clear();
-  s->scene.lead_vertices_stopped.clear();
+  s->scene.lead_vertices_side.clear();
   for (auto const& rs : { radar_state.getLeadsLeft(), radar_state.getLeadsRight(), radar_state.getLeadsCenter() }) {
       for (auto const& l : rs) {
           lead_vertex_data vd;
@@ -84,15 +82,7 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
           vd.d = l.getDRel();
           vd.v = l.getVLeadK() + l.getVLat();
           vd.y_rel = l.getYRel();
-          if (vd.v > 0.2) {
-              s->scene.lead_vertices_ongoing.push_back(vd);
-          }
-          else if (vd.v < -0.2) {
-              s->scene.lead_vertices_oncoming.push_back(vd);
-          }
-          else {
-              s->scene.lead_vertices_stopped.push_back(vd);
-          }
+          s->scene.lead_vertices_side.push_back(vd);
       }
   }
 }

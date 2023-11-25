@@ -182,7 +182,7 @@ typedef struct UIScene {
   // lead
   QPointF lead_vertices[2];
   bool lead_radar[2] = {false, false};
-  std::vector<lead_vertex_data> lead_vertices_oncoming, lead_vertices_ongoing, lead_vertices_stopped;
+  std::vector<lead_vertex_data> lead_vertices_side;
   // DMoji state
   float driver_pose_vals[3];
   float driver_pose_diff[3];
