@@ -82,12 +82,12 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
           vd.x = vtmp.x();
           vd.y = vtmp.y();
           vd.d = l.getDRel();
-          vd.v = l.getVLeadK();
+          vd.v = l.getVLeadK() + l.getVLat();
           vd.y_rel = l.getYRel();
-          if (vd.v > 1.) {
+          if (vd.v > 0.2) {
               s->scene.lead_vertices_ongoing.push_back(vd);
           }
-          else if (vd.v < -1.) {
+          else if (vd.v < -0.2) {
               s->scene.lead_vertices_oncoming.push_back(vd);
           }
           else {
