@@ -71,7 +71,7 @@ class Track:
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
 
-  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, aLeadTau: float):
+  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float):
 
     #apilot: changed radar target
     if abs(self.dRel - d_rel) > 3.0: # 3M이상 차이날때 초기화
@@ -81,6 +81,7 @@ class Track:
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
     self.vRel = v_rel   # REL_SPEED
+    self.aRel = a_rel
     self.vLead = v_lead
     self.measured = measured   # measured or estimate
 
@@ -122,6 +123,7 @@ class Track:
       "modelProb": model_prob,
       "radar": True,
       "radarTrackId": self.identifier,
+      "aRel": float(self.aRel),
     }
   
   def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
@@ -144,6 +146,7 @@ class Track:
       "modelProb": model_prob,
       "radar": True,
       "radarTrackId": self.identifier,
+      "aRel": float(self.aRel),
     }
 
 
@@ -474,7 +477,7 @@ class RadarD:
 
     ar_pts = {}
     for pt in radar_points:
-      ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured]
+      ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured, pt.aRel]
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
@@ -491,7 +494,7 @@ class RadarD:
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
         self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
-      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], self.aLeadTau)
+      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau)
 
     # *** publish radarState ***
     self.radar_state_valid = sm.all_checks() and len(radar_errors) == 0
@@ -541,6 +544,7 @@ class RadarD:
         "dRel": float(self.tracks[tid].dRel),
         "yRel": float(self.tracks[tid].yRel),
         "vRel": float(self.tracks[tid].vRel),
+        "aRel": float(self.tracks[tid].aRel),
       }
     pm.send('liveTracks', tracks_msg)
 
