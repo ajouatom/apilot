@@ -71,7 +71,7 @@ class Track:
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
 
-  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float):
+  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
 
     #apilot: changed radar target
     if abs(self.dRel - d_rel) > 3.0: # 3M이상 차이날때 초기화
@@ -81,7 +81,7 @@ class Track:
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
     self.vRel = v_rel   # REL_SPEED
-    self.aRel = a_rel
+    self.aRel = a_rel   # REL_ACCEL: radar track만 나옴.
     self.vLead = v_lead
     self.measured = measured   # measured or estimate
 
@@ -90,7 +90,10 @@ class Track:
       self.kf.update(self.vLead)
 
     self.vLeadK = float(self.kf.x[SPEED][0])
-    self.aLeadK = float(self.kf.x[ACCEL][0])
+    if a_rel == 0:
+      self.aLeadK = float(self.kf.x[ACCEL][0])
+    else:
+      self.aLeadK = a_rel + a_ego  ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
 
     # Learn if constant acceleration
     if abs(self.aLeadK) < 0.5:
@@ -456,6 +459,7 @@ class RadarD:
     self.showRadarInfo = False
     self.mixRadarInfo = 0
     self.aLeadTau = 1.5
+    self.a_ego = 0.0
 
   def update(self, sm: messaging.SubMaster, rr: Optional[car.RadarData]):
     self.showRadarInfo = int(Params().get("ShowRadarInfo"))
@@ -472,6 +476,7 @@ class RadarD:
     if sm.updated['carState']:
       self.v_ego = sm['carState'].vEgo
       self.v_ego_hist.append(self.v_ego)
+      self.a_ego = sm['carState'].aEgo
     if sm.updated['modelV2']:
       self.ready = True
 
@@ -494,7 +499,7 @@ class RadarD:
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
         self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
-      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau)
+      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau, self.a_ego)
 
     # *** publish radarState ***
     self.radar_state_valid = sm.all_checks() and len(radar_errors) == 0
