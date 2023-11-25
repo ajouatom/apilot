@@ -305,7 +305,6 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
     track = match_vision_to_track(v_ego, lead_msg, tracks)
   else:
     track = None
-  print(tracks)
 
   ## vision match후 발견된 track이 없으면
   ##  track_scc 가 있는 지 확인하고
@@ -356,6 +355,7 @@ def get_lead_side(v_ego, tracks, md, lane_width):
   for c in tracks.values():
     # d_y :  path_y - traks_y 의 diff값
     d_y = -c.yRel - interp(c.dRel, md_x, md_y)
+    print(c)
     ld = c.get_RadarState()
     if abs(d_y) < lane_width/2:
       leads_center[c.dRel] = ld
@@ -527,7 +527,7 @@ class RadarD:
         self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
         self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
-      if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
+      if self.showRadarInfo: #self.extended_radar_enabled and self.ready:
         ll,lc,lr = get_lead_side(self.v_ego, self.tracks, sm['modelV2'], sm['lateralPlan'].laneWidth)
         self.radar_state.leadsLeft = list(ll)
         self.radar_state.leadsCenter = list(lc)
