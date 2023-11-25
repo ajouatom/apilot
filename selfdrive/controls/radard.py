@@ -303,9 +303,9 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
   # Determine leads, this is where the essential logic happens
   if len(tracks) > 0 and ready and lead_msg.prob > .5:
     track = match_vision_to_track(v_ego, lead_msg, tracks)
-    print(track)
   else:
     track = None
+  print(tracks)
 
   ## vision match후 발견된 track이 없으면
   ##  track_scc 가 있는 지 확인하고
