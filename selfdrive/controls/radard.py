@@ -382,7 +382,8 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
       d_y = -c.yRel - lp_y
       yStd = interp(c.dRel, md_x, md_yProbs)
       prob_y = laplacian_pdf(c.yRel, -lp_y, yStd)
-      if abs(d_y) < lane_width/2: # and prob_y > 0.5:
+      lw = interp(c.dRel, [0, 10], [1.5, lane_width] )
+      if abs(d_y) < lw / 2: # and prob_y > 0.5:
         tracks_center[track_id] = c
       elif d_y < 0:
         tracks_left[track_id] = c
