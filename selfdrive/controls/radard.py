@@ -370,7 +370,6 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
       md_y = md.lateralPlannerSolution.y
       md_x = md.lateralPlannerSolution.x
-      md_yProbs = md.lateralPlannerSolution.yStd
     else:
       return track_scc
 
@@ -380,10 +379,8 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
     for track_id, c in tracks.items():
       lp_y = interp(c.dRel, md_x, md_y)
       d_y = -c.yRel - lp_y
-      yStd = interp(c.dRel, md_x, md_yProbs)
-      prob_y = laplacian_pdf(c.yRel, -lp_y, yStd)
       lw = interp(c.dRel, [0, 10, 100], [1.5, lane_width, lane_width*0.6] )
-      if abs(d_y) < lw / 2: # and prob_y > 0.5:
+      if abs(d_y) < lw / 2:
         tracks_center[track_id] = c
       elif d_y < 0:
         tracks_left[track_id] = c
@@ -391,12 +388,26 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
         tracks_right[track_id] = c
 
     if lead_msg.prob > .5: # 비젼감지된경우
+      # 정지된 차량의 감지... : 감지된 비젼은 움직이는 것으로 나온다. 레이더는 정지된것으로... 10m/s이상의 차이로 match fail된다.
+      # 선행차가 지나가고 있는 차량 위의 신호등이나, TG지붕등 감지를 안하게 하려면?
+      #     속도가 빠른것만 먼저고름:
+      #     없으면: 정지된 차량들을 골라야함. 비젼검출위주로 봐야할듯..
+
+      ## 1. 비젼거리오차&속도오차에 검출된것을 고름
       tracks_match = {track_id: track for track_id, track in tracks_center.items() 
                         if (abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])) 
                         and (abs(track.vRel + v_ego - lead_msg.v[0]) < 10)}
       if tracks_match:
         min_track_id = min(tracks_match, key=lambda id:tracks_match[id].dRel)
         return tracks_match[min_track_id]
+      ## 2. 비젼거리오차에 해당되는것이 있다면... 속도가 가장 빠른것으로 선택함..
+      else:
+        tracks_match = {track_id: track for track_id, track in tracks_center.items() 
+                          if (abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])) 
+                          and (track.vRel + v_ego) > -0.5}
+        if tracks_match:
+          min_track_id = max(tracks_match, key=lambda id:tracks_match[id].vRel)
+          return tracks_match[min_track_id]
       if track_scc is not None:
         if offset_vision_dist > track_scc.dRel - 5.0: #끼어드는 차량이 있는 경우 비젼으로 처리하도록 삭제..
           track_scc = None
