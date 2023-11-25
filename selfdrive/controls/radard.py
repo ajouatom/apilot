@@ -90,14 +90,14 @@ class Track:
       self.kf.update(self.vLead)
 
     self.vLeadK = float(self.kf.x[SPEED][0])
-    if a_rel == 0:
+    if True: #a_rel == 0:
       self.aLeadK = float(self.kf.x[ACCEL][0])
     else:
       self.aLeadK = a_rel + a_ego  ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
 
     # Learn if constant acceleration
     if abs(self.aLeadK) < 0.5:
-      self.aLeadTau = 0.3 if self.aLeadK < 0 else aLeadTau#_LEAD_ACCEL_TAU
+      self.aLeadTau = aLeadTau#_LEAD_ACCEL_TAU
     else:
       self.aLeadTau *= 0.9
 
