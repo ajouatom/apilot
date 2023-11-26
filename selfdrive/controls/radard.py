@@ -625,7 +625,7 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
 
-    print("{:.3f}{:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
     now = time.monotonic()
     #rk.keep_time()
     rk.monitor_time()
