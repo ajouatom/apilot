@@ -96,16 +96,20 @@ class Track:
     self.vLat = float(self.kf_y.x[1][0])
 
     self.vLeadK = float(self.kf.x[SPEED][0])
-    if True: #a_rel == 0:
-      self.aLeadK = float(self.kf.x[ACCEL][0])
-    else:
-      self.aLeadK = a_rel + a_ego  ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
+    aLeadK_prev = self.aLeadK
+    self.aLeadK = float(self.kf.x[ACCEL][0])
+    #self.aLeadK = a_rel + a_ego if a_rel != 0 else float(self.kf.x[ACCEL][0]) ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
 
     # Learn if constant acceleration
-    if abs(self.aLeadK) < 0.5:
-      self.aLeadTau = aLeadTau#_LEAD_ACCEL_TAU
+    #if abs(self.aLeadK) < 0.5:
+    #  self.aLeadTau = _LEAD_ACCEL_TAU
+
+    # 감속일때는 0.2로 시작.. 
+    aLeadTau_apply = 0.2 if self.aLeadK < aLeadK_prev else aLeadTau
+    if -0.2 < self.aLeadK < 0.5:
+      self.aLeadTau = aLeadTau_apply
     else:
-      self.aLeadTau *= 0.9
+      self.aLeadTau = min(self.aLeadTau * 0.9, aLeadTau_apply)
 
     self.cnt += 1
 
