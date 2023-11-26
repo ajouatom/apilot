@@ -72,6 +72,7 @@ class Track:
     self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
     self.vision_prob = 0.0
+    print("Track:New init...")
 
   def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
 
@@ -80,6 +81,7 @@ class Track:
       self.cnt = 0
       self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
       self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K) 
+      print("Track:dRel init...")
     # relative values, copy
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
