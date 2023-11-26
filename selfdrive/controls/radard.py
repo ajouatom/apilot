@@ -609,7 +609,7 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
 
   RI = RadarInterface(CP)
 
-  rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
+  rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=True)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
   now = time.monotonic()
@@ -619,9 +619,9 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
 
     if rr is None:
       continue
-    print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
-    now = time.monotonic()
-    continue
+    #print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    #now = time.monotonic()
+    #continue
     sm.update(0)
 
     RD.update(sm, rr)
