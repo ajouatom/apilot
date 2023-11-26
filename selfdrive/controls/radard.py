@@ -72,7 +72,6 @@ class Track:
     self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
     self.vision_prob = 0.0
-    self.aLeadK = 0.0
 
   def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
 
