@@ -519,10 +519,12 @@ class RadarD:
     ar_pts = {}
     for pt in radar_points:
       ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured, pt.aRel]
+      print("ptTrackId=", pt.trackId)
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
       if ids not in ar_pts:
+        print("noIds:", ids)
         self.tracks.pop(ids, None)
 
     # *** compute the tracks ***
