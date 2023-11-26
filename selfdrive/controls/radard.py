@@ -523,6 +523,7 @@ class RadarD:
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
+      print("ids=",ids)
       if ids not in ar_pts:
         print("noIds:", ids)
         self.tracks.pop(ids, None)
