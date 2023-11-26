@@ -72,7 +72,6 @@ class Track:
     self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
     self.vision_prob = 0.0
-    print("Track:New init...")
 
   def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
 
@@ -81,7 +80,6 @@ class Track:
       self.cnt = 0
       self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
       self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K) 
-      print("Track:dRel init...")
     # relative values, copy
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
@@ -201,7 +199,8 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
     # This is isn't exactly right, but good heuristic
     prob = prob_d * prob_y * prob_v * weight_v
     c.vision_prob = prob
-    return prob
+    
+    return prob # if c_key != 0 else 0
 
   track_key, track = max(tracks.items(), key=lambda item: prob(item[1], item[0]))
   #track = max(tracks.values(), key=prob)
@@ -311,8 +310,9 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
              model_v_ego: float, low_speed_override: bool = True, mixRadarInfo=0) -> Dict[str, Any]:
   ## SCC레이더는 일단 보관하고 리스트에서 삭제...
   track_scc = tracks.get(0)
-  if track_scc is not None:
-    del tracks[0]
+  #if track_scc is not None:  
+  #  del tracks[0]            ## tracks에서 삭제하면안됨... ㅠㅠ
+
   # Determine leads, this is where the essential logic happens
   if len(tracks) > 0 and ready and lead_msg.prob > .5:
     track = match_vision_to_track(v_ego, lead_msg, tracks)
@@ -404,8 +404,8 @@ def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
 
   ## SCC레이더는 일단 보관하고 리스트에서 삭제...
   track_scc = tracks.get(0)
-  if track_scc is not None:
-    del tracks[0]
+  #if track_scc is not None:
+  #  del tracks[0]
 
   ## SCC레이더 개조는 track이 1개밖에 없으니, 항상 SCC레이더는 사용한다.
   if len(tracks) > 0:
@@ -519,13 +519,10 @@ class RadarD:
     ar_pts = {}
     for pt in radar_points:
       ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured, pt.aRel]
-      print("ptTrackId=", pt.trackId)
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
-      print("ids=",ids)
       if ids not in ar_pts:
-        print("noIds:", ids)
         self.tracks.pop(ids, None)
 
     # *** compute the tracks ***
