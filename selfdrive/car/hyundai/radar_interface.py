@@ -19,7 +19,7 @@ def get_radar_can_parser(CP):
     return None
 
   print("RadarInterface: RadarTracks...")
-  messages = [(f"RADAR_TRACK_{addr:x}", 50) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
+  messages = [(f"RADAR_TRACK_{addr:x}", 20) for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT)]
   return CANParser('hyundai_kia_mando_front_radar_generated', messages, 1)
 
 def get_radar_can_parser_scc(CP):
@@ -31,7 +31,7 @@ def get_radar_can_parser_scc(CP):
   if enable_radar_tracks: 
     return None
 
-  ## 레이더트랙과 SCC레이더를 같이 사용하고 싶은경우..
+  ## 레이더트랙과 SCC레이더를 같이 사용하고 싶은경우.. (서로 주파수가 달라 사용하기엔 radard를 수정해야함)
   if enable_radar_tracks and not scc2: #레이더트랙은 켜져있으나, SCC2가 아닌경우  : SCC기능정지후 사용하는 롱컨..
     return None
 

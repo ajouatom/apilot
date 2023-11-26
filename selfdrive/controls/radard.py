@@ -609,19 +609,19 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
 
   RI = RadarInterface(CP)
 
-  rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=True)
+  rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
-  now = time.monotonic()
+  #now = time.monotonic()
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
 
     if rr is None:
       continue
-    print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
-    now = time.monotonic()
-    continue
+    #print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    #now = time.monotonic()
+    #continue
     sm.update(0)
 
     RD.update(sm, rr)
