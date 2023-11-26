@@ -96,7 +96,6 @@ class Track:
 
     self.vLat = float(self.kf_y.x[1][0])
 
-    aLeadK_prev = self.aLeadK
     self.vLeadK = float(self.kf.x[SPEED][0])
     self.aLeadK = float(self.kf.x[ACCEL][0])
     #self.aLeadK = a_rel + a_ego if a_rel != 0 else float(self.kf.x[ACCEL][0]) ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
@@ -106,7 +105,7 @@ class Track:
     #  self.aLeadTau = _LEAD_ACCEL_TAU
 
     # 감속일때는 0.2로 시작.. 
-    aLeadTau_apply = 0.2 if self.aLeadK < aLeadK_prev and self.aLeadK < 0.0 else aLeadTau
+    aLeadTau_apply = 0.2 if self.aLeadK < 0.0 else aLeadTau
     if -0.2 < self.aLeadK < 0.5:
       self.aLeadTau = aLeadTau
     else:
