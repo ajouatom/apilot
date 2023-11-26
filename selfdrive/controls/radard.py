@@ -106,9 +106,9 @@ class Track:
     #  self.aLeadTau = _LEAD_ACCEL_TAU
 
     # 감속일때는 0.2로 시작.. 
-    aLeadTau_apply = 0.2 if self.aLeadK < aLeadK_prev else aLeadTau
+    aLeadTau_apply = 0.2 if self.aLeadK < aLeadK_prev and self.aLeadK < 0.0 else aLeadTau
     if -0.2 < self.aLeadK < 0.5:
-      self.aLeadTau = aLeadTau_apply
+      self.aLeadTau = aLeadTau
     else:
       self.aLeadTau = min(self.aLeadTau * 0.9, aLeadTau_apply)
 
