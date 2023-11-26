@@ -619,9 +619,9 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
 
     if rr is None:
       continue
-    #print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
-    #now = time.monotonic()
-    #continue
+    print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    now = time.monotonic()
+    continue
     sm.update(0)
 
     RD.update(sm, rr)
