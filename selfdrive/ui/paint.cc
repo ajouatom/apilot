@@ -726,6 +726,7 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
                     ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
                 }
             }
+#if 0
             else if (v_lat < -1.0 || v_lat > 1.0) {
                 sprintf(str, "%.0f", (rv + v_lat) * 3.6);
                 wStr = 35 * (strlen(str) + 0);
@@ -736,6 +737,7 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
                     ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
                 }
             }
+#endif
             else if (s->show_radar_info >= 3) {
                 //sprintf(str, "%.1f", ry_rel);
                 //ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
