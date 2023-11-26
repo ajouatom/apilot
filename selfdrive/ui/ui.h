@@ -157,7 +157,7 @@ typedef struct {
 } vertex_data;
 
 typedef struct {
-    float x, y, d, v, y_rel;
+    float x, y, d, v, y_rel, v_lat;
 } lead_vertex_data;
 
 typedef struct UIScene {

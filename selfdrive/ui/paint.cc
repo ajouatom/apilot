@@ -714,7 +714,7 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
     if (s->show_radar_info) {
         int wStr = 40;
         for (auto const& vrd : s->scene.lead_vertices_side) {
-            auto [rx, ry, rd, rv, ry_rel] = vrd;
+            auto [rx, ry, rd, rv, ry_rel, v_lat] = vrd;
 
             if (rv < -1.0 || rv > 1.0) {
                 sprintf(str, "%.0f", rv * 3.6);
@@ -726,7 +726,19 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
                     ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
                 }
             }
+            else if (v_lat < -1.0 || v_lat > 1.0) {
+                sprintf(str, "%.0f", (rv + v_lat) * 3.6);
+                wStr = 35 * (strlen(str) + 0);
+                ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_ORANGE, 15);
+                ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
+                if (s->show_radar_info >= 2) {
+                    sprintf(str, "%.1f", ry_rel);
+                    ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
+                }
+            }
             else if (s->show_radar_info >= 3) {
+                //sprintf(str, "%.1f", ry_rel);
+                //ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
                 strcpy(str, "*");
                 ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
             }

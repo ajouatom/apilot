@@ -80,8 +80,9 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
           vd.x = vtmp.x();
           vd.y = vtmp.y();
           vd.d = l.getDRel();
-          vd.v = l.getVLeadK() + l.getVLat();
+          vd.v = l.getVLeadK();
           vd.y_rel = l.getYRel();
+          vd.v_lat = l.getVLat();
           s->scene.lead_vertices_side.push_back(vd);
       }
   }
