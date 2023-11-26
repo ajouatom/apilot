@@ -383,7 +383,13 @@ def get_lead_side(v_ego, tracks, md, lane_width):
   #lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
   ll = list(leads_left.values())
   lr = list(leads_right.values())
-  lc = list(leads_center.values())
+
+  if leads_center:
+    dRel_min = min(leads_center.keys())
+    lc = [leads_center[dRel_min]]
+  else:
+    lc = {}
+  #lc = list(leads_center.values())
   return [ll,lc,lr]
   #return [leads_left, leads_center, leads_right]
 
