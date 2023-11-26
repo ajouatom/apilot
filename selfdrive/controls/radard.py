@@ -96,8 +96,8 @@ class Track:
 
     self.vLat = float(self.kf_y.x[1][0])
 
-    self.vLeadK = float(self.kf.x[SPEED][0])
     aLeadK_prev = self.aLeadK
+    self.vLeadK = float(self.kf.x[SPEED][0])
     self.aLeadK = float(self.kf.x[ACCEL][0])
     #self.aLeadK = a_rel + a_ego if a_rel != 0 else float(self.kf.x[ACCEL][0]) ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
 
@@ -612,7 +612,7 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
-  #now = time.monotonic()
+  now = time.monotonic()
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
@@ -625,8 +625,8 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
 
-    #print("{:.3f}{:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
-    #now = time.monotonic()
+    print("{:.3f}{:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    now = time.monotonic()
     #rk.keep_time()
     rk.monitor_time()
 
