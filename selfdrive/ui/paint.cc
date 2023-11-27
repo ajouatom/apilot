@@ -657,6 +657,10 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
         data1 = a_ego;  //노
         data2 = lead_radar.getALeadK(); // 녹
         break;
+    case 7:
+        data1 = a_ego; // 노
+        data2 = accel;  // 녹
+        break;
     default:
         data1 = data2 = 0;
         break;

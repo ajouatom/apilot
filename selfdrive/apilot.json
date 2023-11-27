@@ -1050,7 +1050,7 @@
       "etitle": "Show Debug plot(0)",
       "edescr": "0:None,1:Accel,2:SteerAccel,3:Velocity,4:model_x",
       "min": 0,
-      "max": 6,
+      "max": 10,
       "default": 0,
       "unit": 1
     },

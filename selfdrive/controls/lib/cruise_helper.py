@@ -695,7 +695,6 @@ class CruiseHelper:
       longActiveUser = 3
     # 브레이크해제 켜지고, 크루즈갭이 5가 아닌경우에만 작동.
     elif self.autoResumeFromBrakeRelease and self.auto_cruise_control: # 브레이크 해제에 대한 크루즈 ON
-      gasTime = (self.frame - self.gasPressedFrame)*DT_CTRL
       # 저속 정지.
       if self.v_ego_kph < 20.0:
         if 0 < self.dRel < 15.0: #앞에 차가있음.
