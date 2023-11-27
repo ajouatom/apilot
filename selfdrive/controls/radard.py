@@ -359,8 +359,8 @@ def get_lead_side(v_ego, tracks, md, lane_width):
 
   ## SCC레이더는 일단 보관하고 리스트에서 삭제...
   track_scc = tracks.get(0)
-  if track_scc is not None:
-    del tracks[0]
+  #if track_scc is not None:
+  #  del tracks[0]
 
   if len(tracks) == 0:
     return [[],[],[]]
