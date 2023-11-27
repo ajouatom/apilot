@@ -641,7 +641,7 @@
     {
       "group": "크루즈",
       "name": "AutoCancelFromGasMode",
-      "title": "엑셀 크루즈OFF:모드",
+      "title": "x엑셀 크루즈OFF:모드",
       "descr": "0:유지, 1:항상, 2:레이더OFF시에만",
       "egroup": "CRUISE",
       "etitle": "GasCruiseOFF: Mode",
