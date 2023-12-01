@@ -103,12 +103,16 @@ class Track:
     #if abs(self.aLeadK) < 0.5:
     #  self.aLeadTau = _LEAD_ACCEL_TAU
 
-    # 감속일때는 0.2로 시작.. 
-    aLeadTau_apply = 0.2 if self.aLeadK < 0.0 else aLeadTau
-    if -0.2 < self.aLeadK < 0.5:
+    # 감속일때는 0.2로 시작..  (시험중... 삭제)
+    #aLeadTau_apply = 0.2 if self.aLeadK < 0.0 else aLeadTau
+    #if -0.2 < self.aLeadK < 0.5:
+    #  self.aLeadTau = aLeadTau
+    #else:
+    #  self.aLeadTau = min(self.aLeadTau * 0.9, aLeadTau_apply)
+    if abs(self.aLeadK) < 0.5:
       self.aLeadTau = aLeadTau
     else:
-      self.aLeadTau = min(self.aLeadTau * 0.9, aLeadTau_apply)
+      self.aLeadTau = self.aLeadTau * 0.9
 
     self.cnt += 1
 
