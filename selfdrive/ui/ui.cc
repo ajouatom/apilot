@@ -39,7 +39,7 @@ static bool calib_frame_to_full_frame(const UIState *s, float in_x, float in_y, 
 int get_path_length_idx(const cereal::XYZTData::Reader &line, const float path_height) {
   const auto line_x = line.getX();
   int max_idx = 0;
-  for (int i = 1; i < TRAJECTORY_SIZE && line_x[i] <= path_height; ++i) {
+  for (int i = 1; i < line_x.size() && line_x[i] <= path_height; ++i) {
     max_idx = i;
   }
   return max_idx;
@@ -70,9 +70,7 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
     calib_frame_to_full_frame(s, max_distance, y + 1.2, z + 1.22, &s->scene.path_end_right_vertices[i]);
   }
 
-  s->scene.lead_vertices_oncoming.clear();
-  s->scene.lead_vertices_ongoing.clear();
-  s->scene.lead_vertices_stopped.clear();
+  s->scene.lead_vertices_side.clear();
   for (auto const& rs : { radar_state.getLeadsLeft(), radar_state.getLeadsRight(), radar_state.getLeadsCenter() }) {
       for (auto const& l : rs) {
           lead_vertex_data vd;
@@ -84,15 +82,8 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
           vd.d = l.getDRel();
           vd.v = l.getVLeadK();
           vd.y_rel = l.getYRel();
-          if (vd.v > 1.) {
-              s->scene.lead_vertices_ongoing.push_back(vd);
-          }
-          else if (vd.v < -1.) {
-              s->scene.lead_vertices_oncoming.push_back(vd);
-          }
-          else {
-              s->scene.lead_vertices_stopped.push_back(vd);
-          }
+          vd.v_lat = l.getVLat();
+          s->scene.lead_vertices_side.push_back(vd);
       }
   }
 }
@@ -405,10 +396,10 @@ void update_model(UIState *s,
                   const cereal::UiPlan::Reader &plan) {
   UIScene &scene = s->scene;
   auto plan_position = plan.getPosition();
-  if (plan_position.getX().size() < TRAJECTORY_SIZE){
+  if (plan_position.getX().size() < model.getPosition().getX().size()) {
     plan_position = model.getPosition();
   }
-  float max_distance = std::clamp(plan_position.getX()[TRAJECTORY_SIZE - 1],
+  float max_distance = std::clamp(*(plan_position.getX().end() - 1),
                                   MIN_DRAW_DISTANCE, MAX_DRAW_DISTANCE);
 
   auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();

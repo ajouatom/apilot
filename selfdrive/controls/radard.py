@@ -16,6 +16,7 @@ from openpilot.common.kalman.simple_kalman import KF1D
 from openpilot.common.params import Params
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
+import time
 
 LEAD_PATH_DREL_MIN = 60 # [m] only care about far away leads
 MIN_LANE_PROB = 0.6  # Minimum lanes probability to allow use.
@@ -60,7 +61,7 @@ class KalmanParams:
 
 
 class Track:
-  def __init__(self, identifier: int, v_lead: float, kalman_params: KalmanParams):
+  def __init__(self, identifier: int, v_lead: float, y_rel: float, kalman_params: KalmanParams):
     self.identifier = identifier
     self.cnt = 0
     self.aLeadTau = _LEAD_ACCEL_TAU
@@ -68,33 +69,50 @@ class Track:
     self.K_C = kalman_params.C
     self.K_K = kalman_params.K
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
-    self.vLead = v_lead
+    self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
+    self.dRel = 0
+    self.vision_prob = 0.0
 
-  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float):
+  def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
 
     #apilot: changed radar target
-    if abs(self.vLead - v_lead) > 0.5:
+    if abs(self.dRel - d_rel) > 3.0: # 3M이상 차이날때 초기화
       self.cnt = 0
       self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
+      self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K) 
     # relative values, copy
     self.dRel = d_rel   # LONG_DIST
     self.yRel = y_rel   # -LAT_DIST
     self.vRel = v_rel   # REL_SPEED
+    self.aRel = a_rel   # REL_ACCEL: radar track만 나옴.
     self.vLead = v_lead
     self.measured = measured   # measured or estimate
 
     # computed velocity and accelerations
     if self.cnt > 0:
       self.kf.update(self.vLead)
+      self.kf_y.update(self.yRel)
+
+    self.vLat = float(self.kf_y.x[1][0])
 
     self.vLeadK = float(self.kf.x[SPEED][0])
     self.aLeadK = float(self.kf.x[ACCEL][0])
+    #self.aLeadK = a_rel + a_ego if a_rel != 0 else float(self.kf.x[ACCEL][0]) ## radar track의 A_REL을 사용하도록 함. 값이 약간 더 큼.
 
     # Learn if constant acceleration
+    #if abs(self.aLeadK) < 0.5:
+    #  self.aLeadTau = _LEAD_ACCEL_TAU
+
+    # 감속일때는 0.2로 시작..  (시험중... 삭제)
+    #aLeadTau_apply = 0.2 if self.aLeadK < 0.0 else aLeadTau
+    #if -0.2 < self.aLeadK < 0.5:
+    #  self.aLeadTau = aLeadTau
+    #else:
+    #  self.aLeadTau = min(self.aLeadTau * 0.9, aLeadTau_apply)
     if abs(self.aLeadK) < 0.5:
-      self.aLeadTau = _LEAD_ACCEL_TAU
+      self.aLeadTau = aLeadTau
     else:
-      self.aLeadTau *= 0.9
+      self.aLeadTau = self.aLeadTau * 0.9
 
     self.cnt += 1
 
@@ -121,6 +139,8 @@ class Track:
       "modelProb": model_prob,
       "radar": True,
       "radarTrackId": self.identifier,
+      "aRel": float(self.aRel),
+      "vLat": float(self.vLat),
     }
   
   def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
@@ -143,6 +163,8 @@ class Track:
       "modelProb": model_prob,
       "radar": True,
       "radarTrackId": self.identifier,
+      "aRel": float(self.aRel),
+      "vLat": float(self.vLat),
     }
 
 
@@ -170,18 +192,19 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
 
   def prob(c, c_key):
     prob_d = laplacian_pdf(c.dRel, offset_vision_dist, lead.xStd[0])
-    prob_y = laplacian_pdf(c.yRel, -lead.y[0], lead.yStd[0])
+    prob_y = laplacian_pdf(c.yRel+c.vLat, -lead.y[0], lead.yStd[0])
     prob_v = laplacian_pdf(c.vRel + v_ego, lead.v[0], lead.vStd[0])
 
     #속도가 빠른것에 weight를 더줌. apilot, 
     #231120: 감속정지중, 전방차량정지상태인데, 주변의 노이즈성 레이더포인트가 검출되어 버림. 
     #       이 포인트는 약간 먼데, 주행하고 있는것처럼.. 인식됨. 아주 잠깐 인식됨.
     #        속도관련 weight를 없애야하나?  TG를 지나고 있는 차를 우선시하도록 만든건데...
-    #231120: 
-    weight_scc = 0.1 if tracks_len > 1 and c_key == 0 else 1.0  ## SCC레이더데이터의 prob는 작게잡아 레이더트랙의 것을 우선순위로 둠. SCC레이더값은 0번에 저장됨.
     weight_v = interp(c.vRel + v_ego, [0, 10], [0.3, 1])
     # This is isn't exactly right, but good heuristic
-    return prob_d * prob_y * prob_v * weight_v * weight_scc
+    prob = prob_d * prob_y * prob_v * weight_v
+    c.vision_prob = prob
+    
+    return prob # if c_key != 0 else 0
 
   track_key, track = max(tracks.items(), key=lambda item: prob(item[1], item[0]))
   #track = max(tracks.values(), key=prob)
@@ -195,7 +218,8 @@ def match_vision_to_track(v_ego: float, lead: capnp._DynamicStructReader, tracks
   # if no 'sane' match is found return -1
   # stationary radar points can be false positives
   dist_sane = abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])
-  vel_sane = (abs(track.vRel + v_ego - lead.v[0]) < 15) or (v_ego + track.vRel > 3)
+  vel_tolerance = 20.0 if lead.prob > 0.85 else 10 # high vision track prob, increase tolerance (for stopped car)
+  vel_sane = (abs(track.vRel + v_ego - lead.v[0]) < vel_tolerance) or (v_ego + track.vRel > 3)
   ##간혹 어수선한경우, 전방에 차가 없지만, 좌우에 차가많은경우 억지로 레이더를 가져오는 경우가 있음..(레이더트랙의 경우)
   y_sane = (abs(-lead.y[0]-track.yRel) < 3.2 / 2.)  #lane_width assumed 3.2M, laplacian_pdf 의 prob값을 검증하려했지만, y값으로 처리해도 될듯함.
   if dist_sane and vel_sane and y_sane:
@@ -276,7 +300,7 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
     "vRel": float(lead_v_rel_pred),
     "vLead": float(v_ego + lead_v_rel_pred),
     "vLeadK": float(v_ego + lead_v_rel_pred),
-    "aLeadK": 0.0,
+    "aLeadK": float(lead_msg.a[0]), #0.0,
     "aLeadTau": 0.3,
     "fcw": False,
     "modelProb": float(lead_msg.prob),
@@ -288,18 +312,23 @@ def get_RadarState_from_vision(lead_msg: capnp._DynamicStructReader, v_ego: floa
 
 def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capnp._DynamicStructReader,
              model_v_ego: float, low_speed_override: bool = True, mixRadarInfo=0) -> Dict[str, Any]:
+  ## SCC레이더는 일단 보관하고 리스트에서 삭제...
+  track_scc = tracks.get(0)
+  #if track_scc is not None:  
+  #  del tracks[0]            ## tracks에서 삭제하면안됨... ㅠㅠ
+
   # Determine leads, this is where the essential logic happens
   if len(tracks) > 0 and ready and lead_msg.prob > .5:
     track = match_vision_to_track(v_ego, lead_msg, tracks)
   else:
     track = None
 
-  ## vision match후 SCC radar값이 버져졌으면, 다시 살려서 처리함.
-  ##  SCC레이더 값 우선처리하도록함.
-  ##     가끔씩 SCC레이더값이 작은데도 비전과의 차이가 35%(5M)이상 차이나면, 버리는 경우가 있음.
-  if len(tracks) > 0 and track is None:
-    track = tracks.get(0)  ## SCC radar always 0
-    if track is not None and lead_msg.prob > .5:
+  ## vision match후 발견된 track이 없으면
+  ##  track_scc 가 있는 지 확인하고
+  ##    비전과의 차이가 35%(5M)이상 차이나면 scc가 발견못한것이기 때문에 비전것으로 처리함.
+  if track_scc is not None and track is None:
+    track = track_scc
+    if lead_msg.prob > .5:
       offset_vision_dist = lead_msg.x[0] - RADAR_TO_CAMERA
       if offset_vision_dist < track.dRel - 5.0: #끼어드는 차량이 있는 경우 처리..
         track = None
@@ -323,6 +352,135 @@ def get_lead(v_ego: float, ready: bool, tracks: Dict[int, Track], lead_msg: capn
 
   return lead_dict
 
+def get_leads(tracks):
+  leads = []
+  for c in tracks.values():
+    ld = c.get_RaarState(c.vision_prob)
+    leads.append(ld)
+  return leads
+
+def get_lead_side(v_ego, tracks, md, lane_width):
+
+  ## SCC레이더는 일단 보관하고 리스트에서 삭제...
+  track_scc = tracks.get(0)
+  #if track_scc is not None:
+  #  del tracks[0]
+
+  if len(tracks) == 0:
+    return [[],[],[]]
+  if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
+    md_y = md.lateralPlannerSolution.y
+    md_x = md.lateralPlannerSolution.x
+  else:
+    return [[],[],[]]
+
+  leads_center = {}
+  leads_left = {}
+  leads_right = {}
+  for c in tracks.values():
+    # d_y :  path_y - traks_y 의 diff값
+    # yRel값은 왼쪽이 +값, lead.y[0]값은 왼쪽이 -값
+    d_y = -c.yRel - interp(c.dRel, md_x, md_y)
+    ld = c.get_RadarState(c.vision_prob)
+    if abs(d_y) < lane_width/2:
+      leads_center[c.dRel] = ld
+    elif d_y < 0:
+      leads_left[c.dRel] = ld
+    else:
+      leads_right[c.dRel] = ld
+
+  #ll,lr = [[l[k] for k in sorted(list(l.keys()))] for l in [leads_left,leads_right]]
+  #lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
+  ll = list(leads_left.values())
+  lr = list(leads_right.values())
+
+  if leads_center:
+    dRel_min = min(leads_center.keys())
+    lc = [leads_center[dRel_min]]
+  else:
+    lc = {}
+  #lc = list(leads_center.values())
+  return [ll,lc,lr]
+  #return [leads_left, leads_center, leads_right]
+
+def match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width):
+  offset_vision_dist = lead_msg.x[0] - RADAR_TO_CAMERA
+
+  ## SCC레이더는 일단 보관하고 리스트에서 삭제...
+  track_scc = tracks.get(0)
+  #if track_scc is not None:
+  #  del tracks[0]
+
+  ## SCC레이더 개조는 track이 1개밖에 없으니, 항상 SCC레이더는 사용한다.
+  if len(tracks) > 0:
+    if md is not None and len(md.lateralPlannerSolution.x) == TRAJECTORY_SIZE:
+      md_y = md.lateralPlannerSolution.y
+      md_x = md.lateralPlannerSolution.x
+    else:
+      return track_scc
+
+    tracks_center = {}
+    tracks_left = {}
+    tracks_right = {}
+    for track_id, c in tracks.items():
+      lp_y = interp(c.dRel + c.vLat, md_x, md_y)
+      d_y = -c.yRel - lp_y
+      lw = interp(c.dRel, [0, 10, 100], [1.5, lane_width, lane_width*0.6] )
+      if abs(d_y) < lw / 2:
+        tracks_center[track_id] = c
+      elif d_y < 0:
+        tracks_left[track_id] = c
+      else:
+        tracks_right[track_id] = c
+
+    if lead_msg.prob > .5: # 비젼감지된경우
+      # 정지된 차량의 감지... : 감지된 비젼은 움직이는 것으로 나온다. 레이더는 정지된것으로... 10m/s이상의 차이로 match fail된다.
+      # 선행차가 지나가고 있는 차량 위의 신호등이나, TG지붕등 감지를 안하게 하려면?
+      #     속도가 빠른것만 먼저고름:
+      #     없으면: 정지된 차량들을 골라야함. 비젼검출위주로 봐야할듯..
+
+      ## 1. 비젼거리오차&속도오차에 검출된것을 고름
+      tracks_match = {track_id: track for track_id, track in tracks_center.items() 
+                        if (abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])) 
+                        and (abs(track.vRel + v_ego - lead_msg.v[0]) < 10)}
+      if tracks_match:
+        min_track_id = min(tracks_match, key=lambda id:tracks_match[id].dRel)
+        return tracks_match[min_track_id]
+      ## 2. 비젼거리오차에 해당되는것이 있다면... 속도가 가장 빠른것으로 선택함..
+      else:
+        tracks_match = {track_id: track for track_id, track in tracks_center.items() 
+                          if (abs(track.dRel - offset_vision_dist) < max([(offset_vision_dist)*.35, 5.0])) 
+                          and (track.vRel + v_ego) > -0.5}
+        if tracks_match:
+          min_track_id = max(tracks_match, key=lambda id:tracks_match[id].vRel)
+          return tracks_match[min_track_id]
+      if track_scc is not None:
+        if offset_vision_dist > track_scc.dRel - 5.0: #끼어드는 차량이 있는 경우 비젼으로 처리하도록 삭제..
+          track_scc = None
+      return track_scc
+ 
+    tracks_fast = {track_id: track for track_id, track in tracks_center.items() if track.vRel+v_ego > 3.0}
+    if tracks_fast:
+      min_track_id = min(tracks_fast, key=lambda id:tracks_fast[id].dRel)
+      return tracks_fast[min_track_id]
+
+  ## 검출된 레이더가 없는데.. 
+  return track_scc
+
+def get_lead_apilot(v_ego, ready, tracks, lead_msg, model_v_ego, md, lane_width):
+  if len(tracks) > 0 and ready:
+    track = match_vision_track_apilot(v_ego, lead_msg, tracks, md, lane_width)
+  else:
+    track = None
+
+  lead_dict = {'status': False}
+  if track is not None:
+    lead_dict = track.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo=False)
+  elif lead_msg.prob > .5:
+    lead_dict = get_RadarState_from_vision(lead_msg, v_ego, model_v_ego)
+  
+  return lead_dict
+
 
 class RadarD:
   def __init__(self, radar_ts: float, delay: int = 0):
@@ -340,10 +498,13 @@ class RadarD:
     self.ready = False
     self.showRadarInfo = False
     self.mixRadarInfo = 0
+    self.aLeadTau = 1.5
+    self.a_ego = 0.0
 
   def update(self, sm: messaging.SubMaster, rr: Optional[car.RadarData]):
     self.showRadarInfo = int(Params().get("ShowRadarInfo"))
     self.mixRadarInfo = int(Params().get("MixRadarInfo"))
+    self.aLeadTau = float(Params().get_int("ALeadTau")) / 100. 
 
     self.current_time = 1e-9*max(sm.logMonoTime.values())
 
@@ -355,12 +516,13 @@ class RadarD:
     if sm.updated['carState']:
       self.v_ego = sm['carState'].vEgo
       self.v_ego_hist.append(self.v_ego)
+      self.a_ego = sm['carState'].aEgo
     if sm.updated['modelV2']:
       self.ready = True
 
     ar_pts = {}
     for pt in radar_points:
-      ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured]
+      ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured, pt.aRel]
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
@@ -376,8 +538,8 @@ class RadarD:
 
       # create the track if it doesn't exist or it's a new track
       if ids not in self.tracks:
-        self.tracks[ids] = Track(ids, v_lead, self.kalman_params)
-      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3])
+        self.tracks[ids] = Track(ids, v_lead, rpt[1], self.kalman_params)
+      self.tracks[ids].update(rpt[0], rpt[1], rpt[2], v_lead, rpt[3], rpt[4], self.aLeadTau, self.a_ego)
 
     # *** publish radarState ***
     self.radar_state_valid = sm.all_checks() and len(radar_errors) == 0
@@ -392,20 +554,15 @@ class RadarD:
       model_v_ego = self.v_ego
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
-      self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
+      if self.mixRadarInfo == 2:
+        self.radar_state.leadOne = get_lead_apilot(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth)
+        self.radar_state.leadTwo = get_lead_apilot(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth)
+      else:
+        self.radar_state.leadOne = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[0], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
+        self.radar_state.leadTwo = get_lead(self.v_ego, self.ready, self.tracks, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
-      if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
-        ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, self.tracks, self.mixRadarInfo)
-        #try:
-        #  if abs(sm['carState'].steeringAngleDeg) < 15 and radarState.leadOne.status and radarState.leadOne.modelProb > 0.5:
-        #    check_dist = interp(radarState.leadOne.dRel, LEAD_PLUS_ONE_MIN_REL_DIST_BP, LEAD_PLUS_ONE_MIN_REL_DIST_V)
-        #    lc = [l for l in lc if l["dRel"] > radarState.leadOne.dRel + check_dist and abs(l["yRel"] - radarState.leadOne.yRel) <= LEAD_PLUS_ONE_MAX_YREL_TO_LEAD]
-        #    if len(lc) > 0: # get the lead+1 car
-        #      radarState.leadOnePlus = self.lead_one_plus_lr.update(lc[0], use_v_lat=self.extended_radar_enabled)
-        #except AttributeError:
-        #  lc = []
-        #  self.lead_one_plus_lr.reset()
+      if self.showRadarInfo: #self.extended_radar_enabled and self.ready:
+        ll,lc,lr = get_lead_side(self.v_ego, self.tracks, sm['modelV2'], sm['lateralPlan'].laneWidth)
         self.radar_state.leadsLeft = list(ll)
         self.radar_state.leadsCenter = list(lc)
         self.radar_state.leadsRight = list(lr)
@@ -427,6 +584,8 @@ class RadarD:
         "dRel": float(self.tracks[tid].dRel),
         "yRel": float(self.tracks[tid].yRel),
         "vRel": float(self.tracks[tid].vRel),
+        "aRel": float(self.tracks[tid].aRel),
+        "vLat": float(self.tracks[tid].vLat),
       }
     pm.send('liveTracks', tracks_msg)
 
@@ -458,18 +617,22 @@ def radard_thread(sm: Optional[messaging.SubMaster] = None, pm: Optional[messagi
   rk = Ratekeeper(1.0 / CP.radarTimeStep, print_delay_threshold=None)
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
+  #now = time.monotonic()
   while 1:
     can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
     rr = RI.update(can_strings)
 
     if rr is None:
       continue
-
+    #print("{:.3f}  {:.3f}".format(CP.radarTimeStep, time.monotonic() - now))
+    #now = time.monotonic()
+    #continue
     sm.update(0)
 
     RD.update(sm, rr)
     RD.publish(pm, -rk.remaining*1000.0)
 
+    #rk.keep_time()
     rk.monitor_time()
 
 

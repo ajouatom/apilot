@@ -653,6 +653,14 @@ void DrawPlot::makePlotData(const UIState* s, float& data1, float& data2) {
         data1 = lead_radar.getVLeadK();
         data2 = lead_radar.getALeadK();
         break;
+    case 6:
+        data1 = a_ego;  //노
+        data2 = lead_radar.getALeadK(); // 녹
+        break;
+    case 7:
+        data1 = a_ego; // 노
+        data2 = accel;  // 녹
+        break;
     default:
         data1 = data2 = 0;
         break;
@@ -708,40 +716,37 @@ void DrawApilot::drawRadarInfo(const UIState* s) {
     char str[128];
 
     if (s->show_radar_info) {
-        bool disp = false;
         int wStr = 40;
-        if (s->show_radar_info >= 3) {
-            for (auto const& vrd : s->scene.lead_vertices_stopped) {
-                auto [rx, ry, rd, rv, ry_rel] = vrd;
+        for (auto const& vrd : s->scene.lead_vertices_side) {
+            auto [rx, ry, rd, rv, ry_rel, v_lat] = vrd;
+
+            if (rv < -1.0 || rv > 1.0) {
+                sprintf(str, "%.0f", rv * 3.6);
+                wStr = 35 * (strlen(str) + 0);
+                ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, (rv>0.)?COLOR_GREEN:COLOR_RED, 15);
+                ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
+                if (s->show_radar_info >= 2) {
+                    sprintf(str, "%.1f", ry_rel);
+                    ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
+                }
+            }
+#if 0
+            else if (v_lat < -1.0 || v_lat > 1.0) {
+                sprintf(str, "%.0f", (rv + v_lat) * 3.6);
+                wStr = 35 * (strlen(str) + 0);
+                ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_ORANGE, 15);
+                ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
+                if (s->show_radar_info >= 2) {
+                    sprintf(str, "%.1f", ry_rel);
+                    ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
+                }
+            }
+#endif
+            else if (s->show_radar_info >= 3) {
+                //sprintf(str, "%.1f", ry_rel);
+                //ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
                 strcpy(str, "*");
                 ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
-                //wStr = 35;
-                //if (true) {
-                //    ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_BLACK, 15);
-                //}
-            }
-        }
-        for (auto const& vrd : s->scene.lead_vertices_ongoing) {
-            auto [rx, ry, rd, rv, ry_rel] = vrd;
-            disp = true;
-            sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 0);
-            ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_GREEN, 15);
-            ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
-            if (s->show_radar_info >= 2) {
-                sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
-            }
-        }
-        for (auto const& vrd : s->scene.lead_vertices_oncoming) {
-            auto [rx, ry, rd, rv, ry_rel] = vrd;
-            sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 0);
-            ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_RED, 15);
-            ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
-            if (s->show_radar_info >= 2) {
-                sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
             }
         }
     }
