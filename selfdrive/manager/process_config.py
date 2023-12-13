@@ -53,9 +53,9 @@ procs = [
   DaemonProcess("manage_athenad", "selfdrive.athena.manage_athenad", "AthenadPid"),
 
   NativeProcess("camerad", "system/camerad", ["./camerad"], driverview),
-  #NativeProcess("logcatd", "system/logcatd", ["./logcatd"], only_onroad),
+  NativeProcess("logcatd", "system/logcatd", ["./logcatd"], only_onroad),
   NativeProcess("proclogd", "system/proclogd", ["./proclogd"], only_onroad),
-  #PythonProcess("logmessaged", "system.logmessaged", always_run),
+  PythonProcess("logmessaged", "system.logmessaged", always_run),
   PythonProcess("micd", "system.micd", iscar),
   PythonProcess("timezoned", "system.timezoned", always_run, enabled=not PC),
 
@@ -85,10 +85,10 @@ procs = [
   PythonProcess("plannerd", "selfdrive.controls.plannerd", only_onroad),
   PythonProcess("radard", "selfdrive.controls.radard", only_onroad),
   PythonProcess("thermald", "selfdrive.thermald.thermald", always_run),
-  #PythonProcess("tombstoned", "selfdrive.tombstoned", always_run, enabled=not PC),
+  PythonProcess("tombstoned", "selfdrive.tombstoned", always_run, enabled=not PC),
   PythonProcess("updated", "selfdrive.updated", only_offroad, enabled=not PC),
   #PythonProcess("uploader", "system.loggerd.uploader", always_run),
-  #PythonProcess("statsd", "selfdrive.statsd", always_run),
+  PythonProcess("statsd", "selfdrive.statsd", always_run),
   #PythonProcess("gpxd", "selfdrive.gpxd.gpxd", always_run),
   PythonProcess("otisserv", "selfdrive.navd.otisserv", always_run),
 
