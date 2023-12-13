@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include <map>
 #include <string>
 #include <vector>
