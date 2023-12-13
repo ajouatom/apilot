@@ -1,6 +1,5 @@
 #pragma once
 
-#include <future>
 #include <map>
 #include <string>
 #include <vector>
@@ -11,6 +10,7 @@ enum ParamKeyType {
   CLEAR_ON_ONROAD_TRANSITION = 0x08,
   CLEAR_ON_OFFROAD_TRANSITION = 0x10,
   DONT_LOG = 0x20,
+  DEVELOPMENT_ONLY = 0x40,
   ALL = 0xFFFFFFFF
 };
 

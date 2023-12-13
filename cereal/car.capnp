@@ -549,6 +549,7 @@ struct CarParams {
   openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
   carVin @38 :Text; # VIN number queried during fingerprinting
   dashcamOnly @41: Bool;
+  passive @73: Bool;   # is openpilot in control?
   transmissionType @43 :TransmissionType;
   carFw @44 :List(CarFw);
 
@@ -558,9 +559,9 @@ struct CarParams {
 
   wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
 
-  sccBus @73 : Int8;
-  hasLfaHda @74 : Bool;
-  naviCluster @75 : Int8;
+  sccBus @74 : Int8;
+  hasLfaHda @75 : Bool;
+  naviCluster @76 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

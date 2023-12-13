@@ -20,7 +20,7 @@ from openpilot.selfdrive.manager.helpers import unblock_stdout, write_onroad_par
 from openpilot.selfdrive.manager.process import ensure_running, launcher
 from openpilot.selfdrive.manager.process_config import managed_processes
 from openpilot.selfdrive.athena.registration import register, UNREGISTERED_DONGLE_ID
-from openpilot.system.swaglog import cloudlog, add_file_handler
+from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                            get_normalized_origin, terms_version, training_version, \
                            is_tested_branch, is_release_branch
@@ -38,6 +38,9 @@ def manager_init() -> None:
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
   params.clear_all(ParamKeyType.CLEAR_ON_ONROAD_TRANSITION)
   params.clear_all(ParamKeyType.CLEAR_ON_OFFROAD_TRANSITION)
+  if is_release_branch():
+    pass
+    #params.clear_all(ParamKeyType.DEVELOPMENT_ONLY)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
     ("CompletedTrainingVersion", "0"),

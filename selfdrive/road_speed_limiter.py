@@ -325,6 +325,7 @@ def main():
   nSdiBlockDist = -1
   nTBTDist = -1
   nRoadLimitSpeed = -1
+  xIndex = 0
   
   prev_recvTime = time.monotonic()
   autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
@@ -360,7 +361,7 @@ def main():
 
         #print(Port.RECEIVE_PORT)
 
-        dat = messaging.new_message()
+        dat = messaging.new_message('roadLimitSpeed', valid=True)
         dat.init('roadLimitSpeed')
         dat.roadLimitSpeed.active = server.active
         dat.roadLimitSpeed.roadLimitSpeed = server.get_limit_val("road_limit_speed", 0)
@@ -380,13 +381,13 @@ def main():
         atype = "none" if atype is None else atype
         value = "-1" if value is None else value
         try:
-          value_int = int(value)
-        except:
+          value_int = clip(int(value), -10000, 2000000000)
+        except ValueError:
           value_int = -100
 
         xCmd = server.get_apilot_val("apilot_cmd")
         xArg = server.get_apilot_val("apilot_arg")
-        xIndex = value_int
+        #xIndex = value_int
 
         now = time.monotonic()
         if ret:
@@ -525,7 +526,7 @@ def main():
           xTurnInfo = 5 # speed down
         elif nTBTTurnType in [153, 154, 249]: # TG
           xTurnInfo = 5 # speed down
-        elif nTBTTurnType >= 0:
+        elif nTBTTurnType >= 0 and not mappyMode_valid:
           xTurnInfo = -1
         if nTBTDist > 0 and xTurnInfo >= 0:
           xDistToTurn = nTBTDist
