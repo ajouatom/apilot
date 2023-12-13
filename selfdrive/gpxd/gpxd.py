@@ -29,7 +29,7 @@ import threading
 from openpilot.common.realtime import Ratekeeper
 import math
 from cereal import log
-from openpilot.system.swaglog import cloudlog
+from openpilot.common.swaglog import cloudlog
 
 # customisable values
 GPX_LOG_PATH = '/data/media/0/gpx_logs/'
