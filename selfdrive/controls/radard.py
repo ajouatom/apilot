@@ -71,6 +71,7 @@ class Track:
     self.kf = KF1D([[v_lead], [0.0]], self.K_A, self.K_C, self.K_K)
     self.kf_y = KF1D([[y_rel], [0.0]], self.K_A, self.K_C, self.K_K)
     self.dRel = 0
+    self.vLat = 0.0
     self.vision_prob = 0.0
 
   def update(self, d_rel: float, y_rel: float, v_rel: float, v_lead: float, measured: float, a_rel: float, aLeadTau: float, a_ego: float):
@@ -578,6 +579,7 @@ class RadarD:
 
     # publish tracks for UI debugging (keep last)
     tracks_msg = messaging.new_message('liveTracks', len(self.tracks))
+    tracks_msg.valid = self.radar_state_valid
     for index, tid in enumerate(sorted(self.tracks.keys())):
       tracks_msg.liveTracks[index] = {
         "trackId": tid,
