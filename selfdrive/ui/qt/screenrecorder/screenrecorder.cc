@@ -173,7 +173,7 @@ void ScreenRecoder::stop(bool sound) {
 
   //if(sound)
   //    soundStop.play();
-  //}
+  }
 }
 
 void ScreenRecoder::update_screen() {
