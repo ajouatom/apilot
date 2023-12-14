@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <QPainter>
 #include <QPushButton>
-#include <QSoundEffect>
+//#include <QSoundEffect>
 #include <thread>
 #include <chrono>
 
@@ -31,8 +31,8 @@ private:
   QColor recording_color;
   int frame;
 
-  QSoundEffect soundStart;
-  QSoundEffect soundStop;
+ // QSoundEffect soundStart;
+ // QSoundEffect soundStop;
 
   void applyColor();
 

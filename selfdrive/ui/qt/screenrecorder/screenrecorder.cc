@@ -51,11 +51,11 @@ ScreenRecoder::ScreenRecoder(QWidget *parent) : QPushButton(parent), image_queue
   rgb_scale_buffer = std::make_unique<uint8_t[]>(dst_width*dst_height*4);
   encoder = std::make_unique<OmxEncoder>(path.c_str(), dst_width, dst_height, UI_FREQ, 2*1024*1024, false, false);
 
-  soundStart.setSource(QUrl::fromLocalFile("../assets/sounds/start_record.wav"));
-  soundStop.setSource(QUrl::fromLocalFile("../assets/sounds/stop_record.wav"));
+  //soundStart.setSource(QUrl::fromLocalFile("../assets/sounds/start_record.wav"));
+  //soundStop.setSource(QUrl::fromLocalFile("../assets/sounds/stop_record.wav"));
 
-  soundStart.setVolume(0.5f);
-  soundStop.setVolume(0.5f);
+  //soundStart.setVolume(0.5f);
+  //soundStop.setVolume(0.5f);
 }
 
 ScreenRecoder::~ScreenRecoder() {
@@ -137,8 +137,8 @@ void ScreenRecoder::start(bool sound) {
 
   started = milliseconds();
 
-  if(sound)
-      soundStart.play();
+ // if(sound)
+      //soundStart.play();
 }
 
 void ScreenRecoder::encoding_thread_func() {
@@ -171,9 +171,9 @@ void ScreenRecoder::stop(bool sound) {
   if(encoding_thread.joinable())
     encoding_thread.join();
 
-  if(sound)
-      soundStop.play();
-  }
+  //if(sound)
+  //    soundStop.play();
+  //}
 }
 
 void ScreenRecoder::update_screen() {
